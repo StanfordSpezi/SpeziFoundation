@@ -68,7 +68,7 @@ jobs:
       path: 'Tests/UITests'
       scheme: TestAppWatchApp
       resultBundle: TestAppWatchApp.xcresult
-      destination: 'platform=watchOS Simulator,name=Apple Watch Series 8 (45mm)'
+      destination: 'platform=watchOS Simulator,name=Apple Watch Series 9 (45mm)'
       artifactname: TestAppWatchApp.xcresult
   uploadcoveragereport:
     name: Upload Coverage Report
