@@ -14,3 +14,4 @@ SpeziFoundation contributors
 ====================
 
 * [Paul Schmiedmayer](https://github.com/PSchmiedmayer)
+* [Andreas Bauer](https://github.com/Supereg)
