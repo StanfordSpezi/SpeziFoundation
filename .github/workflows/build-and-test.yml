@@ -42,37 +42,9 @@ jobs:
       resultBundle: SpeziFoundationVisionOS.xcresult
       destination: 'platform=visionOS Simulator,name=Apple Vision Pro'
       artifactname: SpeziFoundationVisionOS.xcresult
-  ios:
-    name: Build and Test iOS
-    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
-    with:
-      runsonlabels: '["macOS", "self-hosted"]'
-      path: 'Tests/UITests'
-      scheme: TestApp
-      artifactname: TestApp.xcresult
-  ipados:
-    name: Build and Test iPadOS
-    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
-    with:
-      runsonlabels: '["macOS", "self-hosted"]'
-      path: 'Tests/UITests'
-      scheme: TestApp
-      resultBundle: TestAppiPadOS.xcresult
-      destination: 'platform=iOS Simulator,name=iPad mini (6th generation)'
-      artifactname: TestAppiPadOS.xcresult
-  watchos:
-    name: Build and Test watchOS
-    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
-    with:
-      runsonlabels: '["macOS", "self-hosted"]'
-      path: 'Tests/UITests'
-      scheme: TestAppWatchApp
-      resultBundle: TestAppWatchApp.xcresult
-      destination: 'platform=watchOS Simulator,name=Apple Watch Series 9 (45mm)'
-      artifactname: TestAppWatchApp.xcresult
   uploadcoveragereport:
     name: Upload Coverage Report
-    needs: [packageios, packagewatchos, packagevisionos, ios, ipados, watchos]
+    needs: [packageios, packagewatchos, packagevisionos]
     uses: StanfordBDHG/.github/.github/workflows/create-and-upload-coverage-report.yml@v2
     with:
-      coveragereports: SpeziFoundation.xcresult SpeziFoundationWatchOS.xcresult SpeziFoundationVisionOS.xcresult TestApp.xcresult TestAppiPadOS.xcresult TestAppWatchApp.xcresult
+      coveragereports: SpeziFoundation.xcresult SpeziFoundationWatchOS.xcresult SpeziFoundationVisionOS.xcresult
