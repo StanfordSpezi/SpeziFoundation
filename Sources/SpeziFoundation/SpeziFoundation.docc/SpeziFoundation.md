@@ -12,12 +12,13 @@
 
 Spezi Foundation provides a base layer of functionality useful in many applications, including fundamental types, algorithms, extensions, and data structures.
 
-## Overview
+## Topics
 
-...
+### Data Structures
 
-## Types
+- <doc:Shared-Repository>
 
-### Spezi Foundation
+### Introspection
 
-- ``SpeziFoundation``
+- ``AnyArray``
+- ``AnyOptional``
