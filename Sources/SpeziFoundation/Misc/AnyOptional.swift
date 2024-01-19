@@ -13,6 +13,9 @@
 /// This is useful to unwrapping, e.g.,  generics or associated types by declaring an extension under the condition of
 /// ``AnyOptional`` conformance. This allows in the implementation of the extension to access the underlying
 /// ``Wrapped`` type of an `Optional`, essentially unwrapping the optional type.
+///
+/// ``AnyOptional`` conforms to the `ExpressibleByNilLiteral` protocol.
+/// Apple states that only `Optional` conforms to the `ExpressibleByNilLiteral` protocol: https://developer.apple.com/documentation/swift/expressiblebynilliteral
 public protocol AnyOptional: ExpressibleByNilLiteral {
     /// The underlying type of the Optional
     associatedtype Wrapped
