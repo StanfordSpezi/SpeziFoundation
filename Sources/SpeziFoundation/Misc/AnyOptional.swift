@@ -14,8 +14,8 @@
 /// ``AnyOptional`` conformance. This allows in the implementation of the extension to access the underlying
 /// ``Wrapped`` type of an `Optional`, essentially unwrapping the optional type.
 ///
-/// ``AnyOptional`` conforms to the `ExpressibleByNilLiteral` protocol.
-/// Apple states that only `Optional` conforms to the `ExpressibleByNilLiteral` protocol: https://developer.apple.com/documentation/swift/expressiblebynilliteral
+/// ``AnyOptional`` conforms to the [`ExpressibleByNilLiteral`](https://developer.apple.com/documentation/swift/expressiblebynilliteral) protocol.
+/// Apple states that only the `Optional` type conforms to `ExpressibleByNilLiteral`. `ExpressibleByNilLiteral` conformance for types that use `nil for other purposes is discouraged.
 public protocol AnyOptional: ExpressibleByNilLiteral {
     /// The underlying type of the Optional
     associatedtype Wrapped
