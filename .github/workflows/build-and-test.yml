@@ -42,9 +42,39 @@ jobs:
       resultBundle: SpeziFoundationVisionOS.xcresult
       destination: 'platform=visionOS Simulator,name=Apple Vision Pro'
       artifactname: SpeziFoundationVisionOS.xcresult
+  packagetvos:
+    name: Build and Test Swift Package tvOS
+    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
+    with:
+      runsonlabels: '["macOS", "self-hosted"]'
+      xcodeversion: latest
+      scheme: SpeziFoundation
+      resultBundle: SpeziFoundationTvOS.xcresult
+      destination: 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)'
+      artifactname: SpeziFoundationTvOS.xcresult
+  packagemacos:
+    name: Build and Test Swift Package macOS
+    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
+    with:
+      runsonlabels: '["macOS", "self-hosted"]'
+      xcodeversion: latest
+      scheme: SpeziFoundation
+      resultBundle: SpeziFoundationMacOS.xcresult
+      destination: 'platform=macOS,arch=arm64'
+      artifactname: SpeziFoundationMacOS.xcresult
+  codeql:
+    name: CodeQL
+    uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
+    with:
+      codeql: true
+      xcodeversion: '14.3.1'
+      scheme: TemplatePackage
+    permissions:
+      security-events: write
+      actions: read
   uploadcoveragereport:
     name: Upload Coverage Report
     needs: [packageios, packagewatchos, packagevisionos]
     uses: StanfordBDHG/.github/.github/workflows/create-and-upload-coverage-report.yml@v2
     with:
-      coveragereports: SpeziFoundation.xcresult SpeziFoundationWatchOS.xcresult SpeziFoundationVisionOS.xcresult
+      coveragereports: SpeziFoundation.xcresult SpeziFoundationWatchOS.xcresult SpeziFoundationVisionOS.xcresult SpeziFoundationTvOS.xcresult.xcresult SpeziFoundationMacOS.xcresult

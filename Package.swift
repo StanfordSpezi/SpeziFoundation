@@ -18,8 +18,7 @@ let package = Package(
         .watchOS(.v10),
         .visionOS(.v1),
         .macOS(.v14),
-        .tvOS(.v17),
-        .macCatalyst(.v17)
+        .tvOS(.v17)
     ],
     products: [
         .library(name: "SpeziFoundation", targets: ["SpeziFoundation"])
