@@ -30,7 +30,7 @@ jobs:
       runsonlabels: '["macOS", "self-hosted"]'
       scheme: SpeziFoundation
       resultBundle: SpeziFoundationWatchOS.xcresult
-      destination: 'platform=watchOS Simulator,name=Apple Watch Series 8 (45mm)'
+      destination: 'platform=watchOS Simulator,name=Apple Watch Series 9 (45mm)'
       artifactname: SpeziFoundationWatchOS.xcresult
   packagevisionos:
     name: Build and Test Swift Package visionOS
@@ -76,4 +76,4 @@ jobs:
     needs: [packageios, packagewatchos, packagevisionos]
     uses: StanfordBDHG/.github/.github/workflows/create-and-upload-coverage-report.yml@v2
     with:
-      coveragereports: SpeziFoundation.xcresult SpeziFoundationWatchOS.xcresult SpeziFoundationVisionOS.xcresult SpeziFoundationTvOS.xcresult.xcresult SpeziFoundationMacOS.xcresult
+      coveragereports: SpeziFoundation.xcresult SpeziFoundationWatchOS.xcresult SpeziFoundationVisionOS.xcresult SpeziFoundationTvOS.xcresult SpeziFoundationMacOS.xcresult
