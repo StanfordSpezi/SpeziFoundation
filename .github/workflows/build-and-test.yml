@@ -64,11 +64,11 @@ jobs:
       artifactname: SpeziFoundationMacOS.xcresult
   codeql:
     name: CodeQL
-    uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
+    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
     with:
       codeql: true
       xcodeversion: '14.3.1'
-      scheme: TemplatePackage
+      scheme: SpeziFoundation
     permissions:
       security-events: write
       actions: read
