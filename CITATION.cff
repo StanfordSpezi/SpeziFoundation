@@ -12,5 +12,9 @@ authors:
 - family-names: "Schmiedmayer"
   given-names: "Paul"
   orcid: "https://orcid.org/0000-0002-8607-9148"
+- family-names: "Bauer"
+  given-names: "Andreas"
+  orcid: "https://orcid.org/0000-0002-1680-237X"
 title: "SpeziFoundation"
+doi: 10.5281/zenodo.10077558
 url: "https://github.com/StanfordSpezi/SpeziFoundation"
