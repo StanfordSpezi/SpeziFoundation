@@ -11,6 +11,10 @@ SPDX-License-Identifier: MIT
 # SpeziFoundation
 
 [![Build and Test](https://github.com/StanfordSpezi/SpeziFoundation/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/StanfordSpezi/SpeziFoundation/actions/workflows/build-and-test.yml)
+[![codecov](https://codecov.io/gh/StanfordSpezi/SpeziFoundation/graph/badge.svg?token=9S5PQRVKF8)](https://codecov.io/gh/StanfordSpezi/SpeziFoundation)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10077558.svg)](https://doi.org/10.5281/zenodo.10077558)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FStanfordSpezi%2FSpeziFoundation%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FStanfordSpezi%2FSpeziFoundation%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation)
 
 Spezi Foundation provides a base layer of functionality useful in many applications, including fundamental types, algorithms, extensions, and data structures.
 

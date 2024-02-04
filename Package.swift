@@ -15,7 +15,10 @@ let package = Package(
     name: "SpeziFoundation",
     platforms: [
         .iOS(.v17),
-        .watchOS(.v10)
+        .watchOS(.v10),
+        .visionOS(.v1),
+        .macOS(.v14),
+        .tvOS(.v17)
     ],
     products: [
         .library(name: "SpeziFoundation", targets: ["SpeziFoundation"])
