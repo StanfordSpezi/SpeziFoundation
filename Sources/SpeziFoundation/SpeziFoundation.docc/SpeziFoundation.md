@@ -23,7 +23,6 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 - ``AnyArray``
 - ``AnyOptional``
 
-### Application Environment
+### Runtime Configuration
 
-- ``ApplicationEnvironment``
-- ``ApplicationEnvironmentRepository``
+- `RuntimeConfig` (exposed via the `TestingSupport` SPI target)
