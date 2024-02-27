@@ -22,3 +22,8 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 
 - ``AnyArray``
 - ``AnyOptional``
+
+### Application Environment
+
+- ``ApplicationEnvironment``
+- ``ApplicationEnvironmentRepository``

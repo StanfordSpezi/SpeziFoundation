@@ -25,7 +25,10 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "SpeziFoundation"
+            name: "SpeziFoundation",
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency")
+            ]
         ),
         .testTarget(
             name: "SpeziFoundationTests",
