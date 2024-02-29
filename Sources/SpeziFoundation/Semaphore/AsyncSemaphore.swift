@@ -50,7 +50,7 @@ import Foundation
 /// ```
 ///
 /// - Warning: `cancelAll` will trigger a runtime error if it attempts to cancel tasks that are not cancellable.
-final public class AsyncSemaphore {
+final public class AsyncSemaphore: @unchecked Sendable {
     private enum Suspension {
         case cancelable(UnsafeContinuation<Void, Error>)
         case regular(UnsafeContinuation<Void, Never>)
@@ -65,10 +65,15 @@ final public class AsyncSemaphore {
             }
         }
     }
+    
+    private struct SuspendedTask: Identifiable {
+        let id: UUID
+        let suspension: Suspension
+    }
 
     
     private var value: Int
-    private var suspendedTasks: [Suspension] = []
+    private var suspendedTasks: [SuspendedTask] = []
     private let nsLock = NSLock()
 
     
@@ -94,7 +99,7 @@ final public class AsyncSemaphore {
         }
 
         await withUnsafeContinuation { continuation in
-            suspendedTasks.append(.regular(continuation))
+            suspendedTasks.append(SuspendedTask(id: UUID(), suspension: .regular(continuation)))
             unlock()
         }
     }
@@ -123,16 +128,39 @@ final public class AsyncSemaphore {
             return
         }
 
+        let id = UUID()
 
-        try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
-            if Task.isCancelled {
-                value += 1 // restore the value
-                unlock()
+        try await withTaskCancellationHandler {
+            try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
+                if Task.isCancelled {
+                    value += 1 // restore the value
+                    unlock()
 
+                    continuation.resume(throwing: CancellationError())
+                } else {
+                    suspendedTasks.append(SuspendedTask(id: id, suspension: .cancelable(continuation)))
+                    unlock()
+                }
+            }
+        } onCancel: {
+            self.lock()
+            
+            value += 1
+            
+            guard let index = suspendedTasks.firstIndex(where: { $0.id == id }) else {
+                preconditionFailure("Inconsistent internal state reached")
+            }
+            
+            let task = suspendedTasks[index]
+            suspendedTasks.remove(at: index)
+            
+            unlock()
+            
+            switch task.suspension {
+            case .regular:
+                preconditionFailure("Tried to cancel a task that was not cancellable!")
+            case let .cancelable(continuation):
                 continuation.resume(throwing: CancellationError())
-            } else {
-                suspendedTasks.append(.cancelable(continuation))
-                unlock()
             }
         }
     }
@@ -157,7 +185,7 @@ final public class AsyncSemaphore {
         suspendedTasks.removeFirst()
         unlock()
 
-        first.resume()
+        first.suspension.resume()
         return true
     }
 
@@ -175,7 +203,7 @@ final public class AsyncSemaphore {
         unlock()
 
         for task in tasks {
-            task.resume()
+            task.suspension.resume()
         }
     }
 
@@ -195,7 +223,7 @@ final public class AsyncSemaphore {
         unlock()
 
         for task in tasks {
-            switch task {
+            switch task.suspension {
             case .regular:
                 preconditionFailure("Tried to cancel a task that was not cancellable!")
             case let .cancelable(continuation):
