@@ -13,16 +13,16 @@ import Dispatch
 import XCTest
 
 
-final class AsyncSemaphoreTests: XCTestCase {
+final class AsyncSemaphoreTests: XCTestCase {   // swiftlint:disable:this type_body_length
     func testSignalWithoutSuspendedTasks() {
         let dispatchSemZero = DispatchSemaphore(value: 0)
-        XCTAssertFalse(dispatchSemZero.signal() != 0)
+        XCTAssertEqual(dispatchSemZero.signal(), 0)
         
         let dispatchSemOne = DispatchSemaphore(value: 1)
-        XCTAssertFalse(dispatchSemOne.signal() != 0)
+        XCTAssertEqual(dispatchSemOne.signal(), 0)
         
         let dispatchSemTwo = DispatchSemaphore(value: 2)
-        XCTAssertFalse(dispatchSemTwo.signal() != 0)
+        XCTAssertEqual(dispatchSemTwo.signal(), 0)
 
         let asyncSemZero = AsyncSemaphore(value: 0)
         let wokenZero = asyncSemZero.signal()
@@ -48,9 +48,9 @@ final class AsyncSemaphoreTests: XCTestCase {
             try await Task.sleep(for: delay)
             
             // First signal wakes the waiting thread
-            XCTAssertTrue(sem.signal() != 0)
+            XCTAssertNotEqual(sem.signal(), 0)
             // Second signal does not wake any thread
-            XCTAssertFalse(sem.signal() != 0)
+            XCTAssertEqual(sem.signal(), 0)
         }
         
         // Test that AsyncSemaphore behaves identically
@@ -117,7 +117,7 @@ final class AsyncSemaphoreTests: XCTestCase {
     
     func testCancellationWhileSuspendedThrowsCancellationError() async throws {
         let sem = AsyncSemaphore(value: 0)
-        let ex = expectation(description: "cancellation")
+        let exp = expectation(description: "cancellation")
         let task = Task {
             do {
                 try await sem.waitCheckingCancellation()
@@ -126,16 +126,16 @@ final class AsyncSemaphoreTests: XCTestCase {
             } catch {
                 XCTFail("Unexpected error")
             }
-            ex.fulfill()
+            exp.fulfill()
         }
         try await Task.sleep(for: .milliseconds(100))
         task.cancel()
-        await fulfillment(of: [ex], timeout: 1)
+        await fulfillment(of: [exp], timeout: 1)
     }
     
     func testCancellationBeforeSuspensionThrowsCancellationError() throws {
         let sem = AsyncSemaphore(value: 0)
-        let ex = expectation(description: "cancellation")
+        let exp = expectation(description: "cancellation")
         let task = Task {
             // Uncancellable delay
             await withUnsafeContinuation { continuation in
@@ -150,10 +150,10 @@ final class AsyncSemaphoreTests: XCTestCase {
             } catch {
                 XCTFail("Unexpected error")
             }
-            ex.fulfill()
+            exp.fulfill()
         }
         task.cancel()
-        wait(for: [ex], timeout: 5)
+        wait(for: [exp], timeout: 5)
     }
     
     func testCancellationWhileSuspendedIncrementsSemaphore() async throws {
@@ -325,17 +325,17 @@ final class AsyncSemaphoreTests: XCTestCase {
         
         await Task { @MainActor in
             let runner = Runner(maxConcurrentRuns: 3)
-            async let x0: Void = runner.run()
-            async let x1: Void = runner.run()
-            async let x2: Void = runner.run()
-            async let x3: Void = runner.run()
-            async let x4: Void = runner.run()
-            async let x5: Void = runner.run()
-            async let x6: Void = runner.run()
-            async let x7: Void = runner.run()
-            async let x8: Void = runner.run()
-            async let x9: Void = runner.run()
-            _ = await (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            async let run0: Void = runner.run()
+            async let run1: Void = runner.run()
+            async let run2: Void = runner.run()
+            async let run3: Void = runner.run()
+            async let run4: Void = runner.run()
+            async let run5: Void = runner.run()
+            async let run6: Void = runner.run()
+            async let run7: Void = runner.run()
+            async let run8: Void = runner.run()
+            async let run9: Void = runner.run()
+            _ = await (run0, run1, run2, run3, run4, run5, run6, run7, run8, run9)
             let effectiveMaxConcurrentRuns = runner.effectiveMaxConcurrentRuns
             XCTAssertEqual(effectiveMaxConcurrentRuns, 3)
         }.value

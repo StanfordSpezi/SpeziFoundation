@@ -50,7 +50,7 @@ import Foundation
 /// ```
 ///
 /// - Warning: `cancelAll` will trigger a runtime error if it attempts to cancel tasks that are not cancellable.
-final public class AsyncSemaphore: @unchecked Sendable {
+public final class AsyncSemaphore: @unchecked Sendable {
     private enum Suspension {
         case cancelable(UnsafeContinuation<Void, Error>)
         case regular(UnsafeContinuation<Void, Never>)
