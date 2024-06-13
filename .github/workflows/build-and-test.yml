@@ -78,3 +78,5 @@ jobs:
     uses: StanfordBDHG/.github/.github/workflows/create-and-upload-coverage-report.yml@v2
     with:
       coveragereports: SpeziFoundation.xcresult SpeziFoundationWatchOS.xcresult SpeziFoundationVisionOS.xcresult SpeziFoundationTvOS.xcresult SpeziFoundationMacOS.xcresult
+    secrets:
+      token: ${{ secrets.CODECOV_TOKEN }}
