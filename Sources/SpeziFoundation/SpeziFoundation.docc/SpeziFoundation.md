@@ -27,6 +27,11 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 
 - ``AsyncSemaphore``
 
-### Runtime Configuration
+### Timeout
 
-- `RuntimeConfig` (exposed via the `TestingSupport` SPI target)
+- ``TimeoutError``
+- ``withTimeout(of:perform:)``
+
+### System Programming Interfaces
+
+- <doc:SPI>
