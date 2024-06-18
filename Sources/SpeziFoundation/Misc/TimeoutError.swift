@@ -29,13 +29,40 @@ extension TimeoutError: Error {}
 /// The example uses [Structured Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency)
 /// creating a child task running the timeout task. This makes sure that the timeout is automatically cancelled when the method goes out of scope.
 ///
+/// - Note: The example isolates the `continuation` property to the MainActor to ensure accesses are synchronized.
+///     Further, the method throws an error if the operation is already running. We use the `OperationAlreadyInUseError`
+///     error as an example.
+///
 /// ```swift
+/// @MainActor
+/// var operation: CheckedContinuation<Void, Error>?
+///
+/// @MainActor
 /// func foo() async throws {
-///     async let _ = withTimeout(of: .seconds(30)) {
-///         // cancel `operation` method below (e.g., resume continuation by throwing a `TimeoutError`)
+///     guard continuation == nil else {
+///         throw OperationAlreadyInUseError() // exemplary way of handling concurrent accesses
 ///     }
 ///
-///     try await operation()
+///     async let _ = withTimeout(of: .seconds(30)) { @MainActor in
+///         // operation timed out,  resume continuation by throwing a `TimeoutError`.
+///         if let continuation = operation {
+///             operation = nil
+///             continuation.resume(throwing: TimeoutError())
+///         }
+///     }
+///
+///     runOperation()
+///     try await withCheckedThrowingContinuation { continuation in
+///         self.continuation = continuation
+///     }
+/// }
+///
+/// @MainActor
+/// func handleOperationCompleted() {
+///     if let continuation = operation {
+///         operation = nil
+///         continuation.resume()
+///     }
 /// }
 /// ```
 ///
