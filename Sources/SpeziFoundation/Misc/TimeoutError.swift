@@ -16,7 +16,15 @@ public struct TimeoutError {
 }
 
 
-extension TimeoutError: Error {}
+extension TimeoutError: LocalizedError {
+    public var errorDescription: String? {
+        String(localized: LocalizedStringResource("Timeout", bundle: .atURL(Bundle.module.bundleURL)))
+    }
+
+    public var failureReason: String? {
+        String(localized: LocalizedStringResource("The operation timed out.", bundle: .atURL(Bundle.module.bundleURL)))
+    }
+}
 
 
 /// Race a timeout.
