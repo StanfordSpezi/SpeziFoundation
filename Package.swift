@@ -13,6 +13,7 @@ import PackageDescription
 
 let package = Package(
     name: "SpeziFoundation",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v17),
         .watchOS(.v10),
@@ -26,6 +27,9 @@ let package = Package(
     targets: [
         .target(
             name: "SpeziFoundation",
+            resources: [
+                .process("Resources")
+            ],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency")
             ]
