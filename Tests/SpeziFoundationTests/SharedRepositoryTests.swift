@@ -254,8 +254,8 @@ final class SharedRepositoryTests: XCTestCase {
         }
     }
 
-    static var computedValue: Int = 3
-    static var optionalComputedValue: Int?
+    static nonisolated(unsafe) var computedValue: Int = 3
+    static nonisolated(unsafe) var optionalComputedValue: Int?
 
     private var repos: [AnyTestInstance] = []
 
