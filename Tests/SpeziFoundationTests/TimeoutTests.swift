@@ -14,6 +14,7 @@ import XCTest
 final class TimeoutTests: XCTestCase {
     @MainActor private var continuation: CheckedContinuation<Void, any Error>?
 
+    @MainActor
     func operation(for duration: Duration) {
         Task { @MainActor in
             try? await Task.sleep(for: duration)
@@ -40,6 +41,7 @@ final class TimeoutTests: XCTestCase {
         }
     }
 
+    @MainActor
     func testTimeout() async throws {
         let negativeExpectation = XCTestExpectation()
         negativeExpectation.isInverted = true
