@@ -44,36 +44,119 @@ private protocol AnyTestInstance {
 }
 
 
+private struct TestStruct: KnowledgeSource, TestTypes {
+    var value: Int
+}
+
+
+private class TestClass: KnowledgeSource, TestTypes {
+    var value: Int
+
+
+    init(value: Int) {
+        self.value = value
+    }
+
+
+    static func == (lhs: TestClass, rhs: TestClass) -> Bool {
+        lhs.value == rhs.value
+    }
+}
+
+
+private enum TestKeyLike: KnowledgeSource {
+    typealias Anchor = TestAnchor
+    typealias Value = TestClass
+}
+
+
+private struct DefaultedTestStruct: DefaultProvidingKnowledgeSource, TestTypes {
+    var value: Int
+    static let defaultValue = DefaultedTestStruct(value: 0)
+}
+
+
 final class SharedRepositoryTests: XCTestCase {
-    struct TestStruct: KnowledgeSource, TestTypes {
-        var value: Int
-    }
-    
-    class TestClass: KnowledgeSource, TestTypes {
-        var value: Int
+    @MainActor static var computedValue: Int = 3
+    @MainActor static var optionalComputedValue: Int?
 
-        
-        init(value: Int) {
-            self.value = value
+    private var repos: [AnyTestInstance] = []
+
+    @MainActor
+    override func setUp() {
+        repos = [TestInstance(HeapRepository<TestAnchor>()), TestInstance(ValueRepository<TestAnchor>())]
+        Self.computedValue = 3
+        Self.optionalComputedValue = nil
+    }
+
+    func testValueRepositoryIteration() {
+        var repository = ValueRepository<TestAnchor>()
+        repository[TestStruct.self] = TestStruct(value: 3)
+        iterationTest(repository)
+    }
+
+    func testHeapRepositoryIteration() {
+        var repository = HeapRepository<TestAnchor>()
+        repository[TestStruct.self] = TestStruct(value: 3)
+        iterationTest(repository)
+    }
+
+    func iterationTest<Repository: SharedRepository<TestAnchor>>(_ repository: Repository)
+        where Repository: Collection, Repository.Element == AnyRepositoryValue {
+        for value in repository {
+            XCTAssertTrue(value.anySource is TestStruct.Type)
+            XCTAssertTrue(value.anyValue is TestStruct)
+            XCTAssertEqual(value.anyValue as? TestStruct, TestStruct(value: 3))
         }
-        
-        
-        static func == (lhs: SharedRepositoryTests.TestClass, rhs: SharedRepositoryTests.TestClass) -> Bool {
-            lhs.value == rhs.value
-        }
-    }
-    
-    enum TestKeyLike: KnowledgeSource {
-        typealias Anchor = TestAnchor
-        typealias Value = TestClass
     }
 
-    struct DefaultedTestStruct: DefaultProvidingKnowledgeSource, TestTypes {
-        var value: Int
-        static let defaultValue = DefaultedTestStruct(value: 0)
+    func testSetAndGet() {
+        repos.forEach { $0.testSetAndGet() }
     }
 
-    struct ComputedTestStruct<Policy: ComputedKnowledgeSourceStoragePolicy>: ComputedKnowledgeSource {
+    func testGetWithDefault() {
+        repos.forEach { $0.testGetWithDefault() }
+    }
+
+    func testContains() {
+        repos.forEach { $0.testContains() }
+    }
+
+    func testGetAllThatConformTo() {
+        repos.forEach { $0.testGetAllThatConformTo() }
+    }
+
+    func testMutationClass() {
+        repos.forEach { $0.testMutationClass() }
+    }
+
+    func testMutationStruct() {
+        repos.forEach { $0.testMutationStruct() }
+    }
+
+    func testKeyLikeKnowledgeSource() {
+        repos.forEach { $0.testKeyLikeKnowledgeSource() }
+    }
+
+    @MainActor
+    func testComputedKnowledgeSourceComputedOnlyPolicy() {
+        repos.forEach { $0.testComputedKnowledgeSourceComputedOnlyPolicy() }
+    }
+
+    @MainActor
+    func testComputedKnowledgeSourceComputedOnlyPolicyReadOnly() {
+        repos.forEach { $0.testComputedKnowledgeSourceComputedOnlyPolicyReadOnly() }
+    }
+
+    @MainActor
+    func testComputedKnowledgeSourceStorePolicy() {
+        repos.forEach { $0.testComputedKnowledgeSourceStorePolicy() }
+    }
+}
+
+
+extension SharedRepositoryTests {
+    private struct ComputedTestStruct<Policy: ComputedKnowledgeSourceStoragePolicy>: ComputedKnowledgeSource {
         typealias Anchor = TestAnchor
         typealias Value = Int
         typealias StoragePolicy = Policy
@@ -85,7 +168,7 @@ final class SharedRepositoryTests: XCTestCase {
         }
     }
 
-    struct OptionalComputedTestStruct<Policy: ComputedKnowledgeSourceStoragePolicy>: OptionalComputedKnowledgeSource {
+    private struct OptionalComputedTestStruct<Policy: ComputedKnowledgeSourceStoragePolicy>: OptionalComputedKnowledgeSource {
         typealias Anchor = TestAnchor
         typealias Value = Int
         typealias StoragePolicy = Policy
@@ -96,9 +179,9 @@ final class SharedRepositoryTests: XCTestCase {
             }
         }
     }
-    
 
-    class TestInstance<Repository: SharedRepository>: AnyTestInstance where Repository.Anchor == TestAnchor {
+
+    private class TestInstance<Repository: SharedRepository>: AnyTestInstance where Repository.Anchor == TestAnchor {
         var repository: Repository
 
         var readRepository: Repository {
@@ -259,81 +342,5 @@ final class SharedRepositoryTests: XCTestCase {
             optionalComputedValue = nil
             XCTAssertEqual(repository[OptionalComputedTestStruct<_StoreComputePolicy>.self], 4)
         }
-    }
-
-    @MainActor static var computedValue: Int = 3
-    @MainActor static var optionalComputedValue: Int?
-
-    private var repos: [AnyTestInstance] = []
-
-    @MainActor
-    override func setUp() {
-        repos = [TestInstance(HeapRepository<TestAnchor>()), TestInstance(ValueRepository<TestAnchor>())]
-        Self.computedValue = 3
-        Self.optionalComputedValue = nil
-    }
-
-    func testValueRepositoryIteration() {
-        var repository = ValueRepository<TestAnchor>()
-        repository[TestStruct.self] = TestStruct(value: 3)
-        iterationTest(repository)
-    }
-
-    func testHeapRepositoryIteration() {
-        var repository = HeapRepository<TestAnchor>()
-        repository[TestStruct.self] = TestStruct(value: 3)
-        iterationTest(repository)
-    }
-
-    func iterationTest<Repository: SharedRepository<TestAnchor>>(_ repository: Repository)
-        where Repository: Collection, Repository.Element == AnyRepositoryValue {
-        for value in repository {
-            XCTAssertTrue(value.anySource is TestStruct.Type)
-            XCTAssertTrue(value.anyValue is TestStruct)
-            XCTAssertEqual(value.anyValue as? TestStruct, TestStruct(value: 3))
-        }
-    }
-
-    func testSetAndGet() {
-        repos.forEach { $0.testSetAndGet() }
-    }
-
-    func testGetWithDefault() {
-        repos.forEach { $0.testGetWithDefault() }
-    }
-
-    func testContains() {
-        repos.forEach { $0.testContains() }
-    }
-
-    func testGetAllThatConformTo() {
-        repos.forEach { $0.testGetAllThatConformTo() }
-    }
-
-    func testMutationClass() {
-        repos.forEach { $0.testMutationClass() }
-    }
-
-    func testMutationStruct() {
-        repos.forEach { $0.testMutationStruct() }
-    }
-
-    func testKeyLikeKnowledgeSource() {
-        repos.forEach { $0.testKeyLikeKnowledgeSource() }
-    }
-
-    @MainActor
-    func testComputedKnowledgeSourceComputedOnlyPolicy() {
-        repos.forEach { $0.testComputedKnowledgeSourceComputedOnlyPolicy() }
-    }
-
-    @MainActor
-    func testComputedKnowledgeSourceComputedOnlyPolicyReadOnly() {
-        repos.forEach { $0.testComputedKnowledgeSourceComputedOnlyPolicyReadOnly() }
-    }
-
-    @MainActor
-    func testComputedKnowledgeSourceStorePolicy() {
-        repos.forEach { $0.testComputedKnowledgeSourceStorePolicy() }
     }
 }
