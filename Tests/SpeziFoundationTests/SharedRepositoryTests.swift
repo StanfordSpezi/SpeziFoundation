@@ -75,18 +75,18 @@ private struct DefaultedTestStruct: DefaultProvidingKnowledgeSource, TestTypes {
     static let defaultValue = DefaultedTestStruct(value: 0)
 }
 
+@MainActor var computedValue: Int = 3
+@MainActor var optionalComputedValue: Int?
+
 
 final class SharedRepositoryTests: XCTestCase {
-    @MainActor static var computedValue: Int = 3
-    @MainActor static var optionalComputedValue: Int?
-
     private var repos: [AnyTestInstance] = []
 
     @MainActor
     override func setUp() {
         repos = [TestInstance(HeapRepository<TestAnchor>()), TestInstance(ValueRepository<TestAnchor>())]
-        Self.computedValue = 3
-        Self.optionalComputedValue = nil
+        computedValue = 3
+        optionalComputedValue = nil
     }
 
     func testValueRepositoryIteration() {
