@@ -33,10 +33,13 @@ private protocol AnyTestInstance {
 
     func testKeyLikeKnowledgeSource()
 
+    @MainActor
     func testComputedKnowledgeSourceComputedOnlyPolicy()
 
+    @MainActor
     func testComputedKnowledgeSourceComputedOnlyPolicyReadOnly()
 
+    @MainActor
     func testComputedKnowledgeSourceStorePolicy()
 }
 
@@ -76,7 +79,9 @@ final class SharedRepositoryTests: XCTestCase {
         typealias StoragePolicy = Policy
 
         static func compute<Repository: SharedRepository<Anchor>>(from repository: Repository) -> Int {
-            computedValue
+            MainActor.assumeIsolated {
+                computedValue
+            }
         }
     }
 
@@ -86,7 +91,9 @@ final class SharedRepositoryTests: XCTestCase {
         typealias StoragePolicy = Policy
 
         static func compute<Repository: SharedRepository<Anchor>>(from repository: Repository) -> Int? {
-            optionalComputedValue
+            MainActor.assumeIsolated {
+                optionalComputedValue
+            }
         }
     }
     
@@ -254,11 +261,12 @@ final class SharedRepositoryTests: XCTestCase {
         }
     }
 
-    static nonisolated(unsafe) var computedValue: Int = 3
-    static nonisolated(unsafe) var optionalComputedValue: Int?
+    @MainActor static var computedValue: Int = 3
+    @MainActor static var optionalComputedValue: Int?
 
     private var repos: [AnyTestInstance] = []
 
+    @MainActor
     override func setUp() {
         repos = [TestInstance(HeapRepository<TestAnchor>()), TestInstance(ValueRepository<TestAnchor>())]
         Self.computedValue = 3
@@ -314,14 +322,17 @@ final class SharedRepositoryTests: XCTestCase {
         repos.forEach { $0.testKeyLikeKnowledgeSource() }
     }
 
+    @MainActor
     func testComputedKnowledgeSourceComputedOnlyPolicy() {
         repos.forEach { $0.testComputedKnowledgeSourceComputedOnlyPolicy() }
     }
 
+    @MainActor
     func testComputedKnowledgeSourceComputedOnlyPolicyReadOnly() {
         repos.forEach { $0.testComputedKnowledgeSourceComputedOnlyPolicyReadOnly() }
     }
 
+    @MainActor
     func testComputedKnowledgeSourceStorePolicy() {
         repos.forEach { $0.testComputedKnowledgeSourceStorePolicy() }
     }
