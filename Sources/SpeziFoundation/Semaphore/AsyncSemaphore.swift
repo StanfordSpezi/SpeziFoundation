@@ -50,7 +50,7 @@ import Foundation
 /// ```
 ///
 /// - Warning: `cancelAll` will trigger a runtime error if it attempts to cancel tasks that are not cancellable.
-public final class AsyncSemaphore: @unchecked Sendable {
+public final class AsyncSemaphore: Sendable {
     private enum Suspension {
         case cancelable(UnsafeContinuation<Void, Error>)
         case regular(UnsafeContinuation<Void, Never>)
@@ -72,9 +72,9 @@ public final class AsyncSemaphore: @unchecked Sendable {
     }
 
     
-    private var value: Int
-    private var suspendedTasks: [SuspendedTask] = []
-    private let nsLock = NSLock()
+    private nonisolated(unsafe) var value: Int
+    private nonisolated(unsafe) var suspendedTasks: [SuspendedTask] = []
+    private let nsLock = NSLock() // protects both of the non-isolated unsafe properties above
 
     
     /// Initializes a new semaphore with a given concurrency limit.
@@ -90,17 +90,17 @@ public final class AsyncSemaphore: @unchecked Sendable {
     ///
     /// Use this method when access to a resource should be awaited without the possibility of cancellation.
     public func wait() async {
-        lock()
+        unsafeLock() // this is okay, as the continuation body actually runs sync, so we do no have async code within critical region
 
         value -= 1
         if value >= 0 {
-            unlock()
+            unsafeUnlock()
             return
         }
 
         await withUnsafeContinuation { continuation in
             suspendedTasks.append(SuspendedTask(id: UUID(), suspension: .regular(continuation)))
-            unlock()
+            nsLock.unlock()
         }
     }
 
@@ -112,19 +112,19 @@ public final class AsyncSemaphore: @unchecked Sendable {
     public func waitCheckingCancellation() async throws {
         try Task.checkCancellation() // check if we are already cancelled
 
-        lock()
+        unsafeLock() // this is okay, as the continuation body actually runs sync, so we do no have async code within critical region
 
         do {
             // check if we got cancelled while acquiring the lock
             try Task.checkCancellation()
         } catch {
-            unlock()
+            unsafeUnlock()
             throw error
         }
 
         value -= 1 // decrease the value
         if value >= 0 {
-            unlock()
+            unsafeUnlock()
             return
         }
 
@@ -134,27 +134,26 @@ public final class AsyncSemaphore: @unchecked Sendable {
             try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
                 if Task.isCancelled {
                     value += 1 // restore the value
-                    unlock()
+                    unsafeUnlock()
 
                     continuation.resume(throwing: CancellationError())
                 } else {
                     suspendedTasks.append(SuspendedTask(id: id, suspension: .cancelable(continuation)))
-                    unlock()
+                    unsafeUnlock()
                 }
             }
         } onCancel: {
-            self.lock()
-            
-            value += 1
-            
-            guard let index = suspendedTasks.firstIndex(where: { $0.id == id }) else {
-                preconditionFailure("Inconsistent internal state reached")
+            let task = nsLock.withLock {
+                value += 1
+
+                guard let index = suspendedTasks.firstIndex(where: { $0.id == id }) else {
+                    preconditionFailure("Inconsistent internal state reached")
+                }
+
+                let task = suspendedTasks[index]
+                suspendedTasks.remove(at: index)
+                return task
             }
-            
-            let task = suspendedTasks[index]
-            suspendedTasks.remove(at: index)
-            
-            unlock()
             
             switch task.suspension {
             case .regular:
@@ -173,18 +172,20 @@ public final class AsyncSemaphore: @unchecked Sendable {
     /// - Returns: `true` if a task was resumed, `false` otherwise.
     @discardableResult
     public func signal() -> Bool {
-        lock()
+        let first: SuspendedTask? = nsLock.withLock {
+            value += 1
 
-        value += 1
+            guard let first = suspendedTasks.first else {
+                return nil
+            }
 
-        guard let first = suspendedTasks.first else {
-            unlock()
-            return false
+            suspendedTasks.removeFirst()
+            return first
         }
 
-        suspendedTasks.removeFirst()
-        unlock()
-
+        guard let first else {
+            return false
+        }
         first.suspension.resume()
         return true
     }
@@ -193,14 +194,13 @@ public final class AsyncSemaphore: @unchecked Sendable {
     ///
     /// This method resumes all `Task`s that are currently waiting for access.
     public func signalAll() {
-        lock()
+        let tasks = nsLock.withLock {
+            value += suspendedTasks.count
 
-        value += suspendedTasks.count
-
-        let tasks = suspendedTasks
-        self.suspendedTasks.removeAll()
-
-        unlock()
+            let tasks = suspendedTasks
+            self.suspendedTasks.removeAll()
+            return tasks
+        }
 
         for task in tasks {
             task.suspension.resume()
@@ -213,14 +213,13 @@ public final class AsyncSemaphore: @unchecked Sendable {
     ///
     /// - Warning: Will trigger a runtime error if it attempts to cancel `Task`s that are not cancellable.
     public func cancelAll() {
-        lock()
+        let tasks = nsLock.withLock {
+            value += suspendedTasks.count
 
-        value += suspendedTasks.count
-
-        let tasks = suspendedTasks
-        self.suspendedTasks.removeAll()
-
-        unlock()
+            let tasks = suspendedTasks
+            self.suspendedTasks.removeAll()
+            return tasks
+        }
 
         for task in tasks {
             switch task.suspension {
@@ -232,11 +231,11 @@ public final class AsyncSemaphore: @unchecked Sendable {
         }
     }
     
-    private func lock() {
+    private func unsafeLock() { // silences a warning, just make sure that you don't have an await in between lock/unlock!
         nsLock.lock()
     }
 
-    private func unlock() {
+    private func unsafeUnlock() {
         nsLock.unlock()
     }
 }
