@@ -16,23 +16,4 @@ public protocol KnowledgeSource<Anchor> {
     associatedtype Value = Self
     /// The ``RepositoryAnchor`` to which this `KnowledgeSource` is anchored to.
     associatedtype Anchor: RepositoryAnchor
-
-
-    /// Optional reduction algorithm to handle overriding existing entries.
-    ///
-    /// The default implementation overrides the existing value.
-    /// - Parameters:
-    ///   - value: The existing value to reduce into.
-    ///   - nextValue: The next value.
-    static func reduce(value: inout Self.Value, nextValue: Self.Value)
-}
-
-extension KnowledgeSource {
-    /// The default implementation override the current value.
-    /// - Parameters:
-    ///   - value: The existing value to reduce into.
-    ///   - nextValue: The next value.
-    public static func reduce(value: inout Self.Value, nextValue: Self.Value) {
-        value = nextValue
-    }
 }

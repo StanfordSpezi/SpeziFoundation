@@ -8,11 +8,14 @@
 
 
 /// A ``KnowledgeSource`` that allows to compose it's values from it's surrounding knowledge environment.
-public protocol ComputedKnowledgeSource<Anchor>: SomeComputedKnowledgeSource {
+public protocol ComputedKnowledgeSource<Anchor, Repository>: SomeComputedKnowledgeSource {
+    associatedtype Repository
+
     /// Computes the value of the ``KnowledgeSource``.
     ///
     /// - Note: The implementation of this method must be deterministic.
     /// - Parameter repository: The repository to use for computation.
     /// - Returns: Returns the computed value.
-    static func compute<Repository: SharedRepository<Anchor>>(from repository: Repository) -> Value
+    @Sendable
+    static func compute(from repository: Repository) -> Value
 }

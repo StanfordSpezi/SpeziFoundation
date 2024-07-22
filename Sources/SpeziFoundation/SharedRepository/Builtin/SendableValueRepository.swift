@@ -7,9 +7,9 @@
 //
 
 
-/// A Shared Repository.
-public struct ValueRepository<Anchor> {
-    private var storage: [ObjectIdentifier: AnyRepositoryValue] = [:]
+/// A Sendable Shared Repository.
+public struct SendableValueRepository<Anchor> {
+    private var storage: [ObjectIdentifier: AnyRepositoryValue & Sendable] = [:]
 
 
     /// Initializes an empty shared repository.
@@ -17,13 +17,13 @@ public struct ValueRepository<Anchor> {
 }
 
 
-extension ValueRepository: SharedRepository {
-    public func get<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value? {
+extension SendableValueRepository: SendableSharedRepository {
+    public func get<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value? where Source.Value: Sendable {
         (storage[ObjectIdentifier(source)] as? RepositoryValue<Source>)?.value
     }
 
-    public mutating func set<Source: KnowledgeSource<Anchor>>(_ source: Source.Type, value newValue: Source.Value?) {
-        self.storage[ObjectIdentifier(source)] = newValue.map { RepositoryValue<Source>($0) }
+    public mutating func set<Source: KnowledgeSource<Anchor>>(_ source: Source.Type, value newValue: Source.Value?) where Source.Value: Sendable {
+        storage[ObjectIdentifier(source)] = newValue.map { RepositoryValue<Source>($0) }
     }
 
     public func collect<Value>(allOf type: Value.Type) -> [Value] {
@@ -34,8 +34,8 @@ extension ValueRepository: SharedRepository {
 }
 
 
-extension ValueRepository: Collection {
-    public typealias Index = Dictionary<ObjectIdentifier, AnyRepositoryValue>.Index
+extension SendableValueRepository: Collection {
+    public typealias Index = Dictionary<ObjectIdentifier, AnyRepositoryValue & Sendable>.Index
 
     public var startIndex: Index {
         storage.values.startIndex
@@ -50,7 +50,7 @@ extension ValueRepository: Collection {
     }
 
 
-    public subscript(position: Index) -> AnyRepositoryValue {
+    public subscript(position: Index) -> AnyRepositoryValue & Sendable {
         storage.values[position]
     }
 }

@@ -10,81 +10,8 @@ import os
 @_spi(APISupport) @testable import SpeziFoundation
 import XCTest
 
-
-struct TestAnchor: RepositoryAnchor {}
-
-
-protocol TestTypes: Equatable {
-    typealias Anchor = TestAnchor // default anchor
-
-    var value: Int { get }
-}
-
-
-struct TestStruct: KnowledgeSource, TestTypes {
-    var value: Int
-}
-
-
-final class TestClass: KnowledgeSource, TestTypes, Sendable {
-    let value: Int
-
-
-    init(value: Int) {
-        self.value = value
-    }
-
-
-    static func == (lhs: TestClass, rhs: TestClass) -> Bool {
-        lhs.value == rhs.value
-    }
-}
-
-
-enum TestKeyLike: KnowledgeSource {
-    typealias Anchor = TestAnchor
-    typealias Value = TestClass
-}
-
-
-struct DefaultedTestStruct: DefaultProvidingKnowledgeSource, TestTypes {
-    static let defaultValue = DefaultedTestStruct(value: 0)
-    var value: Int
-}
-
-
-struct ComputedTestStruct<Policy: ComputedKnowledgeSourceStoragePolicy, Repository>: ComputedKnowledgeSource {
-    typealias Anchor = TestAnchor
-    typealias Value = Int
-    typealias StoragePolicy = Policy
-
-    static func compute(from repository: Repository) -> Int {
-        MainActor.assumeIsolated {
-            computedValue
-        }
-    }
-}
-
-
-struct OptionalComputedTestStruct<Policy: ComputedKnowledgeSourceStoragePolicy, Repository>: OptionalComputedKnowledgeSource {
-    typealias Anchor = TestAnchor
-    typealias Value = Int
-    typealias StoragePolicy = Policy
-
-    static func compute(from repository: Repository) -> Int? {
-        MainActor.assumeIsolated {
-            optionalComputedValue
-        }
-    }
-}
-
-
-@MainActor var computedValue: Int = 3
-@MainActor var optionalComputedValue: Int?
-
-
-final class SharedRepositoryTests: XCTestCase {
-    typealias Repository = ValueRepository<TestAnchor>
+final class SendableSharedRepositoryTests: XCTestCase {
+    typealias Repository = SendableValueRepository<TestAnchor>
 
     private var repository = Repository()
 
