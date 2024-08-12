@@ -14,7 +14,7 @@
 ///
 /// This concrete `SharedRepository` implementation acts as a typed collection. The stored data is defined and
 /// keyed by ``KnowledgeSource`` instances. All values in a `SharedRepository` share the same ``Anchor``.
-public protocol SendableSharedRepository<Anchor> {
+public protocol SendableSharedRepository<Anchor>: Sendable {
     /// The associated Repository Anchor.
     ///
     /// Use a ``RepositoryAnchor`` to constraint the set of values to a certain set of ``KnowledgeSource`` namely all
