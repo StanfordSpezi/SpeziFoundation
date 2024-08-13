@@ -6,8 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-
-/// Storage mechanism that allows multiple entities to access, provide and modify shared data.
+/// Sendable storage mechanism that allows multiple entities to access, provide and modify shared data.
 ///
 /// A `SharedRepository` allows to easily integrate application functionality with a data-driven control flow or
 /// applications that operate on the same data, but do not share the same processing workflow or are split across
@@ -15,7 +14,7 @@
 ///
 /// This concrete `SharedRepository` implementation acts as a typed collection. The stored data is defined and
 /// keyed by ``KnowledgeSource`` instances. All values in a `SharedRepository` share the same ``Anchor``.
-public protocol SharedRepository<Anchor> {
+public protocol SendableSharedRepository<Anchor>: Sendable {
     /// The associated Repository Anchor.
     ///
     /// Use a ``RepositoryAnchor`` to constraint the set of values to a certain set of ``KnowledgeSource`` namely all
@@ -33,7 +32,7 @@ public protocol SharedRepository<Anchor> {
     /// - Parameter source: The ``KnowledgeSource`` type for which we want to retrieve the value.
     /// - Returns: The stored ``KnowledgeSource/Value`` or `nil` if not present.
     @_spi(APISupport)
-    func get<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value?
+    func get<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value? where Source.Value: Sendable
 
     /// Sets a value in the shared repository.
     ///
@@ -43,7 +42,7 @@ public protocol SharedRepository<Anchor> {
     ///   - source: The ``KnowledgeSource`` type for which we want to store the value.
     ///   - newValue: The ``KnowledgeSource/Value`` or nil to remove the value.
     @_spi(APISupport)
-    mutating func set<Source: KnowledgeSource<Anchor>>(_ source: Source.Type, value newValue: Source.Value?)
+    mutating func set<Source: KnowledgeSource<Anchor>>(_ source: Source.Type, value newValue: Source.Value?) where Source.Value: Sendable
 
     /// Collects all stored values that are of the provided type.
     /// - Parameter type: A type which we use to perform a `is` check on every stored value.
@@ -56,18 +55,18 @@ public protocol SharedRepository<Anchor> {
     ///     ``OptionalComputedKnowledgeSource`` as these are entirely application defined.
     /// - Parameter source: The ``KnowledgeSource`` to check for.
     /// - Returns: Returns if the given ``KnowledgeSource`` is currently stored in the repository.
-    func contains<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Bool
+    func contains<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Bool where Source.Value: Sendable
 
 
     /// A subscript to retrieve or set a `KnowledgeSource`.
     /// - Parameter source: The ``KnowledgeSource`` type.
     /// - Returns: The stored ``KnowledgeSource/Value`` or `nil` if not present.
-    subscript<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value? { get set }
+    subscript<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value? where Source.Value: Sendable { get set }
 
     /// A subscript to retrieve or set a `DefaultProvidingKnowledgeSource`.
     /// - Parameter source: The ``DefaultProvidingKnowledgeSource`` type.
     /// - Returns: The stored ``KnowledgeSource/Value`` or the ``DefaultProvidingKnowledgeSource/defaultValue``.
-    subscript<Source: DefaultProvidingKnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value { get }
+    subscript<Source: DefaultProvidingKnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value where Source.Value: Sendable { get }
 
     /// A subscript to retrieve a `ComputedKnowledgeSource`.
     ///
@@ -77,7 +76,7 @@ public protocol SharedRepository<Anchor> {
     /// - Returns: The stored ``KnowledgeSource/Value`` or calls ``ComputedKnowledgeSource/compute(from:)`` to compute the value.
     subscript<Source: ComputedKnowledgeSource<Anchor, Self>>(
         _ source: Source.Type
-    ) -> Source.Value where Source.StoragePolicy == _StoreComputePolicy { mutating get }
+    ) -> Source.Value where Source.StoragePolicy == _StoreComputePolicy, Source.Value: Sendable { mutating get }
 
     /// A subscript to retrieve a `ComputedKnowledgeSource`.
     ///
@@ -87,7 +86,7 @@ public protocol SharedRepository<Anchor> {
     /// - Returns: The calls ``ComputedKnowledgeSource/compute(from:)`` to compute the value.
     subscript<Source: ComputedKnowledgeSource<Anchor, Self>>(
         _ source: Source.Type
-    ) -> Source.Value where Source.StoragePolicy == _AlwaysComputePolicy { get }
+    ) -> Source.Value where Source.StoragePolicy == _AlwaysComputePolicy, Source.Value: Sendable { get }
 
     /// A subscript to retrieve a `OptionalComputedKnowledgeSource`.
     ///
@@ -98,7 +97,7 @@ public protocol SharedRepository<Anchor> {
     ///     or `nil` if the `compute` method returned nil.
     subscript<Source: OptionalComputedKnowledgeSource<Anchor, Self>>(
         _ source: Source.Type
-    ) -> Source.Value? where Source.StoragePolicy == _StoreComputePolicy { mutating get }
+    ) -> Source.Value? where Source.StoragePolicy == _StoreComputePolicy, Source.Value: Sendable { mutating get }
 
     /// A subscript to retrieve a `OptionalComputedKnowledgeSource`.
     ///
@@ -109,18 +108,18 @@ public protocol SharedRepository<Anchor> {
     ///     or `nil` if the `compute` method returned nil.
     subscript<Source: OptionalComputedKnowledgeSource<Anchor, Self>>(
         _ source: Source.Type
-    ) -> Source.Value? where Source.StoragePolicy == _AlwaysComputePolicy { get }
+    ) -> Source.Value? where Source.StoragePolicy == _AlwaysComputePolicy, Source.Value: Sendable { get }
 }
 
-extension SharedRepository {
+extension SendableSharedRepository {
     /// Default contains method calling ``get(_:)``.
-    public func contains<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Bool {
+    public func contains<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Bool where Source.Value: Sendable {
         self.get(source) != nil
     }
 
 
     /// Default subscript implementation delegating to ``get(_:)`` or ``set(_:value:)``.
-    public subscript<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value? {
+    public subscript<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value? where Source.Value: Sendable {
         get {
             get(source)
         }
@@ -130,7 +129,10 @@ extension SharedRepository {
     }
 
     /// Default subscript implementation.
-    public subscript<Source: KnowledgeSource<Anchor>>(_ source: Source.Type, default defaultValue: @autoclosure () -> Source.Value) -> Source.Value {
+    public subscript<Source: KnowledgeSource<Anchor>>(
+        _ source: Source.Type,
+        default defaultValue: @autoclosure () -> Source.Value
+    ) -> Source.Value where Source.Value: Sendable {
         get {
             get(source) ?? defaultValue()
         }
@@ -140,7 +142,7 @@ extension SharedRepository {
     }
 
     /// Default subscript implementation delegating to ``get(_:)`` or providing a ``DefaultProvidingKnowledgeSource/defaultValue``.
-    public subscript<Source: DefaultProvidingKnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value {
+    public subscript<Source: DefaultProvidingKnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value where Source.Value: Sendable {
         self.get(source) ?? source.defaultValue
     }
 
@@ -148,7 +150,7 @@ extension SharedRepository {
     /// and storing the result.
     public subscript<Source: ComputedKnowledgeSource<Anchor, Self>>(
         _ source: Source.Type
-    ) -> Source.Value where Source.StoragePolicy == _StoreComputePolicy {
+    ) -> Source.Value where Source.StoragePolicy == _StoreComputePolicy, Source.Value: Sendable {
         mutating get {
             if let value = self.get(source) {
                 return value
@@ -163,7 +165,7 @@ extension SharedRepository {
     /// Default subscript implementation delegating calling ``ComputedKnowledgeSource/compute(from:)``.
     public subscript<Source: ComputedKnowledgeSource<Anchor, Self>>(
         _ source: Source.Type
-    ) -> Source.Value where Source.StoragePolicy == _AlwaysComputePolicy {
+    ) -> Source.Value where Source.StoragePolicy == _AlwaysComputePolicy, Source.Value: Sendable {
         source.compute(from: self)
     }
 
@@ -171,7 +173,7 @@ extension SharedRepository {
     /// and storing the result.
     public subscript<Source: OptionalComputedKnowledgeSource<Anchor, Self>>(
         _ source: Source.Type
-    ) -> Source.Value? where Source.StoragePolicy == _StoreComputePolicy {
+    ) -> Source.Value? where Source.StoragePolicy == _StoreComputePolicy, Source.Value: Sendable {
         mutating get {
             if let value = self.get(source) {
                 return value
@@ -186,7 +188,7 @@ extension SharedRepository {
     /// Default subscript implementation delegating calling ``OptionalComputedKnowledgeSource/compute(from:)``.
     public subscript<Source: OptionalComputedKnowledgeSource<Anchor, Self>>(
         _ source: Source.Type
-    ) -> Source.Value? where Source.StoragePolicy == _AlwaysComputePolicy {
+    ) -> Source.Value? where Source.StoragePolicy == _AlwaysComputePolicy, Source.Value: Sendable {
         source.compute(from: self)
     }
 }
