@@ -27,7 +27,7 @@ final class SendableSharedRepositoryTests: XCTestCase {
     }
 
     func testIteration() {
-        var repository = ValueRepository<TestAnchor>()
+        var repository = Repository()
         repository[TestStruct.self] = TestStruct(value: 3)
 
         for value in repository {
@@ -35,6 +35,13 @@ final class SendableSharedRepositoryTests: XCTestCase {
             XCTAssertTrue(value.anyValue is TestStruct)
             XCTAssertEqual(value.anyValue as? TestStruct, TestStruct(value: 3))
         }
+    }
+
+    func testDefaultSubscript() throws {
+        repository[TestStruct.self, default: TestStruct(value: 56)].value = 23
+
+        let value = try XCTUnwrap(repository[TestStruct.self])
+        XCTAssertEqual(value.value, 23)
     }
 
     func testSetAndGet() {
