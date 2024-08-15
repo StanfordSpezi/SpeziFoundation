@@ -55,6 +55,7 @@ public protocol SendableSharedRepository<Anchor>: Sendable {
     ///     ``OptionalComputedKnowledgeSource`` as these are entirely application defined.
     /// - Parameter source: The ``KnowledgeSource`` to check for.
     /// - Returns: Returns if the given ``KnowledgeSource`` is currently stored in the repository.
+    @_disfavoredOverload
     func contains<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Bool where Source.Value: Sendable
 
 
@@ -66,6 +67,7 @@ public protocol SendableSharedRepository<Anchor>: Sendable {
     /// A subscript to retrieve or set a `DefaultProvidingKnowledgeSource`.
     /// - Parameter source: The ``DefaultProvidingKnowledgeSource`` type.
     /// - Returns: The stored ``KnowledgeSource/Value`` or the ``DefaultProvidingKnowledgeSource/defaultValue``.
+    @_disfavoredOverload
     subscript<Source: DefaultProvidingKnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value where Source.Value: Sendable { get }
 
     /// A subscript to retrieve a `ComputedKnowledgeSource`.
@@ -119,6 +121,7 @@ extension SendableSharedRepository {
 
 
     /// Default subscript implementation delegating to ``get(_:)`` or ``set(_:value:)``.
+    @_disfavoredOverload
     public subscript<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value? where Source.Value: Sendable {
         get {
             get(source)
@@ -142,6 +145,7 @@ extension SendableSharedRepository {
     }
 
     /// Default subscript implementation delegating to ``get(_:)`` or providing a ``DefaultProvidingKnowledgeSource/defaultValue``.
+    @_disfavoredOverload
     public subscript<Source: DefaultProvidingKnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value where Source.Value: Sendable {
         self.get(source) ?? source.defaultValue
     }

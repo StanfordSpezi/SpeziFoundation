@@ -188,4 +188,10 @@ final class SendableSharedRepositoryTests: XCTestCase {
         optionalComputedValue = nil
         XCTAssertEqual(repository[OptionalComputedTestStruct<_StoreComputePolicy, Repository>.self], 4)
     }
+
+    @MainActor
+    func testComputedKnowledgeSourcePreferred() {
+        let value = repository[ComputedDefaultTestStruct<_StoreComputePolicy, Repository>.self]
+        XCTAssertEqual(value, computedValue)
+    }
 }

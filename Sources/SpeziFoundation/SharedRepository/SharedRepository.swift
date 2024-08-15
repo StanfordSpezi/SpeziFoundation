@@ -62,11 +62,13 @@ public protocol SharedRepository<Anchor> {
     /// A subscript to retrieve or set a `KnowledgeSource`.
     /// - Parameter source: The ``KnowledgeSource`` type.
     /// - Returns: The stored ``KnowledgeSource/Value`` or `nil` if not present.
+    @_disfavoredOverload
     subscript<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value? { get set }
 
     /// A subscript to retrieve or set a `DefaultProvidingKnowledgeSource`.
     /// - Parameter source: The ``DefaultProvidingKnowledgeSource`` type.
     /// - Returns: The stored ``KnowledgeSource/Value`` or the ``DefaultProvidingKnowledgeSource/defaultValue``.
+    @_disfavoredOverload
     subscript<Source: DefaultProvidingKnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value { get }
 
     /// A subscript to retrieve a `ComputedKnowledgeSource`.
@@ -120,6 +122,7 @@ extension SharedRepository {
 
 
     /// Default subscript implementation delegating to ``get(_:)`` or ``set(_:value:)``.
+    @_disfavoredOverload
     public subscript<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value? {
         get {
             get(source)
@@ -140,6 +143,7 @@ extension SharedRepository {
     }
 
     /// Default subscript implementation delegating to ``get(_:)`` or providing a ``DefaultProvidingKnowledgeSource/defaultValue``.
+    @_disfavoredOverload
     public subscript<Source: DefaultProvidingKnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value {
         self.get(source) ?? source.defaultValue
     }
