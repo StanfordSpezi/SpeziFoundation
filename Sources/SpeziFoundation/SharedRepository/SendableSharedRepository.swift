@@ -55,13 +55,13 @@ public protocol SendableSharedRepository<Anchor>: Sendable {
     ///     ``OptionalComputedKnowledgeSource`` as these are entirely application defined.
     /// - Parameter source: The ``KnowledgeSource`` to check for.
     /// - Returns: Returns if the given ``KnowledgeSource`` is currently stored in the repository.
-    @_disfavoredOverload
     func contains<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Bool where Source.Value: Sendable
 
 
     /// A subscript to retrieve or set a `KnowledgeSource`.
     /// - Parameter source: The ``KnowledgeSource`` type.
     /// - Returns: The stored ``KnowledgeSource/Value`` or `nil` if not present.
+    @_disfavoredOverload
     subscript<Source: KnowledgeSource<Anchor>>(_ source: Source.Type) -> Source.Value? where Source.Value: Sendable { get set }
 
     /// A subscript to retrieve or set a `DefaultProvidingKnowledgeSource`.
