@@ -20,7 +20,7 @@ final class SendableSharedRepositoryTests: XCTestCase {
     }
 
     @MainActor
-    override func setUp() {
+    override func setUp() async throws {
         self.repository = .init()
         computedValue = 3
         optionalComputedValue = nil
