@@ -27,6 +27,10 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 
 - ``AsyncSemaphore``
 
+### Encoders and Decoders
+- ``TopLevelEncoder``
+- ``TopLevelDecoder``
+
 ### Timeout
 
 - ``TimeoutError``
