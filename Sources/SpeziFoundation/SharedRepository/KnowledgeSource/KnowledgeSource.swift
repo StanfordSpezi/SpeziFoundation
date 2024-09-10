@@ -13,7 +13,7 @@
 /// is set to `Self`.
 public protocol KnowledgeSource<Anchor> {
     /// The type of a value this `KnowledgeSource` represents.
-    associatedtype Value = Self
+    associatedtype Value
     /// The ``RepositoryAnchor`` to which this `KnowledgeSource` is anchored to.
     associatedtype Anchor: RepositoryAnchor
 }
