@@ -27,11 +27,11 @@ final class TimeoutTests: XCTestCase {
 
     @MainActor
     func operationMethod(timeout: Duration, operation: Duration, timeoutExpectation: XCTestExpectation) async throws {
-        async let _ = withTimeout(of: timeout) { @MainActor in
+        let continuation = continuation
+        async let _ = withTimeout(of: timeout) { @MainActor [continuation] in
             timeoutExpectation.fulfill()
             if let continuation {
                 continuation.resume(throwing: TimeoutError())
-                self.continuation = nil
             }
         }
 
