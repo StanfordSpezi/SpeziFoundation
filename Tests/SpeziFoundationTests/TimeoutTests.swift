@@ -12,31 +12,38 @@ import XCTest
 
 
 final class TimeoutTests: XCTestCase {
-    @MainActor private var continuation: CheckedContinuation<Void, any Error>?
+    @MainActor
+    private final class Storage {
+        var continuation: CheckedContinuation<Void, any Error>?
+    }
+
+    private let storage = Storage()
 
     @MainActor
     func operation(for duration: Duration) {
         Task { @MainActor in
             try? await Task.sleep(for: duration)
-            if let continuation = self.continuation {
+            if let continuation = storage.continuation {
                 continuation.resume()
-                self.continuation = nil
+                storage.continuation = nil
             }
         }
     }
 
     @MainActor
     func operationMethod(timeout: Duration, operation: Duration, timeoutExpectation: XCTestExpectation) async throws {
-        let continuation = continuation
-        async let _ = withTimeout(of: timeout) { @MainActor [continuation] in
+        let storage = storage
+        async let _ = withTimeout(of: timeout) { @MainActor [storage] in
+            XCTAssertFalse(Task.isCancelled)
             timeoutExpectation.fulfill()
-            if let continuation {
+            if let continuation = storage.continuation {
+                storage.continuation = nil
                 continuation.resume(throwing: TimeoutError())
             }
         }
 
         try await withCheckedThrowingContinuation { continuation in
-            self.continuation = continuation
+            storage.continuation = continuation
             self.operation(for: operation)
         }
     }

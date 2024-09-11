@@ -36,7 +36,7 @@ final class ManagedAsynchronousAccessTests: XCTestCase {
 
         let didResume = access.resume(returning: expectedValue)
 
-        XCTAssertFalse(didResume) // TODO: test a did resume!
+        XCTAssertFalse(didResume)
         XCTAssertFalse(access.ongoingAccess)
 
         await fulfillment(of: [expectation])
