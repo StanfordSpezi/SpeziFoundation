@@ -34,6 +34,9 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 - ``TopLevelEncoder``
 - ``TopLevelDecoder``
 
+### Data
+- ``DataDescriptor``
+
 ### Timeout
 
 - ``TimeoutError``
