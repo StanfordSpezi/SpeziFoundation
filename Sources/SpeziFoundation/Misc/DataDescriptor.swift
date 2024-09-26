@@ -35,14 +35,6 @@ public struct DataDescriptor {
         self.init(data: data, mask: mask)
     }
 
-    init?(dataProperty: Data?, maskProperty: Data?) {
-        guard let dataProperty, let maskProperty, dataProperty.count == maskProperty.count else {
-            return nil
-        }
-        self.data = dataProperty
-        self.mask = maskProperty
-    }
-
     private static func bitwiseAnd(lhs: Data, rhs: Data) -> Data {
         if rhs.count > lhs.count {
             return bitwiseAnd(lhs: rhs, rhs: lhs)
