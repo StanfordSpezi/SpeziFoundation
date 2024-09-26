@@ -53,10 +53,27 @@ struct DefaultedTestStruct: DefaultProvidingKnowledgeSource, TestTypes {
 }
 
 
-struct ComputedTestStruct<Policy: ComputedKnowledgeSourceStoragePolicy, Repository>: ComputedKnowledgeSource {
+struct ComputedTestStruct<Policy: ComputedKnowledgeSourceStoragePolicy, Repository>: KnowledgeSource, ComputedKnowledgeSource {
     typealias Anchor = TestAnchor
     typealias Value = Int
     typealias StoragePolicy = Policy
+
+    static func compute(from repository: Repository) -> Int {
+        MainActor.assumeIsolated {
+            computedValue
+        }
+    }
+}
+
+struct ComputedDefaultTestStruct<Policy: ComputedKnowledgeSourceStoragePolicy, Repository>: ComputedKnowledgeSource, DefaultProvidingKnowledgeSource {
+    typealias Anchor = TestAnchor
+    typealias Value = Int
+    typealias StoragePolicy = Policy
+
+    static var defaultValue: Int {
+        XCTFail("\(Self.self) access result in default value execution!")
+        return -1
+    }
 
     static func compute(from repository: Repository) -> Int {
         MainActor.assumeIsolated {
@@ -260,5 +277,11 @@ final class SharedRepositoryTests: XCTestCase {
         // check again that it doesn't change
         optionalComputedValue = nil
         XCTAssertEqual(repository[OptionalComputedTestStruct<_StoreComputePolicy, Repository>.self], 4)
+    }
+
+    @MainActor
+    func testComputedKnowledgeSourcePreferred() {
+        let value = repository[ComputedDefaultTestStruct<_StoreComputePolicy, Repository>.self]
+        XCTAssertEqual(value, computedValue)
     }
 }
