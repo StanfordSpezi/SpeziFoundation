@@ -109,17 +109,16 @@ public final class AsyncSemaphore: Sendable {
     /// This method allows the `Task` calling ``waitCheckingCancellation()`` to be cancelled while waiting, throwing a `CancellationError` if the `Task` is cancelled before it can proceed.
     ///
     /// - Throws: `CancellationError` if the task is cancelled while waiting.
-    public func waitCheckingCancellation() async throws {
-        try Task.checkCancellation() // check if we are already cancelled
+    public func waitCheckingCancellation() async throws(CancellationError) {
+        if Task.isCancelled { // check if we are already cancelled
+            throw CancellationError()
+        }
 
         unsafeLock() // this is okay, as the continuation body actually runs sync, so we do no have async code within critical region
 
-        do {
-            // check if we got cancelled while acquiring the lock
-            try Task.checkCancellation()
-        } catch {
+        if Task.isCancelled { // check if we got cancelled while acquiring the lock
             unsafeUnlock()
-            throw error
+            throw CancellationError()
         }
 
         value -= 1 // decrease the value
@@ -130,37 +129,42 @@ public final class AsyncSemaphore: Sendable {
 
         let id = UUID()
 
-        try await withTaskCancellationHandler {
-            try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
-                if Task.isCancelled {
-                    value += 1 // restore the value
-                    unsafeUnlock()
+        do {
+            try await withTaskCancellationHandler {
+                try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
+                    if Task.isCancelled {
+                        value += 1 // restore the value
+                        unsafeUnlock()
 
+                        continuation.resume(throwing: CancellationError())
+                    } else {
+                        suspendedTasks.append(SuspendedTask(id: id, suspension: .cancelable(continuation)))
+                        unsafeUnlock()
+                    }
+                }
+            } onCancel: {
+                let task = nsLock.withLock {
+                    value += 1
+
+                    guard let index = suspendedTasks.firstIndex(where: { $0.id == id }) else {
+                        preconditionFailure("Inconsistent internal state reached")
+                    }
+
+                    let task = suspendedTasks[index]
+                    suspendedTasks.remove(at: index)
+                    return task
+                }
+
+                switch task.suspension {
+                case .regular:
+                    preconditionFailure("Tried to cancel a task that was not cancellable!")
+                case let .cancelable(continuation):
                     continuation.resume(throwing: CancellationError())
-                } else {
-                    suspendedTasks.append(SuspendedTask(id: id, suspension: .cancelable(continuation)))
-                    unsafeUnlock()
                 }
             }
-        } onCancel: {
-            let task = nsLock.withLock {
-                value += 1
-
-                guard let index = suspendedTasks.firstIndex(where: { $0.id == id }) else {
-                    preconditionFailure("Inconsistent internal state reached")
-                }
-
-                let task = suspendedTasks[index]
-                suspendedTasks.remove(at: index)
-                return task
-            }
-            
-            switch task.suspension {
-            case .regular:
-                preconditionFailure("Tried to cancel a task that was not cancellable!")
-            case let .cancelable(continuation):
-                continuation.resume(throwing: CancellationError())
-            }
+        } catch {
+            assert(error is CancellationError, "Injected unexpected error into continuation: \(error)")
+            throw CancellationError()
         }
     }
 

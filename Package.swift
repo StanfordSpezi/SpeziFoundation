@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:6.0
 
 //
 // This source file is part of the Stanford Spezi open-source project
@@ -10,13 +10,6 @@
 
 import class Foundation.ProcessInfo
 import PackageDescription
-
-
-#if swift(<6)
-let swiftConcurrency: SwiftSetting = .enableExperimentalFeature("StrictConcurrency")
-#else
-let swiftConcurrency: SwiftSetting = .enableUpcomingFeature("StrictConcurrency")
-#endif
 
 
 let package = Package(
@@ -32,15 +25,17 @@ let package = Package(
     products: [
         .library(name: "SpeziFoundation", targets: ["SpeziFoundation"])
     ],
-    dependencies: swiftLintPackage(),
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-atomics.git", from: "1.2.0")
+    ] + swiftLintPackage(),
     targets: [
         .target(
             name: "SpeziFoundation",
+            dependencies: [
+                .product(name: "Atomics", package: "swift-atomics")
+            ],
             resources: [
                 .process("Resources")
-            ],
-            swiftSettings: [
-                swiftConcurrency
             ],
             plugins: [] + swiftLintPlugin()
         ),
@@ -48,9 +43,6 @@ let package = Package(
             name: "SpeziFoundationTests",
             dependencies: [
                 .target(name: "SpeziFoundation")
-            ],
-            swiftSettings: [
-                swiftConcurrency
             ],
             plugins: [] + swiftLintPlugin()
         )

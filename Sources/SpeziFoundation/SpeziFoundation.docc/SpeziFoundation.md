@@ -23,13 +23,19 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 - ``AnyArray``
 - ``AnyOptional``
 
-### Semaphore
+### Concurrency
 
+- ``RWLock``
+- ``RecursiveRWLock``
 - ``AsyncSemaphore``
+- ``ManagedAsynchronousAccess``
 
 ### Encoders and Decoders
 - ``TopLevelEncoder``
 - ``TopLevelDecoder``
+
+### Data
+- ``DataDescriptor``
 
 ### Timeout
 

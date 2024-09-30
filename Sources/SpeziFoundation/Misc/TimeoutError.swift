@@ -98,7 +98,7 @@ extension TimeoutError: LocalizedError {
 ///   - timeout: The duration of the timeout.
 ///   - action: The action to run once the timeout passed.
 @inlinable
-public func withTimeout(of timeout: Duration, perform action: @Sendable () async -> Void) async {
+public func withTimeout(of timeout: Duration, perform action: sending () async -> Void) async {
     try? await Task.sleep(for: timeout)
     guard !Task.isCancelled else {
         return
