@@ -75,7 +75,7 @@ final class ManagedAsynchronousAccessTests: XCTestCase {
         let access = ManagedAsynchronousAccess<Void, Error>()
 
         let expectation = XCTestExpectation(description: "task")
-        Task {
+        let handle = Task {
             do {
                 _ = try await access.perform {}
                 XCTFail("Expected cancellation error.")
@@ -88,31 +88,41 @@ final class ManagedAsynchronousAccessTests: XCTestCase {
         try await Task.sleep(for: .milliseconds(100))
 
         XCTAssertTrue(access.ongoingAccess)
+        XCTAssertFalse(handle.isCancelled)
 
         access.cancelAll()
 
         XCTAssertFalse(access.ongoingAccess)
         await fulfillment(of: [expectation])
+
+        XCTAssert(handle.isCancelled, "Task was not marked as cancelled.")
     }
 
     @MainActor
-    func testCancelAllNoError() async throws {
+    func testCancelAllNeverError() async throws {
         let access = ManagedAsynchronousAccess<Void, Never>()
 
         let expectation = XCTestExpectation(description: "task")
-        Task {
-            try await access.perform {}
+        let handle = Task {
+            do {
+                try await access.perform {}
+                XCTFail("Expected cancellation to turn into a cancellation error")
+            } catch {
+                XCTAssertTrue(error is CancellationError)
+            }
             expectation.fulfill()
         }
 
         try await Task.sleep(for: .milliseconds(100))
 
         XCTAssertTrue(access.ongoingAccess)
+        XCTAssertFalse(handle.isCancelled)
 
         access.cancelAll()
 
         XCTAssertFalse(access.ongoingAccess)
         await fulfillment(of: [expectation])
+        XCTAssert(handle.isCancelled, "Task was not marked as cancelled.")
     }
 
     func testResumeWithoutOngoingAccess() {
@@ -200,7 +210,7 @@ final class ManagedAsynchronousAccessTests: XCTestCase {
     }
 
     @MainActor
-    func testExclusiveAccessNoError() async throws {
+    func testExclusiveAccessNeverError() async throws {
         let access = ManagedAsynchronousAccess<String, Never>()
         let expectedValue0 = "Success0"
         let expectedValue1 = "Success1"
@@ -212,8 +222,8 @@ final class ManagedAsynchronousAccessTests: XCTestCase {
             do {
                 let value = try await access.perform {}
                 XCTAssertEqual(value, expectedValue0)
-            } catch {
-                XCTFail("Unexpected error: \(error)")
+            } catch is CancellationError {
+                XCTFail("Unexpected error cancellation")
             }
             expectation0.fulfill()
         }
@@ -224,8 +234,8 @@ final class ManagedAsynchronousAccessTests: XCTestCase {
             do {
                 let value = try await access.perform {}
                 XCTAssertEqual(value, expectedValue1)
-            } catch {
-                XCTFail("Unexpected error: \(error)")
+            } catch is CancellationError {
+                XCTFail("Unexpected error cancellation")
             }
             expectation1.fulfill()
         }

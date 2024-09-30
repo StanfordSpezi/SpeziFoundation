@@ -11,9 +11,16 @@
 ///
 ///
 public final class ManagedAsynchronousAccess<Value, E: Error> {
+    private final class CallSiteState {
+        var wasCancelled = false
+
+        init() {}
+    }
+
     private let access: AsyncSemaphore
     private var continuation: CheckedContinuation<Value, E>?
-    
+    private var associatedState: CallSiteState?
+
     /// Determine if the is currently an ongoing access.
     public var ongoingAccess: Bool {
         continuation != nil
@@ -23,12 +30,20 @@ public final class ManagedAsynchronousAccess<Value, E: Error> {
     public init() {
         self.access = AsyncSemaphore(value: 1)
     }
-    
+
+    private func markCancelled() {
+        if let associatedState {
+            associatedState.wasCancelled = true
+            self.associatedState = nil
+        }
+    }
+
     /// Resume the continuation by either returning a value or throwing an error.
     /// - Parameter result: The result to return from the continuation.
     /// - Returns: Returns `true`, if there was another task waiting to access the continuation and it was resumed.
     @discardableResult
     public func resume(with result: sending Result<Value, E>) -> Bool {
+        self.associatedState = nil
         if let continuation {
             self.continuation = nil
             let didSignalAnyone = access.signal()
@@ -83,9 +98,21 @@ extension ManagedAsynchronousAccess where E == Error {
     ) async throws -> Value {
         try await access.waitCheckingCancellation()
 
+        let state = CallSiteState()
+
+        defer {
+            if state.wasCancelled {
+                withUnsafeCurrentTask { task in
+                    task?.cancel()
+                }
+            }
+        }
+
         return try await withCheckedThrowingContinuation { continuation in
             assert(self.continuation == nil, "continuation was unexpectedly not nil")
             self.continuation = continuation
+            assert(self.associatedState == nil, "associatedState was unexpectedly not nil")
+            self.associatedState = state
             action()
         }
     }
@@ -96,6 +123,7 @@ extension ManagedAsynchronousAccess where E == Error {
     /// cancellation error.
     /// - Parameter error: A custom error that is thrown instead of the cancellation error.
     public func cancelAll(error: E? = nil) {
+        markCancelled()
         if let continuation {
             self.continuation = nil
             continuation.resume(throwing: error ?? CancellationError())
@@ -117,14 +145,27 @@ extension ManagedAsynchronousAccess where E == Never {
     public func perform(
         isolation: isolated (any Actor)? = #isolation,
         action: () -> Void
-    ) async throws -> Value {
+    ) async throws(CancellationError) -> Value {
         try await access.waitCheckingCancellation()
 
-        return await withCheckedContinuation { continuation in
+        let state = CallSiteState()
+
+        let value = await withCheckedContinuation { continuation in
             assert(self.continuation == nil, "continuation was unexpectedly not nil")
             self.continuation = continuation
+            assert(self.associatedState == nil, "associatedState was unexpectedly not nil")
+            self.associatedState = state
             action()
         }
+
+        if state.wasCancelled {
+            withUnsafeCurrentTask { task in
+                task?.cancel()
+            }
+            throw CancellationError()
+        }
+
+        return value
     }
 }
 
@@ -135,6 +176,7 @@ extension ManagedAsynchronousAccess where Value == Void, E == Never {
     /// Calling this methods will cancel all tasks that currently await exclusive access.
     /// The continuation will be resumed. Make sure to propagate cancellation information yourself.
     public func cancelAll() {
+        markCancelled()
         if let continuation {
             self.continuation = nil
             continuation.resume()
