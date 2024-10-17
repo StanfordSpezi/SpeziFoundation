@@ -261,7 +261,7 @@ final class AsyncSemaphoreTests: XCTestCase {   // swiftlint:disable:this type_b
         /// its `run()` method, and counts the effective number of
         /// concurrent executions for testing purpose.
         @MainActor
-        class Runner {
+        final class Runner {
             private let semaphore: AsyncSemaphore
             private var count = 0
             private(set) var effectiveMaxConcurrentRuns = 0
