@@ -11,8 +11,9 @@ import SpeziFoundation
 import XCTest
 
 
+/// Internal helper actor to be able to have code run guaranteed off the main actor (by scheduling it onto a background queue)
 @globalActor
-actor TestActor: GlobalActor {
+private actor TestActor: GlobalActor {
     static let shared = TestActor()
     let queue = DispatchQueue(label: "Queueeee") as! DispatchSerialQueue // swiftlint:disable:this force_cast
     nonisolated var unownedExecutor: UnownedSerialExecutor {
