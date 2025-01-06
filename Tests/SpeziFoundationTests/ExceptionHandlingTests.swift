@@ -1,0 +1,79 @@
+//
+// This source file is part of the Stanford Spezi open-source project
+//
+// SPDX-FileCopyrightText: 2024 Stanford University and the project authors (see CONTRIBUTORS.md)
+//
+// SPDX-License-Identifier: MIT
+//
+
+
+import SpeziFoundation
+import XCTest
+
+
+final class ExceptionHandlingTests: XCTestCase {
+    func testNothingThrown() {
+        do {
+            let value = try catchingNSException {
+                5
+            }
+            XCTAssertEqual(value, 5)
+        } catch {
+            XCTFail("Threw an error :/")
+        }
+    }
+    
+    func testNSExceptionThrown1() {
+        do {
+            let _: Void = try catchingNSException {
+                let string = "Hello there :)" as NSString
+                _ = string.substring(with: NSRange(location: 12, length: 7))
+            }
+            XCTFail("Didn't throw an error :/")
+        } catch {
+            guard let error = error as? CaughtNSException else {
+                XCTFail("Not a \(CaughtNSException.self)")
+                return
+            }
+            XCTAssertEqual(error.exception.name, .invalidArgumentException)
+            XCTAssertEqual(error.exception.reason, "-[__NSCFString substringWithRange:]: Range {12, 7} out of bounds; string length 14")
+        }
+    }
+    
+    func testNSExceptionThrown2() {
+        let exceptionName = NSExceptionName("CustomExceptionName")
+        let exceptionReason = "There was a non-recoverable issue"
+        do {
+            let _: Void = try catchingNSException {
+                NSException(name: exceptionName, reason: exceptionReason).raise()
+                fatalError() // unreachable, but the compiler doesn't know about this, because `-[NSException raise]` isn't annotated as being oneway...
+            }
+            XCTFail("Didn't throw an error :/")
+        } catch {
+            guard let error = error as? CaughtNSException else {
+                XCTFail("Not a \(CaughtNSException.self)")
+                return
+            }
+            XCTAssertEqual(error.exception.name, exceptionName)
+            XCTAssertEqual(error.exception.reason, exceptionReason)
+        }
+    }
+    
+    func testSwiftErrorThrown() {
+        enum TestError: Error, Equatable {
+            case abc
+        }
+        do {
+            let _: Void = try catchingNSException {
+                throw TestError.abc
+            }
+            XCTFail("Didn't throw an error :/")
+        } catch {
+            guard let error = error as? TestError else {
+                XCTFail("Not a \(TestError.self)")
+                return
+            }
+            XCTAssertEqual(error, TestError.abc)
+        }
+    }
+}

@@ -23,21 +23,29 @@ let package = Package(
         .tvOS(.v17)
     ],
     products: [
-        .library(name: "SpeziFoundation", targets: ["SpeziFoundation"])
+        .library(name: "SpeziFoundation", targets: ["SpeziFoundation"]),
+        //.library(name: "SpeziFoundationObjC", targets: ["SpeziFoundationObjC"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-atomics.git", from: "1.2.0")
+        .package(url: "https://github.com/apple/swift-atomics.git", from: "1.2.0"),
+        .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0")
     ] + swiftLintPackage(),
     targets: [
         .target(
             name: "SpeziFoundation",
             dependencies: [
-                .product(name: "Atomics", package: "swift-atomics")
+                .product(name: "Atomics", package: "swift-atomics"),
+                .product(name: "Algorithms", package: "swift-algorithms"),
+                .target(name: "SpeziFoundationObjC")
             ],
             resources: [
                 .process("Resources")
             ],
             plugins: [] + swiftLintPlugin()
+        ),
+        .target(
+            name: "SpeziFoundationObjC",
+            sources: nil
         ),
         .testTarget(
             name: "SpeziFoundationTests",
