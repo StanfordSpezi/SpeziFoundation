@@ -15,7 +15,7 @@ import XCTest
 @globalActor
 private actor TestActor: GlobalActor {
     static let shared = TestActor()
-    let queue = DispatchQueue(label: "Queueeee") as! DispatchSerialQueue // swiftlint:disable:this force_cast
+    let queue = DispatchQueue(label: "Queue") as! DispatchSerialQueue // swiftlint:disable:this force_cast
     nonisolated var unownedExecutor: UnownedSerialExecutor {
         queue.asUnownedSerialExecutor()
     }
