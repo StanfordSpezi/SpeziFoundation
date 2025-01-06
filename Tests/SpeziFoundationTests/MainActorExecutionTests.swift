@@ -36,10 +36,10 @@ final class MainActorExecutionTests: XCTestCase {
     func testIfRunningOffTheMainActor() async {
         dispatchPrecondition(condition: .notOnQueue(.main))
         dispatchPrecondition(condition: .onQueue(TestActor.shared.queue))
-        var didRun = false
+        let expectation = self.expectation(description: "ran on main actor")
         runOrScheduleOnMainActor {
-            didRun = true
+            expectation.fulfill()
         }
-        XCTAssertFalse(didRun)
+        await fulfillment(of: [expectation])
     }
 }
