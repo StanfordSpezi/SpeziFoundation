@@ -13,11 +13,11 @@ import XCTest
 
 @globalActor
 actor TestActor: GlobalActor {
-    let queue = DispatchQueue(label: "Queueeee") as! DispatchSerialQueue
+    static let shared = TestActor()
+    let queue = DispatchQueue(label: "Queueeee") as! DispatchSerialQueue // swiftlint:disable:this force_cast
     nonisolated var unownedExecutor: UnownedSerialExecutor {
         queue.asUnownedSerialExecutor()
     }
-    static let shared = TestActor()
 }
 
 
@@ -26,7 +26,7 @@ final class MainActorExecutionTests: XCTestCase {
         // XCTest by default runs all test cases on the main thread, ie the main queue, ie the main actor.
         dispatchPrecondition(condition: .onQueue(.main))
         var didRun = false
-        RunOrScheduleOnMainActor {
+        runOrScheduleOnMainActor {
             didRun = true
         }
         XCTAssertTrue(didRun)
@@ -37,7 +37,7 @@ final class MainActorExecutionTests: XCTestCase {
         dispatchPrecondition(condition: .notOnQueue(.main))
         dispatchPrecondition(condition: .onQueue(TestActor.shared.queue))
         var didRun = false
-        RunOrScheduleOnMainActor {
+        runOrScheduleOnMainActor {
             didRun = true
         }
         XCTAssertFalse(didRun)
