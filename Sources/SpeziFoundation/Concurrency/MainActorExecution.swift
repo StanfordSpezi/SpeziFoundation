@@ -11,7 +11,7 @@ import Foundation
 
 /// Runs or schedules a closure on the `MainActor`, depending on the current execution context.
 /// If the function is already running on the `MainActor`, the closure will be invoked immediately.
-/// If the function is not running on the `MainActor`, an invocation of the closure will be scheduled onto the `MainActor`.
+/// Otherwise, an invocation of the closure will be scheduled onto the `MainActor`.
 public func runOrScheduleOnMainActor(
     _ block: @MainActor @escaping () -> Void
 ) {
