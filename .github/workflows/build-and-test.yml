@@ -31,7 +31,7 @@ jobs:
       runsonlabels: '["macOS", "self-hosted"]'
       scheme: SpeziFoundation
       resultBundle: SpeziFoundationWatchOS.xcresult
-      destination: 'platform=watchOS Simulator,name=Apple Watch Series 9 (45mm)'
+      destination: 'platform=watchOS Simulator,name=Apple Watch Series 10 (46mm)'
       artifactname: SpeziFoundationWatchOS.xcresult
   packagevisionos:
     name: Build and Test Swift Package visionOS
