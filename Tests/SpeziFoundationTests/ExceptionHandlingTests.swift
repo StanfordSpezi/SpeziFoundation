@@ -24,6 +24,7 @@ final class ExceptionHandlingTests: XCTestCase {
     }
     
     func testNSExceptionThrown1() {
+        // test that we can catch NSExceptions raised by Objective-C code.
         do {
             let _: Void = try catchingNSException {
                 let string = "Hello there :)" as NSString
@@ -41,12 +42,14 @@ final class ExceptionHandlingTests: XCTestCase {
     }
     
     func testNSExceptionThrown2() {
+        // test that we can catch (custom) NSExceptions raised by Swift code.
         let exceptionName = NSExceptionName("CustomExceptionName")
         let exceptionReason = "There was a non-recoverable issue"
         do {
             let _: Void = try catchingNSException {
                 NSException(name: exceptionName, reason: exceptionReason).raise()
-                fatalError() // unreachable, but the compiler doesn't know about this, because `-[NSException raise]` isn't annotated as being oneway...
+                // unreachable, but the compiler doesn't know about this, because `-[NSException raise]` isn't annotated as being oneway...
+                fatalError("unreachable")
             }
             XCTFail("Didn't throw an error :/")
         } catch {
@@ -60,6 +63,7 @@ final class ExceptionHandlingTests: XCTestCase {
     }
     
     func testSwiftErrorThrown() {
+        // test that we can catch normal Swift errors.
         enum TestError: Error, Equatable {
             case abc
         }

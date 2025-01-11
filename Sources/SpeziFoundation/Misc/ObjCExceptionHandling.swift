@@ -1,8 +1,9 @@
 //
-//  File.swift
-//  SpeziFoundation
+// This source file is part of the Stanford Spezi open-source project
 //
-//  Created by Lukas Kollmer on 2024-12-25.
+// SPDX-FileCopyrightText: 2024 Stanford University and the project authors (see CONTRIBUTORS.md)
+//
+// SPDX-License-Identifier: MIT
 //
 
 import Foundation
@@ -13,8 +14,8 @@ import SpeziFoundationObjC
 public struct CaughtNSException: Error, LocalizedError, @unchecked Sendable {
     public let exception: NSException
     
-    public var errorDescription: String? {
-        return "\(Self.self): \(exception.description)"
+    public var errorDescription: String {
+        "\(Self.self): \(exception.description)"
     }
 }
 
@@ -44,7 +45,8 @@ public func catchingNSException<T>(_ block: () throws -> T) throws -> T {
         throw error
     default:
         // unreachable
-        fatalError("""
+        fatalError(
+            """
             Invalid state. Exactly one of retval, caughtNSException, and caughtSwiftError should be non-nil.
             retval: \(String(describing: retval))
             caughtNSException: \(String(describing: caughtNSException))

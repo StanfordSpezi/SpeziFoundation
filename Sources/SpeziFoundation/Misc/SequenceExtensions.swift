@@ -1,11 +1,11 @@
 //
-//  File.swift
-//  SpeziFoundation
+// This source file is part of the Stanford Spezi open-source project
 //
-//  Created by Lukas Kollmer on 2024-12-27.
+// SPDX-FileCopyrightText: 2024 Stanford University and the project authors (see CONTRIBUTORS.md)
+//
+// SPDX-License-Identifier: MIT
 //
 
-import Foundation
 import Algorithms
 
 
@@ -25,47 +25,26 @@ extension Sequence {
 }
 
 
-
 extension Sequence {
-    public func lk_isSorted(by areInIncreasingOrder: (Element, Element) -> Bool) -> Bool {
+    /// Determines whether the sequence is sorted w.r.t. the specified comparator.
+    public func isSorted(by areInIncreasingOrder: (Element, Element) -> Bool) -> Bool {
         // ISSUE HERE: if we have a collection containing duplicate objects (eg: `[0, 0]`), and we want to check if it's sorted
         // properly (passing `{ $0 < $1 }`), that would incorrectly return false, because not all elements are ordered strictly ascending.
         // BUT: were we to sort the collection using the specified comparator, the sort result would be equivalent to the collection
         // itself. Meaning that we should consider it properly sorted.
         // We achieve this by reversing the comparator operands, and negating the result.
-        return self.adjacentPairs().allSatisfy { a, b in
-            !areInIncreasingOrder(b, a)
-        }
-    }
-    
-    
-    /// Returns whether the sequence is sorted ascending, w.r.t. the specified key path.
-    /// - Note: if two or more adjacent elements in the sequence are equal to each other, the sequence will still be considered sorted.
-    public func lk_isSorted(by keyPath: KeyPath<Element, some Comparable>) -> Bool {
-        return self.adjacentPairs().allSatisfy {
-            $0[keyPath: keyPath] <= $1[keyPath: keyPath]
-        }
-    }
-    
-    public func lk_isSortedStrictlyAscending(by keyPath: KeyPath<Element, some Comparable>) -> Bool {
-        return self.adjacentPairs().allSatisfy {
-            $0[keyPath: keyPath] < $1[keyPath: keyPath]
+        self.adjacentPairs().allSatisfy { lhs, rhs in
+            !areInIncreasingOrder(rhs, lhs)
         }
     }
 }
 
 
-
-
 extension RangeReplaceableCollection {
+    /// Removes the elements at the specified indices from the collection.
     public mutating func remove(at indices: some Sequence<Index>) {
         for idx in indices.sorted().reversed() {
             self.remove(at: idx)
         }
-    }
-    
-    
-    public mutating func removeAll(where predicate: (Element) throws -> Bool) rethrows {
-        self = try self.filter { try !predicate($0) }
     }
 }

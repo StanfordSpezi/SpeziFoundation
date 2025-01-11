@@ -1,8 +1,9 @@
 //
-//  ObjCExceptionHandling.h
-//  SpeziFoundation
+// This source file is part of the Stanford Spezi open-source project
 //
-//  Created by Lukas Kollmer on 2024-12-25.
+// SPDX-FileCopyrightText: 2024 Stanford University and the project authors (see CONTRIBUTORS.md)
+//
+// SPDX-License-Identifier: MIT
 //
 
 #ifndef ObjCExceptionHandling_h
@@ -13,6 +14,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+/// Invokes the specified block, catching any `NSException`s that are thrown in the block.
+/// - returns: `Nil` if the block didn't throw any exceptions, otherwise the caught exception.
 NSException *_Nullable InvokeBlockCatchingNSExceptionIfThrown(NS_NOESCAPE void(^block)(void));
 
 NS_ASSUME_NONNULL_END

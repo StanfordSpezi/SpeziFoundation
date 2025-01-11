@@ -1,16 +1,21 @@
 //
-//  File.swift
-//  SpeziFoundation
+// This source file is part of the Stanford Spezi open-source project
 //
-//  Created by Lukas Kollmer on 2024-12-17.
+// SPDX-FileCopyrightText: 2024 Stanford University and the project authors (see CONTRIBUTORS.md)
+//
+// SPDX-License-Identifier: MIT
 //
 
 import Foundation
 
 
-
-
-// MARK: Date Ranges
+private func tryUnwrap<T>(_ value: T?, _ message: String) -> T {
+    if let value {
+        return value
+    } else {
+        fatalError(message)
+    }
+}
 
 
 extension Calendar {
@@ -18,41 +23,47 @@ extension Calendar {
     public func startOfHour(for date: Date) -> Date {
         var retval = date
         for component in [Calendar.Component.minute, .second, .nanosecond] {
-            retval = self.date(bySettingComponentToZero: component, of: retval, adjustOtherComponents: false)
+            retval = tryUnwrap(
+                self.date(bySettingComponentToZero: component, of: retval, adjustOtherComponents: false),
+                "Unable to compute start of hour"
+            )
         }
-        precondition([Component.year, .month, .day, .hour].allSatisfy {
-            self.component($0, from: retval) == self.component($0, from: date)
-        })
         return retval
     }
     
     /// Returns a `Date` which represents the start of the next hour, relative to `date`.
     public func startOfNextHour(for date: Date) -> Date {
-        let startOfHour = startOfHour(for: date)
-        return self.date(byAdding: .hour, value: 1, to: startOfHour)!
+        tryUnwrap(
+            self.date(byAdding: .hour, value: 1, to: startOfHour(for: date)),
+            "Unable to compute start of next hour"
+        )
     }
     
     /// Returns a `Range<Date>` representing the range of the hour into which `date` falls.
     public func rangeOfHour(for date: Date) -> Range<Date> {
-        return startOfHour(for: date)..<startOfNextHour(for: date)
+        startOfHour(for: date)..<startOfNextHour(for: date)
     }
 
     
     /// Returns a `Date` which represents the start of the next day, relative to `date`.
     public func startOfNextDay(for date: Date) -> Date {
-        let startOfDay = self.startOfDay(for: date)
-        return self.date(byAdding: .day, value: 1, to: startOfDay)!
+        tryUnwrap(
+            self.date(byAdding: .day, value: 1, to: startOfDay(for: date)),
+            "Unable to compute start of next day"
+        )
     }
     
     /// Returns a `Date` which represents the start of the previous day, relative to `date`.
     public func startOfPrevDay(for date: Date) -> Date {
-        let startOfDay = self.startOfDay(for: date)
-        return self.date(byAdding: .day, value: -1, to: startOfDay)!
+        tryUnwrap(
+            self.date(byAdding: .day, value: -1, to: startOfDay(for: date)),
+            "Unable to compute start of previous day"
+        )
     }
     
     /// Returns a `Range<Date>` representing the range of the day into which `date` falls.
     public func rangeOfDay(for date: Date) -> Range<Date> {
-        return startOfDay(for: date)..<startOfNextDay(for: date)
+        startOfDay(for: date)..<startOfNextDay(for: date)
     }
     
     
@@ -70,93 +81,104 @@ extension Calendar {
             weekday += self.weekdaySymbols.count
         }
         let weekdayDiff = weekday - self.firstWeekday
-        return self.date(byAdding: .weekday, value: -weekdayDiff, to: date)!
+        return tryUnwrap(
+            self.date(byAdding: .weekday, value: -weekdayDiff, to: date),
+            "Unable to compute start of next week"
+        )
     }
     
     /// Returns a `Date` which represents the start of the next week, relative to `date`.
     public func startOfNextWeek(for date: Date) -> Date {
-        let start = startOfWeek(for: date)
-        return self.date(byAdding: .weekOfYear, value: 1, to: start)!
+        tryUnwrap(
+            self.date(byAdding: .weekOfYear, value: 1, to: startOfWeek(for: date)),
+            "Unable to compute start of next week"
+        )
     }
     
     /// Returns a `Range<Date>` representing the range of the week into which `date` falls.
     public func rangeOfWeek(for date: Date) -> Range<Date> {
-        return startOfWeek(for: date)..<startOfNextWeek(for: date)
+        startOfWeek(for: date)..<startOfNextWeek(for: date)
     }
     
     
     /// Returns a `Date` which represents the start of the month into which `date` falls.
     public func startOfMonth(for date: Date) -> Date {
         var adjustedDate = self.startOfDay(for: date)
-        adjustedDate = self.date(bySetting: .day, value: 1, of: adjustedDate)!
-        if adjustedDate <= date {
-            precondition(self.component(.day, from: adjustedDate) == 1)
-            return adjustedDate
+        adjustedDate = tryUnwrap(
+            self.date(bySetting: .day, value: 1, of: adjustedDate),
+            "Unable to compute start of month"
+        )
+        if adjustedDate > date {
+            // Setting the day to 1 made the date larger, i.e. moved it one month ahead :/
+            return tryUnwrap(
+                self.date(byAdding: .month, value: -1, to: adjustedDate),
+                "Unable to compute start of month"
+            )
         } else {
-            let startOfMonth = self.date(byAdding: .month, value: -1, to: adjustedDate)!
-            precondition(self.component(.day, from: startOfMonth) == 1)
-            return startOfMonth
+            // we were able to set the day to 1, and can simply return the date.
+            return adjustedDate
         }
     }
     
     /// Returns a `Date` which represents the start of the next month, relative to `date`.
     public func startOfNextMonth(for date: Date) -> Date {
-        let start = startOfMonth(for: date)
-        return self.date(byAdding: .month, value: 1, to: start)!
+        tryUnwrap(
+            self.date(byAdding: .month, value: 1, to: startOfMonth(for: date)),
+            "Unable to compute start of next month"
+        )
     }
     
     
     /// Returns the exclusive range from the beginning of the month into which `date` falls, to the beginning of the next
     public func rangeOfMonth(for date: Date) -> Range<Date> {
-        let start = startOfMonth(for: date)
-        let end = startOfNextMonth(for: start)
-        precondition(startOfNextMonth(for: start) == startOfNextMonth(for: date))
-        return start..<end
+        startOfMonth(for: date)..<startOfNextMonth(for: date)
     }
     
     
     /// Returns a `Date` which represents the start of the year into which `date` falls.
     public func startOfYear(for date: Date) -> Date {
         var adjustedDate = startOfMonth(for: date)
-        precondition(adjustedDate <= date)
-        adjustedDate = self.date(bySetting: .month, value: 1, of: adjustedDate)!
+        adjustedDate = tryUnwrap(
+            self.date(bySetting: .month, value: 1, of: adjustedDate),
+            "Unable to compute start of year"
+        )
         if adjustedDate > date {
             // Setting the month to 1 made the date larger, i.e. moved it one year ahead :/
-            adjustedDate = self.date(byAdding: .year, value: -1, to: adjustedDate)!
+            return tryUnwrap(
+                self.date(byAdding: .year, value: -1, to: adjustedDate),
+                "Unable to compute start of year"
+            )
+        } else {
+            // we were able to set the month to 1, and can simply return the date.
             return adjustedDate
         }
-        
-        precondition({ () -> Bool in
-            let components = self.dateComponents([.year, .month, .day, .hour, .minute, .second, .nanosecond], from: adjustedDate)
-            return components.year == self.component(.year, from: date) && components.month == 1 && components.day == 1
-                && components.hour == 0 && components.minute == 0 && components.second == 0 && components.nanosecond == 0
-        }())
-        return adjustedDate
     }
     
     
     /// Returns a `Date` which represents the start of the previous year, relative to `date`.
     public func startOfPrevYear(for date: Date) -> Date {
-        return self.date(byAdding: .year, value: -1, to: startOfYear(for: date))!
+        tryUnwrap(
+            self.date(byAdding: .year, value: -1, to: startOfYear(for: date)),
+            "Unable to compute start of previous year"
+        )
     }
     
     /// Returns a `Date` which represents the start of the next year, relative to `date`.
     public func startOfNextYear(for date: Date) -> Date {
-        return self.date(byAdding: .year, value: 1, to: startOfYear(for: date))!
+        tryUnwrap(
+            self.date(byAdding: .year, value: 1, to: startOfYear(for: date)),
+            "Unable to compute start of next year"
+        )
     }
     
     /// Returns a `Range<Date>` representing the range of the year into which `date` falls.
     public func rangeOfYear(for date: Date) -> Range<Date> {
-        return startOfYear(for: date)..<startOfNextYear(for: date)
+        startOfYear(for: date)..<startOfNextYear(for: date)
     }
 }
 
 
-
-
-
 // MARK: Date Distances
-
 
 extension Calendar {
     private func _countDistinctNumberOfComponentUnits(
@@ -183,51 +205,13 @@ extension Calendar {
                 from: startOfComponentFn(startDate),
                 to: startOfComponentFn(endDate)
             )
-            return diff[component]! + 1
+            return tryUnwrap(diff[component], "Unable to get component '\(component)'") + 1
         }
     }
     
     
-    public func countDistinctYears(from startDate: Date, to endDate: Date) -> Int {
-        _countDistinctNumberOfComponentUnits(
-            from: startDate,
-            to: endDate,
-            for: .year,
-            startOfComponentFn: startOfYear
-        )
-    }
-    
-    /// Returns the rounded up number of months between the two dates.
-    /// E.g., if the first date is 25.02 and the second is 12.04, this would return 3.
-    public func countDistinctMonths(from startDate: Date, to endDate: Date) -> Int {
-        _countDistinctNumberOfComponentUnits(
-            from: startDate,
-            to: endDate,
-            for: .month,
-            startOfComponentFn: startOfMonth
-        )
-    }
-    
-    public func countDistinctWeeks(from startDate: Date, to endDate: Date) -> Int {
-        _countDistinctNumberOfComponentUnits(
-            from: startDate,
-            to: endDate,
-            for: .weekOfYear,
-            startOfComponentFn: startOfWeek
-        )
-    }
-    
-    
-    public func countDistinctDays(from startDate: Date, to endDate: Date) -> Int {
-        _countDistinctNumberOfComponentUnits(
-            from: startDate,
-            to: endDate,
-            for: .day,
-            startOfComponentFn: startOfDay
-        )
-    }
-    
-    
+    /// Returns the number of distinct weeks between the two dates.
+    /// E.g., if the first date is 2021-02-02 07:20 and the second is 2021-02-02 08:05, this would return 2.
     public func countDistinctHours(from startDate: Date, to endDate: Date) -> Int {
         _countDistinctNumberOfComponentUnits(
             from: startDate,
@@ -237,7 +221,51 @@ extension Calendar {
         )
     }
     
+    /// Returns the number of distinct weeks between the two dates.
+    /// E.g., if the first date is 2021-02-02 09:00 and the second is 2021-02-03 07:00, this would return 2.
+    public func countDistinctDays(from startDate: Date, to endDate: Date) -> Int {
+        _countDistinctNumberOfComponentUnits(
+            from: startDate,
+            to: endDate,
+            for: .day,
+            startOfComponentFn: startOfDay
+        )
+    }
     
+    /// Returns the number of distinct weeks between the two dates.
+    /// E.g., if the first date is 2021-02-07 and the second is 2021-02-09, this would return 2.
+    public func countDistinctWeeks(from startDate: Date, to endDate: Date) -> Int {
+        _countDistinctNumberOfComponentUnits(
+            from: startDate,
+            to: endDate,
+            for: .weekOfYear,
+            startOfComponentFn: startOfWeek
+        )
+    }
+    
+    /// Returns the number of distinct months between the two dates.
+    /// E.g., if the first date is 2021-02-25 and the second is 2021-04-12, this would return 3.
+    public func countDistinctMonths(from startDate: Date, to endDate: Date) -> Int {
+        _countDistinctNumberOfComponentUnits(
+            from: startDate,
+            to: endDate,
+            for: .month,
+            startOfComponentFn: startOfMonth
+        )
+    }
+    
+    /// Returns the number of distinct years between the two dates.
+    /// E.g., if the first date is 2021-02-25 and the second is 2022-02-25, this would return 2.
+    public func countDistinctYears(from startDate: Date, to endDate: Date) -> Int {
+        _countDistinctNumberOfComponentUnits(
+            from: startDate,
+            to: endDate,
+            for: .year,
+            startOfComponentFn: startOfYear
+        )
+    }
+    
+    /// Returns the number of days `endDate` is offset from `startDate`.
     public func offsetInDays(from startDate: Date, to endDate: Date) -> Int {
         guard !isDate(startDate, inSameDayAs: endDate) else {
             return 0
@@ -249,51 +277,36 @@ extension Calendar {
         }
     }
     
-    
-    public func dateIsSunday(_ date: Date) -> Bool {
-        // NSCalendar starts weeks on sundays, ?regardless of locale?
-        return self.component(.weekday, from: date) == self.firstWeekday
-    }
-    
-    
+    /// Returns the number of days in the month into which `date` falls.
     public func numberOfDaysInMonth(for date: Date) -> Int {
-        return self.range(of: .day, in: .month, for: date)!.count
+        tryUnwrap(
+            self.range(of: .day, in: .month, for: date),
+            "Unable to get range of month"
+        ).count
     }
 }
-
-
-
-
-// MARK: Date Components
 
 
 extension Calendar {
-    public func date(bySettingComponentToZero component: Component, of date: Date, adjustOtherComponents: Bool) -> Date {
+    /// Computes a new `Date` from `date`, obtained by setting `component` to zero.
+    /// - parameter adjustOtherComponents: Determines whether the other components in the date should be adjusted when changing the component.
+    public func date(bySettingComponentToZero component: Component, of date: Date, adjustOtherComponents: Bool) -> Date? {
         if adjustOtherComponents {
-            return self.date(bySetting: component, value: 0, of: date)!
+            // If we're asked to adjust the other components, we can use Calendar's -date(bySetting...) function.
+            return self.date(bySetting: component, value: 0, of: date)
         } else {
-            let compValue = self.component(component, from: date)
-            return self.date(byAdding: component, value: -compValue, to: date, wrappingComponents: true)!
-        }
-    }
-    
-    
-    
-    public func date(bySetting component: Component, of date: Date, to value: Int, adjustOtherComponents: Bool) -> Date {
-        if adjustOtherComponents {
-            return self.date(bySetting: component, value: value, of: date)!
-        } else {
-            let compValue = self.component(component, from: date)
-            let diff = value - compValue
-            return self.date(byAdding: component, value: diff, to: date, wrappingComponents: true)!
+            // Otherwise, we perform the adjustment manually, by subtracting the component's value from the date.
+            let componentValue = self.component(component, from: date)
+            return self.date(byAdding: component, value: -componentValue, to: date, wrappingComponents: true)
         }
     }
 }
 
 
-
-
 extension DateComponents {
+    /// Returns the integer value of the specified component.
+    /// - Note: This is only valid for components which have an `Int` value (e.g., `day`, `month`, `hour`, `minute`, etc.)
+    ///     Passing a non-`Int` component (e.g., `calendar` or `timeZone`) will result in the program being terminated.
     public subscript(component: Calendar.Component) -> Int? {
         switch component {
         case .era:
@@ -328,8 +341,11 @@ extension DateComponents {
             if #available(iOS 18, macOS 15, *) {
                 return self.dayOfYear
             } else {
-                // The crash here is fine, since the enum case itself is also only available on iOS 18+
-                fatalError()
+                // This branch is practically unreachable, since the availability of the `Calendar.Component.dayOfYear`
+                // case is the same as of the `DateComponents.dayOfYear` property. (Both are iOS 18+.)
+                // Meaning that in all situations where a caller is able to pass us this case, we'll also be able
+                // to access the property.
+                return nil
             }
         case .calendar, .timeZone, .isLeapMonth:
             fatalError("not supported") // different type (not an int) :/
@@ -340,3 +356,37 @@ extension DateComponents {
 }
 
 
+// MARK: DST
+
+extension TimeZone {
+    /// Information about a daylight saving time transition.
+    public struct DSTTransition {
+        /// The instant when the transition happens
+        public let date: Date
+        /// The amount of seconds by which this transition changes clocks
+        public let change: TimeInterval
+    }
+    
+    /// The time zone's next DST transition.
+    public func nextDSTTransition(after referenceDate: Date = .now) -> DSTTransition? {
+        guard let nextDST = nextDaylightSavingTimeTransition(after: referenceDate) else {
+            return nil
+        }
+        let before = nextDST.addingTimeInterval(-1)
+        let after = nextDST.addingTimeInterval(1)
+        return DSTTransition(
+            date: nextDST,
+            change: daylightSavingTimeOffset(for: after) - daylightSavingTimeOffset(for: before)
+        )
+    }
+    
+    
+    /// Returns the next `maxCount` daylight saving time transitions.
+    public func nextDSTTransitions(maxCount: Int) -> [DSTTransition] {
+        var transitions: [DSTTransition] = []
+        while transitions.count < maxCount, let next = self.nextDSTTransition(after: transitions.last?.date ?? Date()) {
+            transitions.append(next)
+        }
+        return transitions
+    }
+}

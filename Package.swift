@@ -23,8 +23,7 @@ let package = Package(
         .tvOS(.v17)
     ],
     products: [
-        .library(name: "SpeziFoundation", targets: ["SpeziFoundation"]),
-        //.library(name: "SpeziFoundationObjC", targets: ["SpeziFoundationObjC"])
+        .library(name: "SpeziFoundation", targets: ["SpeziFoundation"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.2.0"),
