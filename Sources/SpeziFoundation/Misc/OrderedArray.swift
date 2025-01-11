@@ -99,10 +99,6 @@ extension OrderedArray: RandomAccessCollection {
         storage.endIndex
     }
     
-//    public func index(before idx: Index) -> Index {
-//        storage.index(before: idx)
-//    }
-    
     public func index(after idx: Index) -> Index {
         storage.index(after: idx)
     }
