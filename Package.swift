@@ -33,9 +33,9 @@ let package = Package(
         .target(
             name: "SpeziFoundation",
             dependencies: [
+                .target(name: "SpeziFoundationObjC"),
                 .product(name: "Atomics", package: "swift-atomics"),
-                .product(name: "Algorithms", package: "swift-algorithms"),
-                .target(name: "SpeziFoundationObjC")
+                .product(name: "Algorithms", package: "swift-algorithms")
             ],
             resources: [
                 .process("Resources")

@@ -12,6 +12,17 @@ import XCTest
 final class CalendarExtensionsTests: XCTestCase {
     private let cal = Calendar.current
     
+    override class func setUp() {
+        super.setUp()
+        XCTFail(
+            """
+            XCTest environment info:
+            - calendar: \(Calendar.current)
+            - locale: \(Locale.current)
+            """
+        )
+    }
+    
     private func makeDate(year: Int, month: Int, day: Int, hour: Int, minute: Int = 0, second: Int = 0) throws -> Date {
         let components = DateComponents(year: year, month: month, day: day, hour: hour, minute: minute, second: second)
         return try XCTUnwrap(cal.date(from: components))

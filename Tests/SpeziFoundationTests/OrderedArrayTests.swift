@@ -87,6 +87,6 @@ final class OrderedArrayTests: XCTestCase {
         let capacity = array.capacity
         array.removeAll(keepingCapacity: true)
         XCTAssertTrue(array.isEmpty)
-        XCTAssertEqual(array.capacity, array.capacity)
+        XCTAssertEqual(array.capacity, capacity)
     }
 }
