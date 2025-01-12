@@ -338,7 +338,7 @@ extension DateComponents {
         case .nanosecond:
             return self.nanosecond
         case .dayOfYear:
-            if #available(iOS 18, macOS 15, *) {
+            if #available(iOS 18, macOS 15, watchOS 11, tvOS 18, visionOS 2, *) {
                 return self.dayOfYear
             } else {
                 // This branch is practically unreachable, since the availability of the `Calendar.Component.dayOfYear`
