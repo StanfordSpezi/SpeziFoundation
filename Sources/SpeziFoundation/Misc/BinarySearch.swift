@@ -15,14 +15,6 @@ public enum BinarySearchIndexResult<Index> {
     case found(Index)
     /// The searched-for element was not found in the collection, but if it were a member of the collection, it would belong at the specified index.
     case notFound(Index)
-    
-    /// The index at which the element is/belongs.
-    public var index: Index {
-        switch self {
-        case .found(let index), .notFound(let index):
-            index
-        }
-    }
 }
 
 

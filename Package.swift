@@ -27,7 +27,8 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.2.0"),
-        .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0")
+        .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0"),
+        .package(url: "https://github.com/StanfordBDHG/XCTRuntimeAssertions", from: "1.1.3")
     ] + swiftLintPackage(),
     targets: [
         .target(
@@ -35,7 +36,8 @@ let package = Package(
             dependencies: [
                 .target(name: "SpeziFoundationObjC"),
                 .product(name: "Atomics", package: "swift-atomics"),
-                .product(name: "Algorithms", package: "swift-algorithms")
+                .product(name: "Algorithms", package: "swift-algorithms"),
+                .product(name: "XCTRuntimeAssertions", package: "XCTRuntimeAssertions")
             ],
             resources: [
                 .process("Resources")
@@ -49,7 +51,8 @@ let package = Package(
         .testTarget(
             name: "SpeziFoundationTests",
             dependencies: [
-                .target(name: "SpeziFoundation")
+                .target(name: "SpeziFoundation"),
+                .product(name: "XCTRuntimeAssertions", package: "XCTRuntimeAssertions")
             ],
             plugins: [] + swiftLintPlugin()
         )

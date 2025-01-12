@@ -11,12 +11,8 @@ import SpeziFoundationObjC
 
 
 /// A `Swift.Error` wrapping around an `NSException`.
-public struct CaughtNSException: Error, LocalizedError, @unchecked Sendable {
+public struct CaughtNSException: Error, @unchecked Sendable {
     public let exception: NSException
-    
-    public var errorDescription: String {
-        "\(Self.self): \(exception.description)"
-    }
 }
 
 

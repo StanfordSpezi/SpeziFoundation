@@ -7,13 +7,14 @@
 //
 
 import Foundation
+import XCTRuntimeAssertions
 
 
 private func tryUnwrap<T>(_ value: T?, _ message: String) -> T {
     if let value {
         return value
     } else {
-        fatalError(message)
+        preconditionFailure(message)
     }
 }
 
@@ -348,7 +349,7 @@ extension DateComponents {
                 return nil
             }
         case .calendar, .timeZone, .isLeapMonth:
-            fatalError("not supported") // different type (not an int) :/
+            preconditionFailure("not supported") // different type (not an int) :/
         @unknown default:
             return nil
         }
