@@ -206,7 +206,7 @@ extension Calendar {
                 from: startOfComponentFn(startDate),
                 to: startOfComponentFn(endDate)
             )
-            return tryUnwrap(diff[component], "Unable to get component '\(component)'") + 1
+            return tryUnwrap(diff.value(for: component), "Unable to get component '\(component)'") + 1
         }
     }
     
@@ -299,59 +299,6 @@ extension Calendar {
             // Otherwise, we perform the adjustment manually, by subtracting the component's value from the date.
             let componentValue = self.component(component, from: date)
             return self.date(byAdding: component, value: -componentValue, to: date, wrappingComponents: true)
-        }
-    }
-}
-
-
-extension DateComponents {
-    /// Returns the integer value of the specified component.
-    /// - Note: This is only valid for components which have an `Int` value (e.g., `day`, `month`, `hour`, `minute`, etc.)
-    ///     Passing a non-`Int` component (e.g., `calendar` or `timeZone`) will result in the program being terminated.
-    public subscript(component: Calendar.Component) -> Int? {
-        switch component {
-        case .era:
-            return self.era
-        case .year:
-            return self.year
-        case .month:
-            return self.month
-        case .day:
-            return self.day
-        case .hour:
-            return self.hour
-        case .minute:
-            return self.minute
-        case .second:
-            return self.second
-        case .weekday:
-            return self.weekday
-        case .weekdayOrdinal:
-            return self.weekdayOrdinal
-        case .quarter:
-            return self.quarter
-        case .weekOfMonth:
-            return self.weekOfMonth
-        case .weekOfYear:
-            return self.weekOfYear
-        case .yearForWeekOfYear:
-            return self.yearForWeekOfYear
-        case .nanosecond:
-            return self.nanosecond
-        case .dayOfYear:
-            if #available(iOS 18, macOS 15, watchOS 11, tvOS 18, visionOS 2, *) {
-                return self.dayOfYear
-            } else {
-                // This branch is practically unreachable, since the availability of the `Calendar.Component.dayOfYear`
-                // case is the same as of the `DateComponents.dayOfYear` property. (Both are iOS 18+.)
-                // Meaning that in all situations where a caller is able to pass us this case, we'll also be able
-                // to access the property.
-                return nil
-            }
-        case .calendar, .timeZone, .isLeapMonth:
-            preconditionFailure("not supported") // different type (not an int) :/
-        @unknown default:
-            return nil
         }
     }
 }
