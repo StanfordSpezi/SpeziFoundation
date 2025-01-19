@@ -15,33 +15,47 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 ## Topics
 
 ### Data Structures
-
 - <doc:Shared-Repository>
+- ``OrderedArray``
 
-### Introspection
+### Calendar and Time Zone handling
+- <doc:Calendar>
 
-- ``AnyArray``
-- ``AnyOptional``
+### Sequence and Collection utilities
+- <doc:CollectionAlgorithms>
 
 ### Concurrency
-
 - ``RWLock``
 - ``RecursiveRWLock``
 - ``AsyncSemaphore``
 - ``ManagedAsynchronousAccess``
+- ``runOrScheduleOnMainActor(_:)``
 
 ### Encoders and Decoders
 - ``TopLevelEncoder``
 - ``TopLevelDecoder``
 
+### Generic Result Builders
+- ``RangeReplaceableCollectionBuilder``
+- ``ArrayBuilder``
+- ``SetBuilder``
+- ``Swift/Array/init(build:)``
+- ``Swift/Set/init(build:)``
+
+### Introspection
+- ``AnyArray``
+- ``AnyOptional``
+
 ### Data
 - ``DataDescriptor``
 
 ### Timeout
-
 - ``TimeoutError``
 - ``withTimeout(of:perform:)``
 
-### System Programming Interfaces
+### Objective-C Exception Handling
+- ``catchingNSException(_:)``
+- ``CaughtNSException``
 
+### System Programming Interfaces
 - <doc:SPI>

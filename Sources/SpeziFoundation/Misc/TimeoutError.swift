@@ -103,6 +103,5 @@ public func withTimeout(of timeout: Duration, perform action: sending () async -
     guard !Task.isCancelled else {
         return
     }
-
     await action()
 }
