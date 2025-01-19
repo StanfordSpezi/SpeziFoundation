@@ -7,7 +7,7 @@
 //
 
 
-/// ``SetBuilder`` is a result builder for constructing `Set`s.
+/// Result builder for constructing `Set`s.
 @resultBuilder
 public enum SetBuilder<Element: Hashable> {}
 

@@ -17,17 +17,18 @@ public enum BinarySearchIndexResult<Index> {
     case notFound(Index)
 }
 
-
 extension BinarySearchIndexResult: Equatable where Index: Equatable {}
 extension BinarySearchIndexResult: Hashable where Index: Hashable {}
 
 
 extension Collection {
-    /// Performs a binary search over the collection, looking for
-    /// - parameter compare: closure that gets called with an element of the collection to determine, whether the binary search algorithm should go left/right, or has already found its target.
-    ///         The closure should return `.orderedSame` if the element passed to it matches the search destination, `.orderedAscending` if the search should continue to the left,
-    ///         and `.orderedDescending` if it should continue to the right.
-    ///         E.g., when looking for a position for an element `x`, the closure should perform a `compare(x, $0)`.
+    /// Performs a binary search over the collection, determining the index of an element.
+    /// - parameter element: The element to locate
+    /// - parameter compare: Closure that gets called to determine how two `Element`s compare to each other.
+    ///     The return value determines how the algorithm proceeds: if the closure returns `.orderedAscending` the search will continue to the left;
+    ///     for `.orderedDescending` it will continue to the right.
+    /// - Note: If the element is not in the collection (i.e., the `compare` closure never returns `.orderedSame`),
+    ///     the algorithm will compute and return the index where the element should be, if it were to become a member of the collection.
     public func binarySearchForIndex(
         of element: Element,
         using compare: (Element, Element) -> ComparisonResult
@@ -35,14 +36,15 @@ extension Collection {
         binarySearchForIndex(of: element, in: startIndex..<endIndex, using: compare)
     }
     
-    /// Performs a binary search over the collection, looking for the index at which the element either is, or should be if it were a member of the collection.
-    /// - parameter element: The element whose position should be determined.
+    /// Performs a binary search over the collection, looking for the index of the specified element
+    /// - parameter element: The element to locate
     /// - parameter range: The range in which to look for the element.
-    /// - parameter compare: Closure used to compare two  `Element`s against each other. The result of this is used to determine, if the elements are not equal,
-    ///         whether the binary search algorithm should continue to the left or to the right.
-    ///         The closure should return `.orderedSame` if the element passed to it matches the search destination, `.orderedAscending` if the search should continue to the left,
-    ///         and `.orderedDescending` if it should continue to the right.
-    public func binarySearchForIndex(
+    /// - parameter compare: Closure that gets called to determine how two `Element`s compare to each other.
+    ///     The return value determines how the algorithm proceeds: if the closure returns `.orderedAscending` the search will continue to the left;
+    ///     for `.orderedDescending` it will continue to the right.
+    /// - Note: If the element is not in the collection (i.e., the `compare` closure never returns `.orderedSame`),
+    ///     the algorithm will compute and return the index where the element should be, if it were to become a member of the collection.
+    private func binarySearchForIndex(
         of element: Element,
         in range: Range<Index>,
         using compare: (Element, Element) -> ComparisonResult
@@ -62,7 +64,7 @@ extension Collection {
     
     /// Computes, for a non-empty range over the collection, the middle of the range.
     /// If the range is empty, this function will return `nil`.
-    public func middleIndex(of range: Range<Index>) -> Index? {
+    private func middleIndex(of range: Range<Index>) -> Index? {
         guard !range.isEmpty else {
             return nil
         }

@@ -177,7 +177,6 @@ extension OrderedArray {
     
     
     /// Removes from the array all elements which match the predicate
-    /// - returns: the indices of the removed elements.
     public mutating func removeAll(where predicate: (Element) -> Bool) {
         withInvariantCheckingTemporarilyDisabled { `self` in
             self.storage.removeAll(where: predicate)

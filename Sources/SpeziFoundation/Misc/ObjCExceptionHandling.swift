@@ -10,7 +10,7 @@ import Foundation
 import SpeziFoundationObjC
 
 
-/// A `Swift.Error` wrapping around an `NSException`.
+/// A Swift `Error` wrapping around a caught `NSException`.
 public struct CaughtNSException: Error, @unchecked Sendable {
     public let exception: NSException
 }

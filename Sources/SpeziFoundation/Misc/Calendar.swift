@@ -212,7 +212,8 @@ extension Calendar {
     
     
     /// Returns the number of distinct weeks between the two dates.
-    /// E.g., if the first date is 2021-02-02 07:20 and the second is 2021-02-02 08:05, this would return 2.
+    ///
+    /// E.g., if the first date is `2021-02-02 07:20` and the second is `2021-02-02 08:05`, this would return 2.
     public func countDistinctHours(from startDate: Date, to endDate: Date) -> Int {
         _countDistinctNumberOfComponentUnits(
             from: startDate,
@@ -223,7 +224,8 @@ extension Calendar {
     }
     
     /// Returns the number of distinct weeks between the two dates.
-    /// E.g., if the first date is 2021-02-02 09:00 and the second is 2021-02-03 07:00, this would return 2.
+    ///
+    /// E.g., if the first date is `2021-02-02 09:00` and the second is `2021-02-03 07:00`, this would return 2.
     public func countDistinctDays(from startDate: Date, to endDate: Date) -> Int {
         _countDistinctNumberOfComponentUnits(
             from: startDate,
@@ -234,7 +236,8 @@ extension Calendar {
     }
     
     /// Returns the number of distinct weeks between the two dates.
-    /// E.g., if the first date is 2021-02-07 and the second is 2021-02-09, this would return 2.
+    ///
+    /// E.g., if the first date is `2021-02-07` and the second is `2021-02-09`, this would return 2.
     public func countDistinctWeeks(from startDate: Date, to endDate: Date) -> Int {
         _countDistinctNumberOfComponentUnits(
             from: startDate,
@@ -245,7 +248,8 @@ extension Calendar {
     }
     
     /// Returns the number of distinct months between the two dates.
-    /// E.g., if the first date is 2021-02-25 and the second is 2021-04-12, this would return 3.
+    ///
+    /// E.g., if the first date is `2021-02-25` and the second is `2021-04-12`, this would return 3.
     public func countDistinctMonths(from startDate: Date, to endDate: Date) -> Int {
         _countDistinctNumberOfComponentUnits(
             from: startDate,
@@ -256,7 +260,8 @@ extension Calendar {
     }
     
     /// Returns the number of distinct years between the two dates.
-    /// E.g., if the first date is 2021-02-25 and the second is 2022-02-25, this would return 2.
+    ///
+    /// E.g., if the first date is `2021-02-25` and the second is `2022-02-25`, this would return 2.
     public func countDistinctYears(from startDate: Date, to endDate: Date) -> Int {
         _countDistinctNumberOfComponentUnits(
             from: startDate,
@@ -289,9 +294,10 @@ extension Calendar {
 
 
 extension Calendar {
-    /// Computes a new `Date` from `date`, obtained by setting `component` to zero.
+    /// Computes a new `Date` by setting a component to zero.
+    /// - parameter component: The component to set to zero.
     /// - parameter adjustOtherComponents: Determines whether the other components in the date should be adjusted when changing the component.
-    public func date(bySettingComponentToZero component: Component, of date: Date, adjustOtherComponents: Bool) -> Date? {
+    private func date(bySettingComponentToZero component: Component, of date: Date, adjustOtherComponents: Bool) -> Date? {
         if adjustOtherComponents {
             // If we're asked to adjust the other components, we can use Calendar's -date(bySetting...) function.
             return self.date(bySetting: component, value: 0, of: date)
@@ -316,8 +322,11 @@ extension TimeZone {
     }
     
     /// The time zone's next DST transition.
-    public func nextDSTTransition(after referenceDate: Date = .now) -> DSTTransition? {
-        guard let nextDST = nextDaylightSavingTimeTransition(after: referenceDate) else {
+    /// - parameter date: The reference date for the DST transition check.
+    /// - returns: A ``DSTTransition`` object with information about the first DST transition that will occur after `date`, in the current time zone.
+    ///     `nil` if the time zone was unable to determine the next transition.
+    public func nextDSTTransition(after date: Date = .now) -> DSTTransition? {
+        guard let nextDST = nextDaylightSavingTimeTransition(after: date) else {
             return nil
         }
         let before = nextDST.addingTimeInterval(-1)

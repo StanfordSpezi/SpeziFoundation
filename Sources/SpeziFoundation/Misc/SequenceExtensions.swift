@@ -11,16 +11,40 @@ import Algorithms
 
 extension Sequence {
     /// Maps a `Sequence` into a `Set`.
+    ///
     /// Compared to instead mapping the sequence into an Array (the default `map` function's return type) and then constructing a `Set` from that,
     /// this implementation can offer improved performance, since the intermediate Array is skipped.
     /// - Returns: a `Set` containing the results of applying `transform` to each element in the sequence.
-    /// - Throws: If `transform` throws.
     public func mapIntoSet<NewElement: Hashable>(_ transform: (Element) throws -> NewElement) rethrows -> Set<NewElement> {
         var retval = Set<NewElement>()
         for element in self {
             retval.insert(try transform(element))
         }
         return retval
+    }
+    
+    /// An asynchronous version of Swift's `Sequence.reduce(_:_:)` function.
+    public func reduce<Result>(
+        _ initialResult: Result,
+        _ nextPartialResult: (Result, Element) async throws -> Result
+    ) async rethrows -> Result {
+        var result = initialResult
+        for element in self {
+            result = try await nextPartialResult(result, element)
+        }
+        return result
+    }
+    
+    /// An asynchronous version of Swift's `Sequence.reduce(into:_:)` function.
+    public func reduce<Result>(
+        into initial: Result,
+        _ nextPartialResult: (inout Result, Element) async throws -> Void
+    ) async rethrows -> Result {
+        var result = initial
+        for element in self {
+            try await nextPartialResult(&result, element)
+        }
+        return result
     }
 }
 
@@ -42,6 +66,9 @@ extension Sequence {
 
 extension RangeReplaceableCollection {
     /// Removes the elements at the specified indices from the collection.
+    /// - parameter indices: The indices at which elements should be removed.
+    ///
+    /// Useful e.g. when working with SwiftUI's `onDelete(perform:)` modifier.
     public mutating func remove(at indices: some Sequence<Index>) {
         for idx in indices.sorted().reversed() {
             self.remove(at: idx)

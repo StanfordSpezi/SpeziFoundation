@@ -26,4 +26,23 @@ final class SequenceExtensionTests: XCTestCase {
         array.remove(at: [0, 7, 5, 2] as IndexSet)
         XCTAssertEqual(array, [1, 3, 4, 6, 8, 9])
     }
+    
+    
+    func testAsyncReduce() async throws {
+        let names = ["Paul", "Lukas"]
+        let reduced = try await names.reduce(0) { acc, name in
+            try await Task.sleep(for: .seconds(0.2)) // best i could think of to get some trivial async-ness in here...
+            return acc + name.count
+        }
+        XCTAssertEqual(reduced, 9)
+    }
+    
+    func testAsyncReduceInto() async throws {
+        let names = ["Paul", "Lukas"]
+        let reduced = try await names.reduce(into: 0) { acc, name in
+            try await Task.sleep(for: .seconds(0.2)) // best i could think of to get some trivial async-ness in here...
+            acc += name.count
+        }
+        XCTAssertEqual(reduced, 9)
+    }
 }
