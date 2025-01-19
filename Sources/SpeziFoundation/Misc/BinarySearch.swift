@@ -29,6 +29,7 @@ extension Collection {
     ///     for `.orderedDescending` it will continue to the right.
     /// - Note: If the element is not in the collection (i.e., the `compare` closure never returns `.orderedSame`),
     ///     the algorithm will compute and return the index where the element should be, if it were to become a member of the collection.
+    @inlinable
     public func binarySearchForIndex(
         of element: Element,
         using compare: (Element, Element) -> ComparisonResult
@@ -44,7 +45,8 @@ extension Collection {
     ///     for `.orderedDescending` it will continue to the right.
     /// - Note: If the element is not in the collection (i.e., the `compare` closure never returns `.orderedSame`),
     ///     the algorithm will compute and return the index where the element should be, if it were to become a member of the collection.
-    private func binarySearchForIndex(
+    @usableFromInline
+    internal func binarySearchForIndex(
         of element: Element,
         in range: Range<Index>,
         using compare: (Element, Element) -> ComparisonResult

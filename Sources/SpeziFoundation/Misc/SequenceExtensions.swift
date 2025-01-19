@@ -15,6 +15,7 @@ extension Sequence {
     /// Compared to instead mapping the sequence into an Array (the default `map` function's return type) and then constructing a `Set` from that,
     /// this implementation can offer improved performance, since the intermediate Array is skipped.
     /// - Returns: a `Set` containing the results of applying `transform` to each element in the sequence.
+    @inlinable
     public func mapIntoSet<NewElement: Hashable>(_ transform: (Element) throws -> NewElement) rethrows -> Set<NewElement> {
         var retval = Set<NewElement>()
         for element in self {
@@ -24,6 +25,7 @@ extension Sequence {
     }
     
     /// An asynchronous version of Swift's `Sequence.reduce(_:_:)` function.
+    @inlinable
     public func reduce<Result>(
         _ initialResult: Result,
         _ nextPartialResult: (Result, Element) async throws -> Result
@@ -36,6 +38,7 @@ extension Sequence {
     }
     
     /// An asynchronous version of Swift's `Sequence.reduce(into:_:)` function.
+    @inlinable
     public func reduce<Result>(
         into initial: Result,
         _ nextPartialResult: (inout Result, Element) async throws -> Void
@@ -69,6 +72,7 @@ extension RangeReplaceableCollection {
     /// - parameter indices: The indices at which elements should be removed.
     ///
     /// Useful e.g. when working with SwiftUI's `onDelete(perform:)` modifier.
+    @inlinable
     public mutating func remove(at indices: some Sequence<Index>) {
         for idx in indices.sorted().reversed() {
             self.remove(at: idx)

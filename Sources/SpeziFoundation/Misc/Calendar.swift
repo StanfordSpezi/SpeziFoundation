@@ -41,6 +41,7 @@ extension Calendar {
     }
     
     /// Returns a `Range<Date>` representing the range of the hour into which `date` falls.
+    @inlinable
     public func rangeOfHour(for date: Date) -> Range<Date> {
         startOfHour(for: date)..<startOfNextHour(for: date)
     }
@@ -63,6 +64,7 @@ extension Calendar {
     }
     
     /// Returns a `Range<Date>` representing the range of the day into which `date` falls.
+    @inlinable
     public func rangeOfDay(for date: Date) -> Range<Date> {
         startOfDay(for: date)..<startOfNextDay(for: date)
     }
@@ -97,6 +99,7 @@ extension Calendar {
     }
     
     /// Returns a `Range<Date>` representing the range of the week into which `date` falls.
+    @inlinable
     public func rangeOfWeek(for date: Date) -> Range<Date> {
         startOfWeek(for: date)..<startOfNextWeek(for: date)
     }
@@ -131,6 +134,7 @@ extension Calendar {
     
     
     /// Returns the exclusive range from the beginning of the month into which `date` falls, to the beginning of the next
+    @inlinable
     public func rangeOfMonth(for date: Date) -> Range<Date> {
         startOfMonth(for: date)..<startOfNextMonth(for: date)
     }
@@ -173,6 +177,7 @@ extension Calendar {
     }
     
     /// Returns a `Range<Date>` representing the range of the year into which `date` falls.
+    @inlinable
     public func rangeOfYear(for date: Date) -> Range<Date> {
         startOfYear(for: date)..<startOfNextYear(for: date)
     }

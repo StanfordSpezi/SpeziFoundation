@@ -12,6 +12,7 @@ public typealias ArrayBuilder<T> = RangeReplaceableCollectionBuilder<[T]>
 
 extension Array {
     /// Constructs a new array, using a result builder.
+    @inlinable
     public init(@ArrayBuilder<Element> build: () -> Self) {
         self = build()
     }
