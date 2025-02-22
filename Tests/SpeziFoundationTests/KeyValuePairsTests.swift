@@ -11,14 +11,17 @@ import SpeziFoundation
 import XCTest
 
 
-private func XCTAssertEqual<A: Hashable, B: Equatable>(
-    _ lhs: KeyValuePairs<A, B>,
-    _ rhs: KeyValuePairs<A, B>,
+private func XCTAssertEqual<Key: Hashable, Value: Equatable>(
+    _ lhs: KeyValuePairs<Key, Value>,
+    _ rhs: KeyValuePairs<Key, Value>,
     file: StaticString = #filePath,
     line: UInt = #line
-) {
-    let lhs = Dictionary<A, B>(lhs.lazy.map { ($0, $1) }, uniquingKeysWith: { a, b in a })
-    let rhs = Dictionary<A, B>(rhs.lazy.map { ($0, $1) }, uniquingKeysWith: { a, b in a })
+) throws {
+    let duplicateEntriesError = NSError(domain: "edu.stanford.spezi", code: 0, userInfo: [
+        NSLocalizedDescriptionKey: "Duplicate keys!"
+    ])
+    let lhs = try Dictionary(lhs.lazy.map { ($0, $1) }, uniquingKeysWith: { _, _ in throw duplicateEntriesError })
+    let rhs = try Dictionary(rhs.lazy.map { ($0, $1) }, uniquingKeysWith: { _, _ in throw duplicateEntriesError })
     if lhs != rhs {
         XCTFail("'\(lhs)' was not equal to '\(rhs)'", file: file, line: line)
     }
@@ -26,21 +29,21 @@ private func XCTAssertEqual<A: Hashable, B: Equatable>(
 
 
 final class KeyValuePairsTests: XCTestCase {
-    func testCreateKeyValuePairsFromSequence() {
+    func testCreateKeyValuePairsFromSequence() throws {
         let sequence: some Sequence<(String, Int)> = [
             ("A", 1), ("B", 2), ("C", 3), ("D", 4), ("E", 5), ("F", 6)
         ]
-        XCTAssertEqual(
+        try XCTAssertEqual(
             KeyValuePairs(sequence),
             ["A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6]
         )
     }
     
-    func testCreateKeyValuePairsFromDictionary() {
+    func testCreateKeyValuePairsFromDictionary() throws {
         let dictionary = [
             "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6
         ]
-        XCTAssertEqual(
+        try XCTAssertEqual(
             KeyValuePairs(dictionary.lazy.map { ($0, $1) }),
             ["A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6]
         )

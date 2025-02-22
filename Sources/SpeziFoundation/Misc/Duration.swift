@@ -20,7 +20,7 @@ extension Duration {
     public static func minutes(_ minutes: some BinaryInteger) -> Duration {
         .seconds(minutes * 60)
     }
-
+    
     /// A duration given a number of minutes.
     ///
     /// Creates a new duration given a number of minutes by converting into the closest second scale value.
@@ -33,7 +33,7 @@ extension Duration {
     public static func minutes(_ minutes: Double) -> Duration {
         .seconds(minutes * 60)
     }
-
+    
     /// A duration given a number of hours.
     ///
     /// ```swift
@@ -44,7 +44,7 @@ extension Duration {
     public static func hours(_ hours: some BinaryInteger) -> Duration {
         .seconds(hours * 60 * 60)
     }
-
+    
     /// A duration given a number of hours.
     ///
     /// Creates a new duration given a number of hours by converting into the closest second scale value.
@@ -57,7 +57,7 @@ extension Duration {
     public static func hours(_ hours: Double) -> Duration {
         .seconds(hours * 60 * 60)
     }
-
+    
     /// A duration given a number of days.
     ///
     /// ```swift
@@ -68,7 +68,7 @@ extension Duration {
     public static func days(_ days: some BinaryInteger) -> Duration {
         .seconds(days * 60 * 60 * 24)
     }
-
+    
     /// A duration given a number of days.
     ///
     /// ```swift
@@ -79,7 +79,7 @@ extension Duration {
     public static func days(_ days: Double) -> Duration {
         .seconds(days * 60 * 60 * 24)
     }
-
+    
     /// A duration given a number of weeks.
     ///
     /// ```swift
@@ -90,7 +90,7 @@ extension Duration {
     public static func weeks(_ weeks: some BinaryInteger) -> Duration {
         .seconds(weeks * 60 * 60 * 24 * 7)
     }
-
+    
     /// A duration given a number of weeks.
     ///
     /// ```swift
@@ -101,11 +101,12 @@ extension Duration {
     public static func weeks(_ weeks: Double) -> Duration {
         .seconds(weeks * 60 * 60 * 24 * 7)
     }
-    
-    
+}
+
+
+extension Duration {
     /// The number of seconds in the `Duration`, as a `TimeInterval` value.
-    @inlinable
-    public var timeInterval: TimeInterval {
+    @inlinable public var timeInterval: TimeInterval {
         let components = self.components
         let attosecondsInSeconds = Double(components.attoseconds) / 1_000_000_000_000_000_000.0 // 10^-18
         return TimeInterval(components.seconds) + attosecondsInSeconds
