@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-// swiftlint:disable identical_operands
+// swiftlint:disable identical_operands file_types_order
 
 import Foundation
 @testable import SpeziFoundation
