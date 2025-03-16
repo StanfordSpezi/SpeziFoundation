@@ -24,38 +24,44 @@ extension RangeReplaceableCollectionBuilder {
     
     /// :nodoc:
     @inlinable
+    public static func buildExpression(_ expression: C) -> C {
+        expression
+    }
+    
+    /// :nodoc:
+    @inlinable
     public static func buildExpression(_ expression: some Sequence<Element>) -> C {
         C(expression)
     }
     
     /// :nodoc:
     @inlinable
-    public static func buildOptional(_ expression: C?) -> C {
-        expression ?? C()
+    public static func buildOptional(_ component: C?) -> C {
+        component ?? C()
     }
     
     /// :nodoc:
     @inlinable
-    public static func buildEither(first expression: some Sequence<Element>) -> C {
-        C(expression)
+    public static func buildEither(first component: C) -> C {
+        component
     }
     
     /// :nodoc:
     @inlinable
-    public static func buildEither(second expression: some Sequence<Element>) -> C {
-        C(expression)
+    public static func buildEither(second component: C) -> C {
+        component
     }
     
     /// :nodoc:
     @inlinable
-    public static func buildPartialBlock(first: some Sequence<Element>) -> C {
-        C(first)
+    public static func buildPartialBlock(first: C) -> C {
+        first
     }
     
     /// :nodoc:
     @inlinable
-    public static func buildPartialBlock(accumulated: some Sequence<Element>, next: some Sequence<Element>) -> C {
-        C(accumulated) + C(next)
+    public static func buildPartialBlock(accumulated: C, next: C) -> C {
+        accumulated + next
     }
     
     /// :nodoc:
@@ -66,8 +72,14 @@ extension RangeReplaceableCollectionBuilder {
     
     /// :nodoc:
     @inlinable
-    public static func buildArray(_ components: [some Sequence<Element>]) -> C {
+    public static func buildArray(_ components: [C]) -> C {
         components.reduce(into: C()) { $0.append(contentsOf: $1) }
+    }
+    
+    /// :nodoc:
+    @inlinable
+    public static func buildLimitedAvailability(_ component: C) -> C {
+        component
     }
     
     /// :nodoc:
