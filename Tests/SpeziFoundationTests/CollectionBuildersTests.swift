@@ -24,7 +24,7 @@ final class CollectionBuildersTests: XCTestCase {
     
     
     func testArrayBuilder() {
-        _imp([Int].self, expected: [1, 2, 3, 4, 5, 7, 8, 9, 52]) {
+        _imp([Int].self, expected: [1, 2, 3, 4, 5, 7, 8, 9, 52, 41]) {
             1
             2
             [3, 4, 5]
@@ -36,6 +36,9 @@ final class CollectionBuildersTests: XCTestCase {
             }
             if let value = Int?.some(52) {
                 value
+            }
+            if #available(iOS 17, macOS 14, *) {
+                41
             }
         }
         
