@@ -42,9 +42,22 @@
 		2FB0758A299DDB9000C0B37F /* TestApp.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestApp.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		801EAADB2DA92FAC0010F271 /* Exceptions for "TestApp" folder in "TestApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				TestApp.entitlements.license,
+			);
+			target = 2F6D139128F5F384007C25D6 /* TestApp */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		802777FB2D9BF825003D7436 /* TestApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				801EAADB2DA92FAC0010F271 /* Exceptions for "TestApp" folder in "TestApp" target */,
+			);
 			path = TestApp;
 			sourceTree = "<group>";
 		};
