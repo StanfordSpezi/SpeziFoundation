@@ -12,8 +12,8 @@ import Algorithms
 extension Sequence {
     /// Maps a `Sequence` into a `Set`.
     ///
-    /// Compared to instead mapping the sequence into an Array (the default `map` function's return type) and then constructing a `Set` from that,
-    /// this implementation can offer improved performance, since the intermediate Array is skipped.
+    /// Compared to instead mapping the sequence into an `Array` (the default `map` function's return type) and then constructing a `Set` from that,
+    /// this implementation can offer improved performance, since the intermediate `Array` is skipped.
     /// - Returns: a `Set` containing the results of applying `transform` to each element in the sequence.
     @inlinable
     public func mapIntoSet<NewElement: Hashable>(_ transform: (Element) throws -> NewElement) rethrows -> Set<NewElement> {
@@ -23,6 +23,39 @@ extension Sequence {
         }
         return retval
     }
+    
+    /// Maps a `Sequence` into a `Set`, skipping any `nil` elements.
+    ///
+    /// Compared to instead compact-mapping the sequence into an `Array` (the default `compactMap` function's return type) and then constructing a `Set` from that,
+    /// this implementation can offer improved performance, since the intermediate `Array` is skipped.
+    /// - Returns: a `Set` containing the results of applying `transform` to each element in the sequence, skipping all `nil` results.
+    @inlinable
+    public func compactMapIntoSet<NewElement: Hashable>(_ transform: (Element) throws -> NewElement?) rethrows -> Set<NewElement> {
+        var retval = Set<NewElement>()
+        for element in self {
+            if let element = try transform(element) {
+                retval.insert(element)
+            }
+        }
+        return retval
+    }
+    
+    /// Maps a `Sequence` into a `Set`, flattening the results of calling the `transform` closure with each element of the sequence.
+    ///
+    /// Compared to instead flat-mapping the sequence into an `Array` (the default `flatMap` function's return type) and then constructing a `Set` from that,
+    /// this implementation can offer improved performance, since the intermediate `Array` is skipped.
+    /// - Returns: a `Set` containing the flattened results of applying `transform` to each element in the sequence.
+    @inlinable
+    public func flatMapIntoSet<TransformResult: Sequence>(
+        _ transform: (Element) throws -> TransformResult
+    ) rethrows -> Set<TransformResult.Element> {
+        var retval = Set<TransformResult.Element>()
+        for element in self {
+            retval.formUnion(try transform(element))
+        }
+        return retval
+    }
+    
     
     /// An asynchronous version of Swift's `Sequence.reduce(_:_:)` function.
     @inlinable
