@@ -6,43 +6,64 @@
 // SPDX-License-Identifier: MIT
 //
 
+import Foundation
 import SpeziFoundation
-import XCTest
+import Testing
 
 
-final class SequenceExtensionTests: XCTestCase {
-    func testMapIntoSet() {
-        XCTAssertEqual([0, 1, 2, 3, 4].mapIntoSet { $0 * 2 }, [0, 2, 4, 6, 8])
-        XCTAssertEqual([0, 1, 2, 3, 4].mapIntoSet { $0 / 2 }, [0, 1, 2])
+@Suite
+struct SequenceExtensions {
+    @Test
+    func mapIntoSet() {
+        #expect([0, 1, 2, 3, 4].mapIntoSet { $0 * 2 } == [0, 2, 4, 6, 8])
+        #expect([0, 1, 2, 3, 4].mapIntoSet { $0 / 2 } == [0, 1, 2])
     }
     
+    @Test
+    func compactMapIntoSet() {
+        #expect([0, 1, 2, 3, 4].compactMapIntoSet { $0.isMultiple(of: 2) ? $0 * 2 : nil } == [0, 4, 8])
+        #expect([0, 1, 2, 3, 4].compactMapIntoSet { $0.isMultiple(of: 2) ? $0 / 2 : nil } == [0, 1, 2])
+    }
     
-    func testRemoveAtIndices() {
+    @Test
+    func flatMapIntoSet() {
+        struct Person {
+            let name: String
+            let petNames: [String]
+        }
+        let lukas = Person(name: "Lukas", petNames: ["Snugglebug", "Tofu", "Clover", "Muffin"])
+        let paul = Person(name: "Paul", petNames: ["Pudding", "Sprout", "Clover"])
+        #expect([paul, lukas].flatMapIntoSet(\.petNames) == ["Snugglebug", "Tofu", "Clover", "Pudding", "Muffin", "Sprout"])
+    }
+    
+    @Test
+    func removeAtIndices() {
         var array = Array(0...9)
         array.remove(at: [0, 7, 5, 2])
-        XCTAssertEqual(array, [1, 3, 4, 6, 8, 9])
+        #expect(array == [1, 3, 4, 6, 8, 9])
         
         array = Array(0...9)
         array.remove(at: [0, 7, 5, 2] as IndexSet)
-        XCTAssertEqual(array, [1, 3, 4, 6, 8, 9])
+        #expect(array == [1, 3, 4, 6, 8, 9])
     }
     
-    
-    func testAsyncReduce() async throws {
+    @Test
+    func asyncReduce() async throws {
         let names = ["Paul", "Lukas"]
         let reduced = try await names.reduce(0) { acc, name in
             try await Task.sleep(for: .seconds(0.2)) // best i could think of to get some trivial async-ness in here...
             return acc + name.count
         }
-        XCTAssertEqual(reduced, 9)
+        #expect(reduced == 9)
     }
     
-    func testAsyncReduceInto() async throws {
+    @Test
+    func asyncReduceInto() async throws {
         let names = ["Paul", "Lukas"]
         let reduced = try await names.reduce(into: 0) { acc, name in
             try await Task.sleep(for: .seconds(0.2)) // best i could think of to get some trivial async-ness in here...
             acc += name.count
         }
-        XCTAssertEqual(reduced, 9)
+        #expect(reduced == 9)
     }
 }
