@@ -48,7 +48,7 @@ extension Sequence {
     @inlinable
     public func flatMapIntoSet<TransformResult: Sequence>(
         _ transform: (Element) throws -> TransformResult
-    ) rethrows -> Set<TransformResult.Element> {
+    ) rethrows -> Set<TransformResult.Element> where TransformResult.Element: Hashable {
         var retval = Set<TransformResult.Element>()
         for element in self {
             retval.formUnion(try transform(element))
