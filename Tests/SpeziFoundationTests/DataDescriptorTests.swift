@@ -120,4 +120,13 @@ final class DataDescriptorTests: XCTestCase {
         XCTAssertTrue(descriptor1.matches(maskedData), "Descriptor with mask that ignores last bit should match data with last bit difference.")
         XCTAssertFalse(descriptor2.matches(maskedData), "Descriptor with fully applied mask should not match data with last bit difference.")
     }
+
+    func testMatches_ArraySlice() {
+        let data = Data([0x02, 0x04, 0x05])
+
+        let descriptor = DataDescriptor(data: Data([0xFF]), mask: Data([0b11001010]))
+
+        let suffix = data[2...]
+        XCTAssertFalse(descriptor.matches(suffix))
+    }
 }
