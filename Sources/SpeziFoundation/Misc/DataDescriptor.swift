@@ -35,15 +35,17 @@ public struct DataDescriptor {
         self.init(data: data, mask: mask)
     }
 
-    private static func bitwiseAnd(lhs: Data, rhs: Data) -> Data {
+    private static func bitwiseAnd(lhs: Data, rhs: Data) -> [UInt8] {
         if rhs.count > lhs.count {
             return bitwiseAnd(lhs: rhs, rhs: lhs)
         }
 
-        var value = lhs
+        var value: [UInt8] = Array(repeating: 0, count: max(rhs.count, lhs.count))
+        var index = 0
 
-        for index in rhs.indices {
-            value[index] = lhs[index] & rhs[index]
+        for (lhsIndex, rhsIndex) in zip(lhs.indices, rhs.indices) {
+            value[index] = lhs[lhsIndex] & rhs[rhsIndex]
+            index += 1
         }
 
         return value
@@ -67,7 +69,7 @@ extension DataDescriptor: Sendable, Hashable {
     ///   - lhs: The left-hand-side.
     ///   - rhs: The right-hand-side.
     /// - Returns: Returns `true` if the bit pattern matches.
-    static func equalBitPattern(lhs: Data, rhs: Data) -> Bool {
+    static func equalBitPattern<D: Collection<UInt8>>(lhs: D, rhs: D) -> Bool {
         if rhs.count > lhs.count {
             return Self.equalBitPattern(lhs: rhs, rhs: lhs)
         }
