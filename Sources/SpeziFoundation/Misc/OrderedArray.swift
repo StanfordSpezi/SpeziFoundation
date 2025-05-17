@@ -122,7 +122,8 @@ extension OrderedArray: RandomAccessCollection {
     /// Unsafely accesses the element at the specified position.
     ///
     /// This operation is unsafe, since it allows mutating the element, which may result in it no longer satisfying the invariant.
-    /// The caller is responsible for ensuring that this doesn't happen, i.e. that the element is only mutated in ways that retain the invariant.
+    ///
+    /// - Important: The caller is responsible for ensuring that any changes made to the collection maintain the invariant.
     public subscript(unsafe position: Index) -> Element {
         get { storage[position] }
         set { storage[position] = newValue }
@@ -153,7 +154,7 @@ extension OrderedArray {
     /// - parameter element: The value that should be added to the `OrderedArray`
     /// - parameter position: The index where the element should be placed.
     ///
-    /// - Warning: This is an unsafe operation, insofar as that the caller has to ensure that `index` is in fact the correct position for the element.
+    /// - Important: The caller is responsible for ensuring that any changes made to the collection maintain the invariant.
     public mutating func unsafelyInsert(_ element: Element, at position: Index) {
         storage.insert(element, at: position)
     }
