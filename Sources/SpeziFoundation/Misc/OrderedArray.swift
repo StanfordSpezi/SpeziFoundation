@@ -10,11 +10,38 @@ import Foundation
 
 
 /// An `Array`-like data structure that uses a user-defined total order to arrange its elements.
-/// - Note: An  `OrderedArray`'s `Element` should be a type which is either fully immutable, or at least immutable w.r.t. the array's comparator.
-///     The array does not observe changes within individual elements, and does not automatically re-arrange its elements.
+///
+/// An  `OrderedArray`'s `Element` should be a type which is either fully immutable, or at least immutable w.r.t. the array's comparator.
+/// The array does not observe changes within individual elements, and does not automatically re-arrange its elements.
+///
 /// - Note: The `OrderedArray` type intentionally does not conform to `Equatable` or `Hashable`.
 ///     The reason for this is that, while we can compare or hash the elements in the array, we cannot do the same with the array's
 ///     comparator (which is a function). If you want to compare the elements of two `OrderedArray`s, use `Sequence`'s `elementsEqual(_:)` function.
+///
+/// ## Topics
+/// ### Initializers
+/// - ``init(areInIncreasingOrder:)``
+/// ### Invariant
+/// - ``areInIncreasingOrder``
+/// - ``checkInvariant()``
+/// - ``withInvariantCheckingTemporarilyDisabled(_:)``
+/// ### Finding Elements
+/// - ``contains(_:)``
+/// - ``firstIndex(of:)``
+/// - ``search(for:)``
+/// ### Mutating the OrderedArray
+/// - ``insert(_:)``
+/// - ``insert(contentsOf:)``
+/// - ``remove(at:)``
+/// - ``removeAll(keepingCapacity:)``
+/// - ``removeFirstOccurrence(of:)``
+/// - ``remove(contentsOf:)``
+/// - ``removeAll(where:)``
+/// ### Unsafe Operations
+/// - ``unsafelyInsert(_:at:)``
+/// - ``subscript(unsafe:)``
+/// ### Other
+/// - ``capacity``
 public struct OrderedArray<Element> {
     /// The comparator used to determine the ordering between two `Element`s.
     /// - returns: `true` iff the first element comares less to the second one, `false` otherwise.
@@ -218,6 +245,11 @@ extension OrderedArray {
         case .notFound:
             nil
         }
+    }
+    
+    /// Determines whether the array contains the specified element.
+    public func contains(_ element: Element) -> Bool {
+        firstIndex(of: element) != nil
     }
     
     /// Removes the first occurrence of the specified element, if applicable.
