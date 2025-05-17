@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import RuntimeAssertions
 
 
 /// An `Array`-like data structure that uses a user-defined total order to arrange its elements.
@@ -98,7 +99,9 @@ public struct OrderedArray<Element> {
     /// Checks that the array is ordered according to its invariant (i.e., the comparator).
     /// If the invariant is satisfied, this function will terminate execution.
     public func checkInvariant() {
-        precondition(self.isSorted(by: areInIncreasingOrder))
+        if !self.isSorted(by: areInIncreasingOrder) {
+            preconditionFailure("'\(Self.self)' contains unordered elements!")
+        }
     }
 }
 
