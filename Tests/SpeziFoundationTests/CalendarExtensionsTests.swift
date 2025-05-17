@@ -5,9 +5,9 @@
 // SPDX-License-Identifier: MIT
 //
 
+import RuntimeAssertions
 import SpeziFoundation
 import XCTest
-import XCTRuntimeAssertions
 
 private struct RegionConfiguration: Hashable {
     let locale: Locale // swiftlint:disable:this type_contents_order
