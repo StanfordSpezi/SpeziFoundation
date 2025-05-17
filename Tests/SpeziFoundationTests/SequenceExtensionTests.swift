@@ -66,4 +66,34 @@ struct SequenceExtensions {
         }
         #expect(reduced == 9)
     }
+    
+    @Test
+    func search() {
+        let numbers = Array(0...20)
+        #expect(numbers.binarySearchForIndex(of: 5, using: Int.compare) == .found(5))
+        #expect(numbers.binarySearchForIndex(of: 21, using: Int.compare) == .notFound(numbers.endIndex))
+        #expect(numbers.binarySearchForIndex(of: -1, using: Int.compare) == .notFound(numbers.startIndex))
+        #expect(numbers.binarySearchFirstIndex(where: { other in
+            if 7 < other { // swiftlint:disable:this yoda_condition
+                .orderedAscending
+            } else if 7 == other { // swiftlint:disable:this yoda_condition
+                .orderedSame
+            } else {
+                .orderedDescending
+            }
+        }) == .found(7))
+    }
+}
+
+
+extension Comparable {
+    static func compare(_ lhs: Self, _ rhs: Self) -> ComparisonResult {
+        if lhs < rhs {
+            ComparisonResult.orderedAscending
+        } else if rhs < lhs {
+            ComparisonResult.orderedDescending
+        } else {
+            ComparisonResult.orderedSame
+        }
+    }
 }
