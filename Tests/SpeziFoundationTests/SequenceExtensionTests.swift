@@ -83,6 +83,19 @@ struct SequenceExtensions {
             }
         }) == .found(7))
     }
+    
+    
+    @Test
+    func indexing() {
+        let input = [0, 1, 2]
+        #expect(input[safe: 0] == 0)
+        #expect(input[safe: 1] == 1)
+        #expect(input[safe: 2] == 2)
+        #expect(input[safe: 3] == nil)
+        #expect(input[unsafe: 0] == 0)
+        #expect(input[unsafe: 1] == 1)
+        #expect(input[unsafe: 2] == 2)
+    }
 }
 
 

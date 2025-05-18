@@ -112,3 +112,31 @@ extension RangeReplaceableCollection {
         }
     }
 }
+
+
+extension Collection {
+    /// Safely accesses the elememt at the specified index, returning `nil` for out-of-bounds indices.
+    public subscript(safe index: Index) -> Element? {
+        indices.contains(index) ? self[index] : nil
+    }
+}
+
+
+extension Array {
+    /// Unsafely accesses the element at the specified index, without performing any bounds checking.
+    ///
+    /// If `position` is not a valid index, the program will continue running as if 
+    ///
+    /// - Warning: This function trades safety for performance.
+    ///     Use ``subscript(unsafe:)`` only in situations where your program can guarantee that `position` is valid for indexing into the array,
+    ///     and only if the default bounds checking performed by the runtime has proven to be a significant performance problem.
+    ///
+    /// - Warning: This operation is unsafe, meaning that if `position` is not valid for indexing into the Array,
+    ///     the program will nonetheless continue running, and will simply treat the memory at the resulting offset as if it were of type `Element`.
+    public subscript(unsafe position: Int) -> Element {
+        @_transparent
+        get {
+            withUnsafeBufferPointer { $0[position] }
+        }
+    }
+}

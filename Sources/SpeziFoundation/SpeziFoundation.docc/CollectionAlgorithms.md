@@ -24,3 +24,5 @@ Binary search over Collections, and other Sequence extensions
 - ``Swift/Sequence/reduce(_:_:)``
 - ``Swift/Sequence/reduce(into:_:)``
 - ``Swift/RangeReplaceableCollection/remove(at:)``
+- ``Swift/Collection/subscript(safe:)``
+- ``Swift/Array/subscript(unsafe:)``
