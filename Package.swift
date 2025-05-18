@@ -28,7 +28,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.2.0"),
         .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.2.0"),
-        .package(url: "https://github.com/StanfordBDHG/XCTRuntimeAssertions.git", revision: "a41e7f4991102d01e76897f9d016f3efe0557bac")
+        .package(url: "https://github.com/StanfordBDHG/XCTRuntimeAssertions.git", from: "1.2.0")
     ] + swiftLintPackage(),
     targets: [
         .target(
