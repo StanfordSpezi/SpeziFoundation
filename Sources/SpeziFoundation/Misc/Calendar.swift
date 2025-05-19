@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import XCTRuntimeAssertions
+import RuntimeAssertions
 
 
 private func tryUnwrap<T>(_ value: T?, _ message: String) -> T {
