@@ -30,6 +30,8 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 - ``AsyncSemaphore``
 - ``ManagedAsynchronousAccess``
 - ``runOrScheduleOnMainActor(_:)``
+- ``CancelableTaskHandle``
+- ``_Concurrency/DiscardingTaskGroup/addCancelableTask(_:)``
 
 ### Encoders and Decoders
 - ``TopLevelEncoder``
