@@ -9,7 +9,7 @@
 
 /// A handle to a child task that can be cancelled
 public struct CancelableTaskHandle: Sendable {
-    @usableFromInline private(set) var continuation: AsyncStream<Void>.Continuation
+    @usableFromInline let continuation: AsyncStream<Void>.Continuation
 
     @inlinable
     init(continuation: AsyncStream<Void>.Continuation) {
