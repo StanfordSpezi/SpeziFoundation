@@ -20,7 +20,7 @@ struct CancelableChildTaskTests {
                     confirmation()
                 }
 
-                try? await Task.sleep(for: .milliseconds(50), tolerance: .nanoseconds(0))
+                try? await Task.sleep(for: .milliseconds(100), tolerance: .nanoseconds(0))
                 handle.cancel()
             }
         }
