@@ -1,3 +1,12 @@
+//
+// This source file is part of the Stanford Spezi open-source project
+//
+// SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
+//
+// SPDX-License-Identifier: MIT
+//
+
+
 /// A handle to a child task that can be cancelled
 public struct CancelableTaskHandle: Sendable {
     @usableFromInline private(set) var continuation: AsyncStream<Void>.Continuation
@@ -17,7 +26,7 @@ public struct CancelableTaskHandle: Sendable {
 
 extension DiscardingTaskGroup {
     @usableFromInline
-    enum _CancelableState: Sendable {
+    enum _CancelableState: Sendable { // swiftlint:disable:this type_name
         case finished
         case canceled
     }
