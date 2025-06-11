@@ -16,7 +16,9 @@ import Foundation
 ///
 /// - Important: Do not use this method as it breaks structured concurrency. Instead you might choose to use a combination of the `task(_:)` modifier and an `AsyncStream` to schedule work
 ///     onto the MainActor. If working within Spezi Modules, explore the `ServiceModule` protocol to add structured concurrency support to your Module.
-@available(*, deprecated, message: "Please do not use this method as it breaks structured concurrency. Consider using other mechanisms like .task(_:).")
+@available(
+    *, deprecated, message: "Do not use this method as it breaks structured concurrency. Consider using other mechanisms like an AsyncStream."
+)
 public func runOrScheduleOnMainActor(
     _ block: @MainActor @escaping () -> Void
 ) {
