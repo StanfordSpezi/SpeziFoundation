@@ -60,10 +60,15 @@ jobs:
           token: ${{ secrets.CHECKOUT_TOKEN != '' && secrets.CHECKOUT_TOKEN || github.token }}
           submodules: ${{ inputs.checkout_submodules }}
           lfs: ${{ inputs.checkout_lfs }}
-      - name: Setup Swift
+      - name: Setup Swift (with version)
+        if: ${{ inputs.swiftVersion != '' }}
         uses: swift-actions/setup-swift@v2
         with:
           swift-version: ${{ inputs.swiftVersion }}
+
+      - name: Setup Swift (default)
+        if: ${{ inputs.swiftVersion == '' }}
+        uses: swift-actions/setup-swift@v2
        
       - name: Build Package
         run: swift build -v
