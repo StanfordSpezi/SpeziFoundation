@@ -6,23 +6,23 @@
 // SPDX-License-Identifier: MIT
 //
 
-import SpeziFoundation
-import XCTest
+@testable import SpeziFoundation
+import Foundation
+import Testing
 
 
-final class CollectionBuildersTests: XCTestCase {
+struct CollectionBuildersTests {
     private func _imp<C: RangeReplaceableCollection>(
         _: C.Type,
         expected: C,
         @RangeReplaceableCollectionBuilder<C> _ make: () -> C,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        _ sourceLocation: SourceLocation = #_sourceLocation
     ) where C: Equatable {
         let collection = make()
-        XCTAssertEqual(collection, expected, file: file, line: line)
+        #expect(collection == expected, sourceLocation: sourceLocation)
     }
     
-    
+    @Test
     func testArrayBuilder() {
         _imp([Int].self, expected: [1, 2, 3, 4, 5, 7, 8, 9, 52, 41]) {
             1
@@ -42,9 +42,10 @@ final class CollectionBuildersTests: XCTestCase {
             }
         }
         
-        XCTAssertEqual(Array<Int> {}, []) // swiftlint:disable:this syntactic_sugar
+        #expect(Array<Int> {} == []) // swiftlint:disable:this syntactic_sugar
     }
     
+    @Test
     func testStringBuilder() {
         let greet = {
             "Hello, \($0 as String) 🚀\n"
@@ -87,9 +88,9 @@ final class CollectionBuildersTests: XCTestCase {
         }
     }
     
-    
+    @Test
     func testSetBuilder() {
-        XCTAssertEqual(Set<Int> {}, Set<Int>())
+        #expect(Set<Int> {} == Set<Int>())
         
         let greet = {
             "Hello, \($0 as String) 🚀"
@@ -136,6 +137,6 @@ final class CollectionBuildersTests: XCTestCase {
             "b",
             "c"
         ]
-        XCTAssertEqual(set, expected)
+        #expect(set == expected)
     }
 }
