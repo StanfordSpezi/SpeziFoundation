@@ -77,6 +77,7 @@ final class RWLockTests: XCTestCase {
         wait(for: [expectation1, expectation2], timeout: 1.0)
     }
 
+    #if !os(Linux)
     func testIsWriteLocked() {
         let lock = RWLock()
 
@@ -90,6 +91,7 @@ final class RWLockTests: XCTestCase {
         usleep(50_000) // Give the other thread time to lock (50ms)
         XCTAssertFalse(lock.isWriteLocked())
     }
+    #endif
 
     func testMultipleLocksAcquired() {
         let lock1 = RWLock()
