@@ -18,11 +18,24 @@ public struct TimeoutError {
 
 extension TimeoutError: LocalizedError {
     public var errorDescription: String? {
-        String(localized: LocalizedStringResource("Timeout", bundle: .atURL(Bundle.module.bundleURL)))
+    #if os(Linux)
+        return "Timeout"
+    #else
+        String(
+            localized: LocalizedStringResource(
+                "Timeout",
+                bundle: .atURL(Bundle.module.bundleURL)
+            )
+        )
+    #endif
     }
 
     public var failureReason: String? {
+    #if os(Linux)
+        return "The operation timed out."
+    #else
         String(localized: LocalizedStringResource("The operation timed out.", bundle: .atURL(Bundle.module.bundleURL)))
+    #endif
     }
 }
 

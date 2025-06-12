@@ -52,7 +52,6 @@ let package = Package(
             dependencies: [
                 .target(name: "SpeziFoundation"),
                 .product(name: "RuntimeAssertionsTesting", package: "XCTRuntimeAssertions"),
-                .product(name: "XCTRuntimeAssertions", package: "XCTRuntimeAssertions")
             ],
             plugins: [] + swiftLintPlugin()
         )

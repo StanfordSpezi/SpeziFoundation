@@ -10,6 +10,7 @@
 import SpeziFoundation
 import XCTest
 
+#if !os(Linux) // Objective C not supported in Linux, since there is no Objective C runtime
 
 final class ExceptionHandlingTests: XCTestCase {
     func testNothingThrown() {
@@ -81,3 +82,5 @@ final class ExceptionHandlingTests: XCTestCase {
         }
     }
 }
+
+#endif

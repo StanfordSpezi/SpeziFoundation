@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
+#if !os(Linux)
 
 import Atomics
 import Foundation
@@ -112,3 +113,5 @@ public final class RecursiveRWLock: PThreadReadWriteLock, @unchecked Sendable {
         pthreadDeinit()
     }
 }
+
+#endif

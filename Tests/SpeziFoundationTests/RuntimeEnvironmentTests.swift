@@ -10,7 +10,6 @@ import Foundation
 import SpeziFoundation
 import Testing
 
-
 @Suite
 struct RuntimeEnvironmentTests {
     @Test
@@ -23,7 +22,7 @@ struct RuntimeEnvironmentTests {
         #endif
     }
     
-    @Test
+    @Test(.disabled(if: isLinux, "Skipped on Linux: runningInXCTest() calls NSClassFromString() which uses the Objective-C runtime."))
     func runningInXCTest() {
         #expect(ProcessInfo.isRunningInXCTest)
     }

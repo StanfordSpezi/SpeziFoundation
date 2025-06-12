@@ -107,7 +107,7 @@ final class RWLockTests: XCTestCase {
         wait(for: [expectation1], timeout: 1.0)
     }
 
-
+    #if !os(Linux)
     func testConcurrentReadsRecursive() {
         let lock = RecursiveRWLock()
         let expectation1 = self.expectation(description: "First read")
@@ -253,4 +253,5 @@ final class RWLockTests: XCTestCase {
 
         wait(for: [expectation1, expectation2, expectation3, expectation4, expectation5], timeout: 20.0)
     }
+    #endif
 }

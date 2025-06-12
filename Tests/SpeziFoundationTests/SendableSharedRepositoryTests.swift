@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-import os
 @_spi(APISupport) @testable import SpeziFoundation
 import XCTest
 
@@ -19,6 +18,7 @@ final class SendableSharedRepositoryTests: XCTestCase {
         repository // non-mutating access
     }
 
+    @preconcurrency
     @MainActor
     override func setUp() async throws {
         self.repository = .init()
@@ -115,6 +115,7 @@ final class SendableSharedRepositoryTests: XCTestCase {
         XCTAssertEqual(contentOfClass, testClass)
     }
 
+    @preconcurrency
     @MainActor
     func testComputedKnowledgeSourceComputedOnlyPolicy() {
         let value = repository[ComputedTestStruct<_AlwaysComputePolicy, Repository>.self]
@@ -134,6 +135,7 @@ final class SendableSharedRepositoryTests: XCTestCase {
         XCTAssertEqual(newOptionalValue, optionalComputedValue)
     }
 
+    @preconcurrency
     @MainActor
     func testComputedKnowledgeSourceComputedOnlyPolicyReadOnly() {
         let repository = repository // read-only
@@ -155,6 +157,7 @@ final class SendableSharedRepositoryTests: XCTestCase {
         XCTAssertEqual(newOptionalValue, optionalComputedValue)
     }
 
+    @preconcurrency
     @MainActor
     func testComputedKnowledgeSourceStorePolicy() {
         let value = repository[ComputedTestStruct<_StoreComputePolicy, Repository>.self]
@@ -189,6 +192,7 @@ final class SendableSharedRepositoryTests: XCTestCase {
         XCTAssertEqual(repository[OptionalComputedTestStruct<_StoreComputePolicy, Repository>.self], 4)
     }
 
+    @preconcurrency
     @MainActor
     func testComputedKnowledgeSourcePreferred() {
         let value = repository[ComputedDefaultTestStruct<_StoreComputePolicy, Repository>.self]
