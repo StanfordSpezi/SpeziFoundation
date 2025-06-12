@@ -1,0 +1,8 @@
+name: Test Linux Build and Test Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-linux:
+    uses: ./.github/workflows/linux-build-test.yml

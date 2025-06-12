@@ -63,6 +63,9 @@ jobs:
       destination: 'platform=macOS,arch=arm64'
       resultBundle: SpeziFoundation-macOS.xcresult
       artifactname: SpeziFoundation-macOS.xcresult
+  buildandtest_linux:
+    name: Build and Test Swift Package Linux
+    uses: ./.github/workflows/linux-build-test.yml
   uitests_ios:
     name: Build and Test UI Tests iOS
     uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
