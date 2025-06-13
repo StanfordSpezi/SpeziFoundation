@@ -7,6 +7,7 @@
 //
 
 import Foundation
+#if !os(Linux) // Objective C not supported in Linux, since there is no Objective C runtime
 import SpeziFoundationObjC
 
 
@@ -51,3 +52,4 @@ public func catchingNSException<T>(_ block: () throws -> T) throws -> T {
         )
     }
 }
+#endif

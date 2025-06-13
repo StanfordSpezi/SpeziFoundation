@@ -7,18 +7,18 @@
 //
 
 
-import SpeziFoundation
-import XCTest
+@testable import SpeziFoundation
+import Testing
 
 
-final class TimeoutTests: XCTestCase {
+struct TimeoutTests {
     @MainActor
     private final class Storage {
         var continuation: CheckedContinuation<Void, any Error>?
     }
-
+    
     private let storage = Storage()
-
+    
     @MainActor
     func operation(for duration: Duration) {
         Task { @MainActor in
@@ -29,41 +29,47 @@ final class TimeoutTests: XCTestCase {
             }
         }
     }
-
+    
     @MainActor
-    func operationMethod(timeout: Duration, operation: Duration, timeoutExpectation: XCTestExpectation) async throws {
+    func operationMethod(timeout: Duration, operation: Duration) async throws {
         let storage = storage
         async let _ = withTimeout(of: timeout) { @MainActor [storage] in
-            XCTAssertFalse(Task.isCancelled)
-            timeoutExpectation.fulfill()
+            #expect(!Task.isCancelled)
             if let continuation = storage.continuation {
                 storage.continuation = nil
                 continuation.resume(throwing: TimeoutError())
             }
         }
-
+        
         try await withCheckedThrowingContinuation { continuation in
             storage.continuation = continuation
             self.operation(for: operation)
         }
     }
-
-    @MainActor
-    func testTimeout() async throws {
-        let negativeExpectation = XCTestExpectation()
-        negativeExpectation.isInverted = true
-        try await operationMethod(timeout: .seconds(1), operation: .milliseconds(500), timeoutExpectation: negativeExpectation)
-
-
-        await fulfillment(of: [negativeExpectation], timeout: 2)
-
-        let expectation = XCTestExpectation()
-        do {
-            try await operationMethod(timeout: .milliseconds(500), operation: .seconds(5), timeoutExpectation: expectation)
-            XCTFail("Operation did unexpectedly complete!")
-        } catch {
-            XCTAssert(error is TimeoutError)
+    
+    @Test("Operation finishes", .timeLimit(.minutes(1)))
+    func completesWithinTimeout() async throws {
+        try await confirmation("operation finishes") { confirmed in
+            try await operationMethod(
+                timeout: .seconds(1),
+                operation: .milliseconds(500)
+            )
+            confirmed()
         }
-        await fulfillment(of: [expectation])
+    }
+    
+    @Test("Operation times out", .timeLimit(.minutes(1)))
+    func throwsOnTimeout() async throws {
+        await confirmation("operation times out") { confirmed in
+            do {
+                try await operationMethod(
+                    timeout: .milliseconds(500),
+                    operation: .seconds(5)
+                )
+            } catch {
+                #expect(error is TimeoutError)
+                confirmed()
+            }
+        }
     }
 }
