@@ -1,3 +1,11 @@
+#
+# This source file is part of the Stanford Spezi open-source project
+#
+# SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
+#
+# SPDX-License-Identifier: MIT
+#
+
 FROM swift:latest AS build
 
 WORKDIR /build
@@ -11,9 +19,7 @@ RUN swift build  --build-tests -v
 
 
 
-# Testing with Swift Testing
-RUN swift test --skip-build --disable-xctest
+# Run Tests
+RUN swift test --skip-build
 
-# Testing with XCTest: May happen that the XCTests are hanging in the dockerfile
-RUN swift test --skip-build --disable-swift-testing
 

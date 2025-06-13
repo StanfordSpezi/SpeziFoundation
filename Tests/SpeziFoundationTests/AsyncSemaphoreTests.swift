@@ -8,35 +8,37 @@
 // Tests adopted from https://github.com/groue/Semaphore/blob/main/Sources/Semaphore/AsyncSemaphore.swift.
 //
 
-import Dispatch
+import Foundation
 @testable import SpeziFoundation
-import XCTest
+import Testing
 
-
-final class AsyncSemaphoreTests: XCTestCase {   // swiftlint:disable:this type_body_length
+@Suite("Async Semaphore Tests")
+final class AsyncSemaphoreTests {   // swiftlint:disable:this type_body_length
+    @Test
     func testSignalWithoutSuspendedTasks() {
         let dispatchSemZero = DispatchSemaphore(value: 0)
-        XCTAssertEqual(dispatchSemZero.signal(), 0)
+        #expect(dispatchSemZero.signal() == 0)
         
         let dispatchSemOne = DispatchSemaphore(value: 1)
-        XCTAssertEqual(dispatchSemOne.signal(), 0)
+        #expect(dispatchSemOne.signal() == 0)
         
         let dispatchSemTwo = DispatchSemaphore(value: 2)
-        XCTAssertEqual(dispatchSemTwo.signal(), 0)
+        #expect(dispatchSemTwo.signal() == 0)
 
         let asyncSemZero = AsyncSemaphore(value: 0)
         let wokenZero = asyncSemZero.signal()
-        XCTAssertFalse(wokenZero)
+        #expect(wokenZero == false)
         
         let asyncSemOne = AsyncSemaphore(value: 1)
         let wokenOne = asyncSemOne.signal()
-        XCTAssertFalse(wokenOne)
+        #expect(wokenOne == false)
         
         let asyncSemTwo = AsyncSemaphore(value: 2)
         let wokenTwo = asyncSemTwo.signal()
-        XCTAssertFalse(wokenTwo)
+        #expect(wokenTwo == false)
     }
     
+    @Test
     func testSignalReturnsWhetherItResumesSuspendedTask() async throws {
         let delay: Duration = .milliseconds(500)
         
@@ -48,9 +50,9 @@ final class AsyncSemaphoreTests: XCTestCase {   // swiftlint:disable:this type_b
             try await Task.sleep(for: delay)
             
             // First signal wakes the waiting thread
-            XCTAssertNotEqual(sem.signal(), 0)
+            #expect(sem.signal() != 0)
             // Second signal does not wake any thread
-            XCTAssertEqual(sem.signal(), 0)
+            #expect(sem.signal() == 0)
         }
         
         // Test that AsyncSemaphore behaves identically
@@ -61,104 +63,145 @@ final class AsyncSemaphoreTests: XCTestCase {   // swiftlint:disable:this type_b
             try await Task.sleep(for: delay)
             
             // First signal resumes the suspended task
-            XCTAssertTrue(sem.signal())
+            #expect(sem.signal() == true)
             // Second signal does not resume any task
-            XCTAssertFalse(sem.signal())
+            #expect(sem.signal() == false)
+        }
+    }
+    
+    @Test("DispatchSemaphore suspends until signal")
+    func dispatchSemaphoreWaits() async throws {
+      try await confirmation("thread is woken") { confirm in
+        let sem = DispatchSemaphore(value: 0)
+
+        // Wait on a background thread so we don’t block the Swift-Testing executor.
+        Thread {
+          sem.wait()         // <- must stay blocked
+          confirm()          // <- only runs after `signal()`
+        }.start()
+
+        // Give the thread a brief moment to attempt the wait.
+        try await Task.sleep(for: .milliseconds(500))
+
+        // Now release the semaphore; the thread should wake and call `confirm()`.
+        sem.signal()
+
+        // A tiny pause gives the thread time to run before we return;
+        // `confirmation` requires - and verifies - that `confirm()` was called
+        // before leaving this closure.
+        try await Task.sleep(for: .milliseconds(50))
+      }
+    }
+
+
+    @Test("wait suspends on zero-count semaphore until signal")
+    func testWaitSuspendsOnZeroSemaphoreUntilSignal() async throws {
+        let waitTime: Duration = .milliseconds(100)
+
+        // Check DispatchSemaphore behavior
+        let dispatchSemaphore = DispatchSemaphore(value: 0)
+
+        try await confirmation("thread woken") { woken in
+            let startTime = ContinuousClock.now
+            
+            Thread {
+                // When a thread waits for this semaphore,
+                dispatchSemaphore.wait()
+                // The following part should only run after the thread is woken: after the waitTime
+                #expect(ContinuousClock.now >= startTime + waitTime, "Thread should only run after semaphore is signalled")
+                woken()
+            }.start()
+            
+            // Give the thread time to block
+            try await Task.sleep(for: waitTime)
+            // Wake the thread
+            dispatchSemaphore.signal()
+            // Let it run before we exit the scope
+            try await Task.sleep(for: .milliseconds(10))
+        }
+
+
+        // Test that AsyncSemaphore behaves identically
+        let asyncSemaphore = AsyncSemaphore(value: 0)
+        
+        try await confirmation("task woken") { woken in
+            let startTime = ContinuousClock.now
+            
+            Task {
+                // When a thread waits for this semaphore,
+                await asyncSemaphore.wait()
+                // The following part should only run after the thread is woken: after the waitTime
+                #expect(ContinuousClock.now >= startTime + waitTime, "Task should only continue after semaphore is signalled")
+                woken()
+            }
+            
+            // Give the task time to block
+            try await Task.sleep(for: waitTime)
+            // Resume the task
+            asyncSemaphore.signal()
+            // Let it run before we exit the scope
+            try await Task.sleep(for: .milliseconds(10))
+        }
+    }
+    
+    @Test
+    func testCancellationWhileSuspendedThrowsCancellationError() async throws {
+        let sem = AsyncSemaphore(value: 0)
+        
+        try await confirmation("cancellation") { confirm in
+            let task = Task {
+                do {
+                    try await sem.waitCheckingCancellation()
+                    Issue.record("Expected CancellationError")
+                } catch is CancellationError {
+                    confirm()
+                } catch {
+                    Issue.record("Unexpected error")
+                }
+            }
+            
+            try await Task.sleep(for: .milliseconds(100))
+            task.cancel()
+            await task.value
         }
     }
 
-    func testWaitSuspendsOnZeroSemaphoreUntilSignal() {
-        // Check DispatchSemaphore behavior
-        do {
-            // Given a zero semaphore
-            let sem = DispatchSemaphore(value: 0)
-            
-            // When a thread waits for this semaphore,
-            let ex1 = expectation(description: "wait")
-            ex1.isInverted = true
-            let ex2 = expectation(description: "woken")
-            Thread {
-                sem.wait()
-                ex1.fulfill()
-                ex2.fulfill()
-            }.start()
-            
-            // Then the thread is initially blocked.
-            wait(for: [ex1], timeout: 0.5)
-            
-            // When a signal occurs, then the waiting thread is woken.
-            sem.signal()
-            wait(for: [ex2], timeout: 1)
-        }
+    @Test
+    func testCancellationBeforeSuspensionThrowsCancellationError() async throws {
+        let sem = AsyncSemaphore(value: 0)
         
-        // Test that AsyncSemaphore behaves identically
-        do {
-            // Given a zero semaphore
-            let sem = AsyncSemaphore(value: 0)
-            
-            // When a task waits for this semaphore,
-            let ex1 = expectation(description: "wait")
-            ex1.isInverted = true
-            let ex2 = expectation(description: "woken")
-            Task {
-                await sem.wait()
-                ex1.fulfill()
-                ex2.fulfill()
-            }
-            
-            // Then the task is initially suspended.
-            wait(for: [ex1], timeout: 0.5)
-            
-            // When a signal occurs, then the suspended task is resumed.
-            sem.signal()
-            wait(for: [ex2], timeout: 0.5)
-        }
-    }
-    
-    func testCancellationWhileSuspendedThrowsCancellationError() async throws {
-        let sem = AsyncSemaphore(value: 0)
-        let exp = expectation(description: "cancellation")
-        let task = Task {
-            do {
-                try await sem.waitCheckingCancellation()
-                XCTFail("Expected CancellationError")
-            } catch is CancellationError {
-            } catch {
-                XCTFail("Unexpected error")
-            }
-            exp.fulfill()
-        }
-        try await Task.sleep(for: .milliseconds(100))
-        task.cancel()
-        await fulfillment(of: [exp], timeout: 1)
-    }
-    
-    func testCancellationBeforeSuspensionThrowsCancellationError() throws {
-        let sem = AsyncSemaphore(value: 0)
-        let exp = expectation(description: "cancellation")
-        let task = Task {
-            // Uncancellable delay
-            await withUnsafeContinuation { continuation in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    continuation.resume()
+        await confirmation("cancellation") { confirm in
+            let task = Task {
+                // Uncancellable delay
+                await withUnsafeContinuation { continuation in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        continuation.resume()
+                    }
+                }
+
+                do {
+                    try await sem.waitCheckingCancellation()
+                    Issue.record("Expected CancellationError")
+                } catch is CancellationError {
+                    confirm()
+                } catch {
+                    Issue.record("Unexpected error")
                 }
             }
-            do {
-                try await sem.waitCheckingCancellation()
-                XCTFail("Expected CancellationError")
-            } catch is CancellationError {
-            } catch {
-                XCTFail("Unexpected error")
-            }
-            exp.fulfill()
+            
+            task.cancel()
+            await task.value
         }
-        task.cancel()
-        wait(for: [exp], timeout: 5)
     }
-    
+
+
+    @Test()
     func testCancellationWhileSuspendedIncrementsSemaphore() async throws {
+        let waitTime: Duration = .milliseconds(100)
+
         // Given a task cancelled while suspended on a semaphore,
         let sem = AsyncSemaphore(value: 0)
+
         let task = Task {
             try await sem.waitCheckingCancellation()
         }
@@ -166,24 +209,28 @@ final class AsyncSemaphoreTests: XCTestCase {   // swiftlint:disable:this type_b
         task.cancel()
         
         // When a task waits for this semaphore,
-        let ex1 = expectation(description: "wait")
-        ex1.isInverted = true
-        let ex2 = expectation(description: "woken")
-        Task {
-            await sem.wait()
-            ex1.fulfill()
-            ex2.fulfill()
+        try await confirmation("task woken") { woken in
+            let startTime = ContinuousClock.now
+
+            let task = Task {
+                await sem.wait() // Then the task is initially suspended.
+                #expect(ContinuousClock.now >= startTime + waitTime, "Task should only continue after semaphore is signalled")
+                woken()
+            }
+            
+            try await Task.sleep(for: .milliseconds(100))
+            // When a signal occurs, then the suspended task is resumed.
+            sem.signal()
+
+            await task.value
         }
-        
-        // Then the task is initially suspended.
-        await fulfillment(of: [ex1], timeout: 0.5)
-        
-        // When a signal occurs, then the suspended task is resumed.
-        sem.signal()
-        await fulfillment(of: [ex2], timeout: 0.5)
     }
+
     
-    func testCancellationBeforeSuspensionIncrementsSemaphore() throws {
+    @Test
+    func testCancellationBeforeSuspensionIncrementsSemaphore() async throws {
+        let waitTime: Duration = .milliseconds(100)
+        
         // Given a task cancelled before it waits on a semaphore,
         let sem = AsyncSemaphore(value: 0)
         let task = Task {
@@ -198,23 +245,26 @@ final class AsyncSemaphoreTests: XCTestCase {   // swiftlint:disable:this type_b
         task.cancel()
         
         // When a task waits for this semaphore,
-        let ex1 = expectation(description: "wait")
-        ex1.isInverted = true
-        let ex2 = expectation(description: "woken")
-        Task {
-            await sem.wait()
-            ex1.fulfill()
-            ex2.fulfill()
+        try await confirmation("task woken") { woken in
+            let startTime = ContinuousClock.now
+            
+            let task = Task {
+                await sem.wait()
+                #expect(ContinuousClock.now >= startTime + waitTime, "Task should only continue after semaphore is signalled")
+                woken()
+            }
+            
+            // Then the task is initially suspended.
+            try await Task.sleep(for: .milliseconds(100))
+            
+            // When a signal occurs, then the suspended task is resumed.
+            sem.signal()
+            await task.value
         }
-        
-        // Then the task is initially suspended.
-        wait(for: [ex1], timeout: 0.5)
-        
-        // When a signal occurs, then the suspended task is resumed.
-        sem.signal()
-        wait(for: [ex2], timeout: 0.5)
     }
     
+    
+    @Test
     func testSemaphoreAsAResourceLimiterOnActorMethod() async {
         /// An actor that limits the number of concurrent executions of
         /// its `run()` method, and counts the effective number of
@@ -252,10 +302,11 @@ final class AsyncSemaphoreTests: XCTestCase {   // swiftlint:disable:this type_b
             }
             
             let effectiveMaxConcurrentRuns = await runner.effectiveMaxConcurrentRuns
-            XCTAssertEqual(effectiveMaxConcurrentRuns, maxConcurrentRuns)
+            #expect(effectiveMaxConcurrentRuns == maxConcurrentRuns)
         }
     }
     
+    @Test
     func testSemaphoreAsAResourceLimiterOnAsyncMethod() async {
         /// A class that limits the number of concurrent executions of
         /// its `run()` method, and counts the effective number of
@@ -294,10 +345,11 @@ final class AsyncSemaphoreTests: XCTestCase {   // swiftlint:disable:this type_b
             }
             
             let effectiveMaxConcurrentRuns = await runner.effectiveMaxConcurrentRuns
-            XCTAssertEqual(effectiveMaxConcurrentRuns, maxConcurrentRuns)
+            #expect(effectiveMaxConcurrentRuns == maxConcurrentRuns)
         }
     }
     
+    @Test
     func testSemaphoreAsAResourceLimiterOnSingleThread() async {
         /// A class that limits the number of concurrent executions of
         /// its `run()` method, and counts the effective number of
@@ -337,10 +389,11 @@ final class AsyncSemaphoreTests: XCTestCase {   // swiftlint:disable:this type_b
             async let run9: Void = runner.run()
             _ = await (run0, run1, run2, run3, run4, run5, run6, run7, run8, run9)
             let effectiveMaxConcurrentRuns = runner.effectiveMaxConcurrentRuns
-            XCTAssertEqual(effectiveMaxConcurrentRuns, 3)
+            #expect(effectiveMaxConcurrentRuns == 3)
         }.value
     }
     
+    @Test
     func testSemaphoreAsAResourceLimiterOnActorMethodWithCancellationSupport() async {
         /// An actor that limits the number of concurrent executions of
         /// its `run()` method, and counts the effective number of
@@ -378,7 +431,7 @@ final class AsyncSemaphoreTests: XCTestCase {   // swiftlint:disable:this type_b
             }
             
             let effectiveMaxConcurrentRuns = await runner.effectiveMaxConcurrentRuns
-            XCTAssertEqual(effectiveMaxConcurrentRuns, maxConcurrentRuns)
+            #expect(effectiveMaxConcurrentRuns == maxConcurrentRuns)
         }
     }
 }

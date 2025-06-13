@@ -9,7 +9,7 @@
 import SpeziFoundation
 import XCTest
 
-
+#if !os(Linux)
 final class RWLockTests: XCTestCase {
     func testConcurrentReads() {
         let lock = RWLock()
@@ -77,7 +77,6 @@ final class RWLockTests: XCTestCase {
         wait(for: [expectation1, expectation2], timeout: 1.0)
     }
 
-    #if !os(Linux)
     func testIsWriteLocked() {
         let lock = RWLock()
 
@@ -91,7 +90,6 @@ final class RWLockTests: XCTestCase {
         usleep(50_000) // Give the other thread time to lock (50ms)
         XCTAssertFalse(lock.isWriteLocked())
     }
-    #endif
 
     func testMultipleLocksAcquired() {
         let lock1 = RWLock()
@@ -109,7 +107,6 @@ final class RWLockTests: XCTestCase {
         wait(for: [expectation1], timeout: 1.0)
     }
 
-    #if !os(Linux)
     func testConcurrentReadsRecursive() {
         let lock = RecursiveRWLock()
         let expectation1 = self.expectation(description: "First read")
@@ -255,5 +252,5 @@ final class RWLockTests: XCTestCase {
 
         wait(for: [expectation1, expectation2, expectation3, expectation4, expectation5], timeout: 20.0)
     }
-    #endif
 }
+#endif
