@@ -7,18 +7,14 @@
 //
 
 
-import Dispatch
+import Foundation
 @testable import SpeziFoundation
 import Testing
-import Foundation
+
 
 /// Internal helper actor to be able to have code run guaranteed off the main actor (by scheduling it onto a background queue)
 @globalActor
 private actor TestActor: GlobalActor {
-    static let shared = TestActor()
-    let queue = DispatchQueue(label: "Queue")
-    private let executor: DispatchQueueExecutor
-    
     final class DispatchQueueExecutor: SerialExecutor {
          private let queue: DispatchQueue
 
@@ -41,7 +37,12 @@ private actor TestActor: GlobalActor {
         }
     }
     
-    nonisolated public var unownedExecutor: UnownedSerialExecutor {
+    static let shared = TestActor()
+
+    let queue = DispatchQueue(label: "Queue")
+    private let executor: DispatchQueueExecutor
+    
+    nonisolated var unownedExecutor: UnownedSerialExecutor {
         executor.asUnownedSerialExecutor()
     }
 

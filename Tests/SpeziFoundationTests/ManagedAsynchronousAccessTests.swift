@@ -7,7 +7,6 @@
 //
 
 @testable import SpeziFoundation
-import XCTest
 import Testing
 
 struct ManagedAsynchronousAccessTests {
@@ -171,7 +170,6 @@ struct ManagedAsynchronousAccessTests {
 
         try await confirmation("expectation of task0") { expectation0 in
             try await confirmation("expectation of task1") { expectation1 in
-                
                 let task0 = Task {
                     do {
                         let value = try await access.perform {}
@@ -227,7 +225,6 @@ struct ManagedAsynchronousAccessTests {
         let expectedValue1 = "Success1"
         try await confirmation("expectation of task0") { expectation0 in
             try await confirmation("expectation of task1") { expectation1 in
-                
                 let task0 = Task {
                     do {
                         let value = try await access.perform {}

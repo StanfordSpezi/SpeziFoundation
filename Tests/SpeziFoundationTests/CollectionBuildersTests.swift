@@ -6,8 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-@testable import SpeziFoundation
 import Foundation
+@testable import SpeziFoundation
 import Testing
 
 
@@ -42,7 +42,7 @@ struct CollectionBuildersTests {
             }
         }
         
-        #expect(Array<Int> {} == []) // swiftlint:disable:this syntactic_sugar
+        #expect(Array<Int> {} == []) // swiftlint:disable:this syntactic_sugar empty_collection_literal
     }
     
     @Test

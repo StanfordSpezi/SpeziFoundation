@@ -6,13 +6,12 @@
 // SPDX-License-Identifier: MIT
 //
 
-
+import Foundation
 @testable import SpeziFoundation
 import Testing
-import Foundation
 
 
-private func AssertEqual<Key: Hashable, Value: Equatable>(
+private func assertEqual<Key: Hashable, Value: Equatable>(
     _ lhs: KeyValuePairs<Key, Value>,
     _ rhs: KeyValuePairs<Key, Value>,
     _ sourceLocation: SourceLocation = #_sourceLocation,
@@ -36,7 +35,7 @@ struct KeyValuePairsTests {
         let sequence: some Sequence<(String, Int)> = [
             ("A", 1), ("B", 2), ("C", 3), ("D", 4), ("E", 5), ("F", 6)
         ]
-        try AssertEqual(
+        try assertEqual(
             KeyValuePairs(sequence),
             ["A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6]
         )
@@ -47,7 +46,7 @@ struct KeyValuePairsTests {
         let dictionary = [
             "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6
         ]
-        try AssertEqual(
+        try assertEqual(
             KeyValuePairs(dictionary.lazy.map { ($0, $1) }),
             ["A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6]
         )
