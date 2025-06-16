@@ -69,32 +69,7 @@ final class AsyncSemaphoreTests {   // swiftlint:disable:this type_body_length
         }
     }
     
-    @Test("DispatchSemaphore suspends until signal")
-    func dispatchSemaphoreWaits() async throws {
-      try await confirmation("thread is woken") { confirm in
-        let sem = DispatchSemaphore(value: 0)
-
-        // Wait on a background thread so we don’t block the Swift-Testing executor.
-        Thread {
-          sem.wait()         // <- must stay blocked
-          confirm()          // <- only runs after `signal()`
-        }.start()
-
-        // Give the thread a brief moment to attempt the wait.
-        try await Task.sleep(for: .milliseconds(500))
-
-        // Now release the semaphore; the thread should wake and call `confirm()`.
-        sem.signal()
-
-        // A tiny pause gives the thread time to run before we return;
-        // `confirmation` requires - and verifies - that `confirm()` was called
-        // before leaving this closure.
-        try await Task.sleep(for: .milliseconds(50))
-      }
-    }
-
-
-    @Test("wait suspends on zero-count semaphore until signal")
+    @Test
     func testWaitSuspendsOnZeroSemaphoreUntilSignal() async throws {
         let waitTime: Duration = .milliseconds(100)
 

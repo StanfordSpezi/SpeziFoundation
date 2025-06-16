@@ -7,7 +7,7 @@
 //
 
 import Foundation
-#if !os(Linux) // Objective C not supported in Linux, since there is no Objective C runtime
+#if canImport(ObjectiveC)
 import SpeziFoundationObjC
 
 

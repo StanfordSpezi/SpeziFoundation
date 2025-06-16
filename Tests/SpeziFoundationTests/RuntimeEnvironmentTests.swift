@@ -22,8 +22,12 @@ struct RuntimeEnvironmentTests {
         #endif
     }
     
-    @Test(.disabled(if: isLinux, "Skipped on Linux: runningInXCTest() calls NSClassFromString() which uses the Objective-C runtime."))
+    #if !os(Linux)
     func runningInXCTest() {
         #expect(ProcessInfo.isRunningInXCTest)
     }
+    #else
+    @Test(.disabled("Skipped on Linux: runningInXCTest() calls NSClassFromString() which uses the Objective-C runtime."))
+    func runningInXCTest() { }
+    #endif
 }

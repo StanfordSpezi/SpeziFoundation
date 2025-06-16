@@ -52,8 +52,12 @@ private actor TestActor: GlobalActor {
 }
 
 struct MainActorExecutionTests {
+    #if os(Linux)
+    @Test(.disabled("Skipped on Linux: main thread differs from Darwin"))
+    #else
+    @Test
+    #endif
     @MainActor
-    @Test(.disabled(if: isLinux, "Skipped on Linux: main thread differs from Darwin"))
     func testIfAlreadyRunningOnMainActor() {
         precondition(#isolation === MainActor.shared)
         dispatchPrecondition(condition: .onQueue(.main))
