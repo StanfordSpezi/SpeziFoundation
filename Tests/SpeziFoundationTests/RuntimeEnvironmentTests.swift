@@ -23,6 +23,7 @@ struct RuntimeEnvironmentTests {
     }
     
     #if !os(Linux)
+    @Test
     func runningInXCTest() {
         #expect(ProcessInfo.isRunningInXCTest)
     }
