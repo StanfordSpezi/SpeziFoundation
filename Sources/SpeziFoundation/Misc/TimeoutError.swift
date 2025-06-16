@@ -8,7 +8,6 @@
 
 import Foundation
 
-
 /// Timeout occurred inside an async operation.
 public struct TimeoutError {
     /// Create a new timeout error.
@@ -18,11 +17,11 @@ public struct TimeoutError {
 
 extension TimeoutError: LocalizedError {
     public var errorDescription: String? {
-        String(localized: LocalizedStringResource("Timeout", bundle: .atURL(Bundle.module.bundleURL)))
+        Bundle.module.localizedString(forKey: "Timeout", value: nil, table: nil)
     }
 
     public var failureReason: String? {
-        String(localized: LocalizedStringResource("The operation timed out.", bundle: .atURL(Bundle.module.bundleURL)))
+        Bundle.module.localizedString(forKey: "The operation timed out.", value: nil, table: nil)
     }
 }
 

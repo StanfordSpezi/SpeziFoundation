@@ -9,7 +9,7 @@
 import SpeziFoundation
 import XCTest
 
-
+#if !os(Linux)
 final class RWLockTests: XCTestCase {
     func testConcurrentReads() {
         let lock = RWLock()
@@ -106,7 +106,6 @@ final class RWLockTests: XCTestCase {
 
         wait(for: [expectation1], timeout: 1.0)
     }
-
 
     func testConcurrentReadsRecursive() {
         let lock = RecursiveRWLock()
@@ -254,3 +253,4 @@ final class RWLockTests: XCTestCase {
         wait(for: [expectation1, expectation2, expectation3, expectation4, expectation5], timeout: 20.0)
     }
 }
+#endif

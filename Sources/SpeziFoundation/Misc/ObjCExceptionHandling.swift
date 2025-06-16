@@ -7,6 +7,7 @@
 //
 
 import Foundation
+#if canImport(ObjectiveC)
 import SpeziFoundationObjC
 
 
@@ -51,3 +52,4 @@ public func catchingNSException<T>(_ block: () throws -> T) throws -> T {
         )
     }
 }
+#endif

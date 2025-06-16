@@ -10,6 +10,7 @@
 import SpeziFoundation
 import XCTest
 
+#if canImport(ObjectiveC)
 
 final class ExceptionHandlingTests: XCTestCase {
     func testNothingThrown() {
@@ -81,3 +82,5 @@ final class ExceptionHandlingTests: XCTestCase {
         }
     }
 }
+
+#endif

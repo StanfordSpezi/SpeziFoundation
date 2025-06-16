@@ -8,7 +8,9 @@
 
 
 import Foundation
-
+#if canImport(Glibc)
+import Glibc
+#endif
 
 protocol PThreadReadWriteLock: AnyObject {
     // We need the unsafe mutable pointer, as otherwise we need to pass the property as inout parameter which isn't thread safe.
