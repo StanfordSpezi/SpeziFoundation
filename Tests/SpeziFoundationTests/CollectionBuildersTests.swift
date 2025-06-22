@@ -23,6 +23,11 @@ final class CollectionBuildersTests: XCTestCase {
     }
     
     
+    private func mightThrow<T>(_ value: T) throws -> T {
+        value
+    }
+    
+    
     func testArrayBuilder() {
         _imp([Int].self, expected: [1, 2, 3, 4, 5, 7, 8, 9, 52, 41]) {
             1
@@ -41,7 +46,6 @@ final class CollectionBuildersTests: XCTestCase {
                 41
             }
         }
-        
         XCTAssertEqual(Array<Int> {}, []) // swiftlint:disable:this syntactic_sugar
     }
     
@@ -49,7 +53,6 @@ final class CollectionBuildersTests: XCTestCase {
         let greet = {
             "Hello, \($0 as String) 🚀\n"
         }
-        
         _imp(
             String.self,
             expected: """
@@ -90,7 +93,6 @@ final class CollectionBuildersTests: XCTestCase {
     
     func testSetBuilder() {
         XCTAssertEqual(Set<Int> {}, Set<Int>())
-        
         let greet = {
             "Hello, \($0 as String) 🚀"
         }
@@ -137,5 +139,21 @@ final class CollectionBuildersTests: XCTestCase {
             "c"
         ]
         XCTAssertEqual(set, expected)
+    }
+    
+    
+    func testArrayBuilderThrowing() throws {
+        let array1: [Int] = Array {
+            1
+            2
+            3
+        }
+        let array2: [Int] = try Array {
+            1
+            try mightThrow(2)
+            3
+        }
+        XCTAssertEqual(array1, [1, 2, 3])
+        XCTAssertEqual(array2, [1, 2, 3])
     }
 }
