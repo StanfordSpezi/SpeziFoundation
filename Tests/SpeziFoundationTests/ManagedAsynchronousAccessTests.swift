@@ -13,7 +13,7 @@ import XCTest
 final class ManagedAsynchronousAccessTests: XCTestCase {
     @MainActor
     func testResumeWithSuccess() async throws {
-        let access = ManagedAsynchronousAccess<String, Error>()
+        let access = ManagedAsynchronousAccess<String, any Error>()
         let expectedValue = "Success"
 
         let expectation = XCTestExpectation(description: "task")
@@ -44,7 +44,7 @@ final class ManagedAsynchronousAccessTests: XCTestCase {
 
     @MainActor
     func testResumeWithError() async throws {
-        let access = ManagedAsynchronousAccess<String, Error>()
+        let access = ManagedAsynchronousAccess<String, any Error>()
 
         let expectation = XCTestExpectation(description: "task")
         Task {
@@ -72,7 +72,7 @@ final class ManagedAsynchronousAccessTests: XCTestCase {
 
     @MainActor
     func testCancelAll() async throws {
-        let access = ManagedAsynchronousAccess<Void, Error>()
+        let access = ManagedAsynchronousAccess<Void, any Error>()
 
         let expectation = XCTestExpectation(description: "task")
         let handle = Task {
@@ -126,7 +126,7 @@ final class ManagedAsynchronousAccessTests: XCTestCase {
     }
 
     func testResumeWithoutOngoingAccess() {
-        let access = ManagedAsynchronousAccess<String, Error>()
+        let access = ManagedAsynchronousAccess<String, any Error>()
 
         let didResume = access.resume(returning: "No Access")
 
@@ -157,7 +157,7 @@ final class ManagedAsynchronousAccessTests: XCTestCase {
 
     @MainActor
     func testExclusiveAccess() async throws {
-        let access = ManagedAsynchronousAccess<String, Error>()
+        let access = ManagedAsynchronousAccess<String, any Error>()
         let expectedValue0 = "Success0"
         let expectedValue1 = "Success1"
 
