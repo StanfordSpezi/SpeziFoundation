@@ -116,8 +116,9 @@ extension RangeReplaceableCollection {
 
 extension Collection {
     /// Safely accesses the elememt at the specified index, returning `nil` for out-of-bounds indices.
+    @inlinable
     public subscript(safe index: Index) -> Element? {
-        indices.contains(index) ? self[index] : nil
+        index >= startIndex && index < endIndex ? self[index] : nil
     }
 }
 
