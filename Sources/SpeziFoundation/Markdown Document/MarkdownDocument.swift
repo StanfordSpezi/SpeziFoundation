@@ -15,9 +15,9 @@ import Foundation
 ///
 /// ### Initializers
 /// - ``init(metadata:blocks:)``
-/// - ``init(processing:)-(String)``
-/// - ``init(processing:)-(Data)``
-/// - ``init(processingContentsOf:)``
+/// - ``init(processing:customElementNames:)-(String,Set<String>)``
+/// - ``init(processing:customElementNames:)-(Data,Set<String>)``
+/// - ``init(processingContentsOf:customElementNames:)``
 /// - ``ParseError``
 ///
 /// ### Instance Properties
@@ -39,19 +39,22 @@ public struct MarkdownDocument: Hashable, Sendable {
         self.blocks = blocks
     }
     
-    public init(processing text: String) throws(ParseError) {
-        let parser = MarkdownDocumentParser(input: text)
+    public init(processing text: String, customElementNames: Set<String> = []) throws(ParseError) {
+        let parser = Parser(input: text, customElementNames: customElementNames)
         self = try parser.parse()
     }
     
-    public init(processing data: Data) throws(ParseError) {
+    public init(processing data: Data, customElementNames: Set<String> = []) throws(ParseError) {
         guard let text = String(data: data, encoding: .utf8) else {
             throw ParseError(kind: .nonUTF8Input, sourceLoc: .zero)
         }
-        try self.init(processing: text)
+        try self.init(processing: text, customElementNames: customElementNames)
     }
     
-    public init(processingContentsOf url: URL) throws {
-        try self.init(processing: Data(contentsOf: url))
+    public init(processingContentsOf url: URL, customElementNames: Set<String> = []) throws {
+        try self.init(
+            processing: Data(contentsOf: url),
+            customElementNames: customElementNames
+        )
     }
 }

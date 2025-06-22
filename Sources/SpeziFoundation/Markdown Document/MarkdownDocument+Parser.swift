@@ -9,7 +9,7 @@
 import Foundation
 
 
-extension MarkdownDocument { // swiftlint:disable:this file_types_order
+extension MarkdownDocument {
     /// An error that occurred when parsing markdown text.
     public struct ParseError: Error, Hashable {
         /// The parse error's kind
@@ -57,19 +57,25 @@ extension MarkdownDocument { // swiftlint:disable:this file_types_order
 }
 
 
-struct MarkdownDocumentParser: ~Copyable {
-    typealias ParseError = MarkdownDocument.ParseError
-    typealias ParsedCustomElement = MarkdownDocument.ParsedCustomElement
-    
-    private let input: String
-    private var position: String.Index
-    
-    init(input: String) {
-        self.input = input
-        self.position = input.startIndex
+extension MarkdownDocument {
+    struct Parser: ~Copyable {
+        typealias ParseError = MarkdownDocument.ParseError
+        typealias ParsedCustomElement = MarkdownDocument.ParsedCustomElement
+        
+        private let input: String
+        private let customElementNames: Set<String>
+        private var position: String.Index
+        
+        init(input: String, customElementNames: Set<String>) {
+            self.input = input
+            self.customElementNames = customElementNames
+            self.position = input.startIndex
+        }
     }
+}
+
     
-    
+extension MarkdownDocument.Parser {
     consuming func parse() throws(ParseError) -> MarkdownDocument {
         typealias Block = MarkdownDocument.Block
         let frontmatter = try parseFrontmatter()
@@ -79,9 +85,14 @@ struct MarkdownDocumentParser: ~Copyable {
             while let currentChar {
                 if currentChar == "<", isAtBeginningOfLine,
                    let element = try parseCustomElement() {
-                    blocks.append(.markdown(currentBlockText))
-                    currentBlockText.removeAll(keepingCapacity: true)
-                    blocks.append(.customElement(element))
+                    if customElementNames.contains(element.name) {
+                        blocks.append(.markdown(currentBlockText))
+                        currentBlockText.removeAll(keepingCapacity: true)
+                        blocks.append(.customElement(element))
+                    } else {
+                        // continue parsing as if this were normal markdown; the downstream markdown parser will have to deal w/ this.
+                        currentBlockText.append(element.raw)
+                    }
                 } else if try skipCommentIfApplicable() {
                     // we ignore the comment
                 } else {
@@ -213,12 +224,13 @@ struct MarkdownDocumentParser: ~Copyable {
     private mutating func parseCustomElement() throws(ParseError) -> ParsedCustomElement? {
         // swiftlint:disable:previous function_body_length cyclomatic_complexity
         consume(while: \.isWhitespace)
+        let startPos = self.position
         guard currentChar == "<", let next = peek(), next.isValidIdentStart else {
             return nil
         }
         try expectAndConsume("<")
         let name = try parseIdentifier()
-        var parsedElement = ParsedCustomElement(name: name)
+        var parsedElement = ParsedCustomElement(name: name, raw: "")
         var elementIsClosed = false
         loop: while true {
             switch currentChar {
@@ -250,9 +262,10 @@ struct MarkdownDocumentParser: ~Copyable {
             }
         }
         if elementIsClosed {
+            parsedElement.raw = String(input[startPos..<position])
             return parsedElement
         }
-        if let element = _attemptToCloseCustomElement(parsedElement) {
+        if let element = _attemptToCloseCustomElement(parsedElement, elementStartPos: startPos) {
             return element
         } else {
             while true {
@@ -264,8 +277,8 @@ struct MarkdownDocumentParser: ~Copyable {
                         parsedElement.content.append(.text(text))
                     } else {
                         // unable to parse an element, but also no text-only content in there...
-                        if let element = _attemptToCloseCustomElement(parsedElement) {
-                            consume(while: \.isWhitespace)
+                        if let element = _attemptToCloseCustomElement(parsedElement, elementStartPos: startPos) {
+//                            consume(while: \.isWhitespace)
                             return element
                         } else {
                             try emitError(.other("unable to close \(name)"))
@@ -277,11 +290,13 @@ struct MarkdownDocumentParser: ~Copyable {
         try emitError(.other("Unable to find closing tag for \(parsedElement)"))
     }
     
-    private mutating func _attemptToCloseCustomElement(_ element: ParsedCustomElement) -> ParsedCustomElement? {
+    private mutating func _attemptToCloseCustomElement(_ element: ParsedCustomElement, elementStartPos: String.Index) -> ParsedCustomElement? {
         let possibleClosingTags = ["</>", "</\(element.name)>"]
         for tag in possibleClosingTags {
             if remainingInput.starts(with: tag) { // swiftlint:disable:this for_where
                 consume(tag.count)
+                var element = element
+                element.raw = String(input[elementStartPos..<position])
                 return element
             }
         }
@@ -335,14 +350,14 @@ struct MarkdownDocumentParser: ~Copyable {
     }
 }
 
-extension MarkdownDocumentParser {
+extension MarkdownDocument.Parser {
     private func emitError(_ kind: ParseError.Kind) throws(ParseError) -> Never {
         throw .init(kind: kind, sourceLoc: currentSourceLoc)
     }
 }
 
 
-extension MarkdownDocumentParser {
+extension MarkdownDocument.Parser {
     private var currentChar: Character? {
         input[safe: position]
     }
@@ -396,7 +411,7 @@ extension MarkdownDocumentParser {
 }
 
 
-extension MarkdownDocumentParser {
+extension MarkdownDocument.Parser {
     private var currentSourceLoc: ParseError.SourceLocation {
         let lineNumber = input[..<position].count(where: \.isNewline)
         let wholeCurrentLine = { () -> Substring in

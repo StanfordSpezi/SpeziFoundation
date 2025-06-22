@@ -29,6 +29,8 @@ extension MarkdownDocument {
         public internal(set) var name: String
         public internal(set) var attributes: [ParsedAttribute] = []
         public internal(set) var content: [Content] = []
+        /// The unprocessed raw text from which this element was parsed.
+        public internal(set) var raw: String
         
         public subscript(attribute name: String) -> String? {
             attributes.first { $0.name == name }?.value

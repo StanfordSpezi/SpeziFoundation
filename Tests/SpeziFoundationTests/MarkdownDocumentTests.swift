@@ -67,7 +67,7 @@ struct MarkdownDocumentTests {
             Please sign the form below:
             <signature id=s1 />
             """
-        let doc = try MarkdownDocument(processing: input)
+        let doc = try MarkdownDocument(processing: input, customElementNames: ["toggle", "select", "signature", "option"])
         #expect(doc == MarkdownDocument(
             metadata: .init(),
             blocks: [
@@ -81,7 +81,12 @@ struct MarkdownDocumentTests {
                     ],
                     content: [
                         .text("I'm fine with some of my health data being used for scientific research.")
-                    ]
+                    ],
+                    raw: """
+                        <toggle id=t1 initial-value=false expected-value=true>
+                            I'm fine with some of my health data being used for scientific research.
+                        </toggle>
+                        """
                 )),
                 .markdown("Selection block:"),
                 .customElement(.init(
@@ -93,14 +98,43 @@ struct MarkdownDocumentTests {
                     ],
                     content: [
                         .text("Please select a value:"),
-                        .element(.init(name: "option", attributes: [.init(name: "id", value: "o0")], content: [.text("T0")])),
-                        .element(.init(name: "option", attributes: [.init(name: "id", value: "o1")], content: [.text("T1")])),
+                        .element(.init(
+                            name: "option",
+                            attributes: [.init(name: "id", value: "o0")],
+                            content: [.text("T0")],
+                            raw: "<option id=o0>T0</option>"
+                        )),
+                        .element(.init(
+                            name: "option",
+                            attributes: [.init(name: "id", value: "o1")],
+                            content: [.text("T1")],
+                            raw: "<option id=o1>T1</option>"
+                        )),
                         .text("Or maybe this one?"),
-                        .element(.init(name: "option", attributes: [.init(name: "id", value: "o2")], content: [.text("T2")]))
-                    ]
+                        .element(.init(
+                            name: "option",
+                            attributes: [.init(name: "id", value: "o2")],
+                            content: [.text("T2")],
+                            raw: "<option id=o2>T2</option>"
+                        ))
+                    ],
+                    raw: """
+                        <select id=s1 initial-value=o1 expected-value="*">
+                            Please select a value:
+                            <option id=o0>T0</option>
+                            <option id=o1>T1</option>
+                            Or maybe this one?
+                            <option id=o2>T2</option>
+                        </select>
+                        """
                 )),
                 .markdown("Please sign the form below:"),
-                .customElement(.init(name: "signature", attributes: [.init(name: "id", value: "s1")], content: []))
+                .customElement(.init(
+                    name: "signature",
+                    attributes: [.init(name: "id", value: "s1")],
+                    content: [],
+                    raw: "<signature id=s1 />"
+                ))
             ]
         ))
     }

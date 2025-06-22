@@ -14,4 +14,11 @@ extension StringProtocol {
     public func trimmingWhitespace() -> SubSequence {
         trimming(while: \.isWhitespace)
     }
+    
+    /// Removes all leading and trailing whitespace (including newlines) from the string.
+    @inlinable
+    @_disfavoredOverload
+    public func trimmingWhitespace() -> String {
+        String(trimmingWhitespace())
+    }
 }
