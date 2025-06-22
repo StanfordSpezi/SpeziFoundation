@@ -12,7 +12,7 @@ import Testing
 
 
 @Suite
-struct MarkdownDocumentTests {
+struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
     @Test
     func parse() throws {
         let input = """
