@@ -42,6 +42,9 @@ struct MarkdownDocumentTests {
             ],
             blocks: []
         ))
+        #expect(doc.metadata.title == "Document Title")
+        #expect(doc.metadata.version == Version(1, 0, 0))
+        #expect(doc.metadata.mapIntoSet(\.key) == ["title", "version"])
     }
 
     @Test
@@ -64,6 +67,56 @@ struct MarkdownDocumentTests {
         #expect(encoded2 == encoded)
         #expect(decoded2 == metadata)
     }
+    
+    @Test
+    func simpleParsing() throws {
+        let input = """
+            # Hello World
+            
+            This is our study.
+            
+            We look forward to welcoming you into the fold.
+            - we
+            - look
+            - forward
+            - to welcoming you
+            """
+        let document = try MarkdownDocument(processing: input)
+        #expect(document.metadata.isEmpty)
+        #expect(document.blocks == [
+            .markdown(id: "hello-world", rawContents: input)
+        ])
+    }
+    
+    @Test
+    @MainActor
+    func frontmatterParsing() throws {
+        let input = """
+            ---
+            title: abc
+            version: 1.0.2
+            keyOnlyEntry:
+            keyAndValueEntry: value
+            ---
+            
+            First markdown block
+            - abc
+            - def
+            """
+        let document = try MarkdownDocument(processing: input)
+        #expect(document.metadata == [
+            "title": "abc",
+            "version": "1.0.2",
+            "keyOnlyEntry": "",
+            "keyAndValueEntry": "value"
+        ])
+        #expect(document.metadata.title == "abc")
+        #expect(document.metadata.version == Version(1, 0, 2))
+        #expect(document.blocks == [
+            .markdown(id: nil, rawContents: "First markdown block\n- abc\n- def")
+        ])
+    }
+
     
     @Test
     func markdownSectionIds() throws {
@@ -96,6 +149,32 @@ struct MarkdownDocumentTests {
                 .markdown(id: "second-heading", rawContents: "Second Heading\n==============")
             ]
         ))
+    }
+    
+    @Test
+    func comments0() throws {
+        let input = """
+            # Hello World
+            
+            <!--How are you doing today?-->
+            """
+        let document = try MarkdownDocument(processing: input)
+        #expect(document.blocks == [
+            .markdown(id: "hello-world", rawContents: "# Hello World")
+        ])
+    }
+    
+    @Test
+    func comments1() throws {
+        let input = """
+            # Hello World
+            
+            <!--<toggle id=t1>T1</>-->
+            """
+        let document = try MarkdownDocument(processing: input)
+        #expect(document.blocks == [
+            .markdown(id: "hello-world", rawContents: "# Hello World")
+        ])
     }
     
     @Test
@@ -192,5 +271,71 @@ struct MarkdownDocumentTests {
                 ))
             ]
         ))
+    }
+    
+    @Test
+    func customElements2() throws {
+        let input = """
+            # Spezi
+            Hello World :)
+            
+            <toggle id=t1>T1</>
+            <signature id=s1 />
+            """
+        let doc = try MarkdownDocument(processing: input, customElementNames: ["toggle"])
+        #expect(doc == MarkdownDocument(
+            metadata: .init(),
+            blocks: [
+                .markdown(id: "spezi", rawContents: "# Spezi\nHello World :)"),
+                .customElement(.init(
+                    name: "toggle",
+                    attributes: [.init(name: "id", value: "t1")],
+                    content: [.text("T1")],
+                    raw: "<toggle id=t1>T1</>"
+                )),
+                .markdown(id: nil, rawContents: "<signature id=s1 />")
+            ]
+        ))
+    }
+    
+    @Test
+    func customElements3() throws {
+        let input = """
+            # Spezi
+            Hello World :)
+            
+            <toggle id=t1>T1</>
+            <signature id=s1 />
+            """
+        let doc = try MarkdownDocument(processing: input, customElementNames: ["signature"])
+        #expect(doc == MarkdownDocument(
+            metadata: .init(),
+            blocks: [
+                .markdown(id: "spezi", rawContents: "# Spezi\nHello World :)\n\n<toggle id=t1>T1</>"),
+                .customElement(.init(
+                    name: "signature",
+                    attributes: [.init(name: "id", value: "s1")],
+                    content: [],
+                    raw: "<signature id=s1 />"
+                ))
+            ]
+        ))
+    }
+    
+    @Test(arguments: [
+        "<signature id=sig></signature>",
+        "<signature id=sig></>",
+        "<signature id=sig />"
+    ])
+    func endOfTagHandling(input: String) throws {
+        let document = try MarkdownDocument(processing: input, customElementNames: ["signature"])
+        #expect(document == .init(metadata: [:], blocks: [
+            .customElement(.init(
+                name: "signature",
+                attributes: [.init(name: "id", value: "sig")],
+                content: [],
+                raw: input
+            ))
+        ]))
     }
 }
