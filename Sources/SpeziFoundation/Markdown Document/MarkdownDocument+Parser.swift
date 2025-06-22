@@ -76,7 +76,7 @@ extension MarkdownDocument {
     }
 }
 
-    
+
 extension MarkdownDocument.Parser {
     consuming func parse() throws(ParseError) -> MarkdownDocument { // swiftlint:disable:this function_body_length cyclomatic_complexity
         typealias Block = MarkdownDocument.Block
