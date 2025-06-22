@@ -42,50 +42,26 @@ struct MarkdownDocumentTests {
             blocks: []
         ))
     }
-    
+
     @Test
-    func tmp_markdownSectionIdsSimple0() throws {
-        let input = """
-            # First Heading
-            """
-        let doc = try MarkdownDocument(processing: input)
-        #expect(doc == MarkdownDocument(
-            metadata: .init(),
-            blocks: [
-                .markdown(id: "first-heading", rawContents: "# First Heading")
-            ]
-        ))
-    }
-    
-    @Test
-    func tmp_markdownSectionIdsSimple1() throws {
-        let input = """
-            First Heading
-            =============
-            """
-        let doc = try MarkdownDocument(processing: input)
-        #expect(doc == MarkdownDocument(
-            metadata: .init(),
-            blocks: [
-                .markdown(id: "first-heading", rawContents: "First Heading\n=============")
-            ]
-        ))
-    }
-    
-    @Test
-    func tmp_markdownSectionIdsSimple2() throws {
-        let input = """
-            First Heading
-            -------------
-            text
-            """
-        let doc = try MarkdownDocument(processing: input)
-        #expect(doc == MarkdownDocument(
-            metadata: .init(),
-            blocks: [
-                .markdown(id: "first-heading", rawContents: "First Heading\n-------------\ntext")
-            ]
-        ))
+    func metadataCoding() throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let metadata: MarkdownDocument.Metadata = [
+            "title": "Study Consent",
+            "version": "1.0.0"
+        ]
+        let encoded = try encoder.encode(metadata)
+        let decoded = try JSONDecoder().decode(MarkdownDocument.Metadata.self, from: encoded)
+        #expect(decoded == metadata)
+        
+        let encoded2 = try encoder.encode([
+            "title": "Study Consent",
+            "version": "1.0.0"
+        ])
+        let decoded2 = try JSONDecoder().decode(MarkdownDocument.Metadata.self, from: encoded2)
+        #expect(encoded2 == encoded)
+        #expect(decoded2 == metadata)
     }
     
     @Test
