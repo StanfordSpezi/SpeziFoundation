@@ -52,7 +52,7 @@ import Foundation
 /// - Warning: `cancelAll` will trigger a runtime error if it attempts to cancel tasks that are not cancellable.
 public final class AsyncSemaphore: Sendable {
     private enum Suspension {
-        case cancelable(UnsafeContinuation<Void, Error>)
+        case cancelable(UnsafeContinuation<Void, any Error>)
         case regular(UnsafeContinuation<Void, Never>)
 
         

@@ -82,7 +82,7 @@ extension ManagedAsynchronousAccess where Value == Void {
 }
 
 
-extension ManagedAsynchronousAccess where E == Error {
+extension ManagedAsynchronousAccess where E == any Error {
     /// Perform an managed, asynchronous access.
     ///
     /// Call this method to perform an managed, asynchronous access. This method awaits exclusive access, creates a continuation and
