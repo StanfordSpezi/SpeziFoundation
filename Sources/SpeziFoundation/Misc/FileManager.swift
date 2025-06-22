@@ -35,6 +35,15 @@ extension FileManager {
     }
     
     
+    /// Retrieves the contents of the directory at the specified url.
+    public func contents(
+        of dirUrl: URL,
+        includingPropertiesForKeys: [URLResourceKey]? = nil, // swiftlint:disable:this discouraged_optional_collection
+        options: DirectoryEnumerationOptions = []
+    ) throws -> [URL] {
+        try contentsOfDirectory(at: dirUrl, includingPropertiesForKeys: includingPropertiesForKeys, options: options)
+    }
+    
     /// Ensures that a file url can be written to.
     public func prepareForWriting(
         to url: URL,

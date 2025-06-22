@@ -42,6 +42,7 @@ let package = Package(
             resources: [
                 .process("Resources")
             ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
             plugins: [] + swiftLintPlugin()
         ),
         .target(
@@ -54,6 +55,7 @@ let package = Package(
                 .product(name: "RuntimeAssertionsTesting", package: "XCTRuntimeAssertions"),
                 .product(name: "XCTRuntimeAssertions", package: "XCTRuntimeAssertions")
             ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
             plugins: [] + swiftLintPlugin()
         )
     ]
