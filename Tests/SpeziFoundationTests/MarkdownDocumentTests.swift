@@ -199,7 +199,7 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
             </select>
             
             Please sign the form below:
-            <signature id=s1 />
+            <signature id=sig />
             """
         let doc = try MarkdownDocument(processing: input, customElementNames: ["toggle", "select", "signature", "option"])
         #expect(doc == MarkdownDocument(
@@ -265,12 +265,13 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
                 .markdown(id: nil, rawContents: "Please sign the form below:"),
                 .customElement(.init(
                     name: "signature",
-                    attributes: [.init(name: "id", value: "s1")],
+                    attributes: [.init(name: "id", value: "sig")],
                     content: [],
-                    raw: "<signature id=s1 />"
+                    raw: "<signature id=sig />"
                 ))
             ]
         ))
+        #expect(doc.blocks.map(\.id) == ["hello-world", "t1", nil, "s1", nil, "sig"])
     }
     
     @Test
@@ -325,7 +326,8 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
     @Test(arguments: [
         "<signature id=sig></signature>",
         "<signature id=sig></>",
-        "<signature id=sig />"
+        "<signature id=sig />",
+        "<signature id=sig/>"
     ])
     func endOfTagHandling(input: String) throws {
         let document = try MarkdownDocument(processing: input, customElementNames: ["signature"])
@@ -333,6 +335,111 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
             .customElement(.init(
                 name: "signature",
                 attributes: [.init(name: "id", value: "sig")],
+                content: [],
+                raw: input
+            ))
+        ]))
+    }
+    
+    @Test
+    func readFromFile() throws {
+        let input = """
+            ---
+            title: Title
+            ---
+            
+            # Hello World
+            
+            <toggle id=t1>T1</>
+            """
+        let data = try #require(input.data(using: .utf8))
+        let url = URL.temporaryDirectory
+            .appending(component: UUID().uuidString)
+            .appendingPathExtension("md")
+        try data.write(to: url)
+        
+        let document = try MarkdownDocument(processingContentsOf: url, customElementNames: ["toggle"])
+        #expect(document == .init(metadata: [
+            "title": "Title"
+        ], blocks: [
+            .markdown(id: "hello-world", rawContents: "# Hello World"),
+            .customElement(.init(
+                name: "toggle",
+                attributes: [.init(name: "id", value: "t1")],
+                content: [.text("T1")],
+                raw: "<toggle id=t1>T1</>"
+            ))
+        ]))
+    }
+    
+    @Test
+    func invalidFrontmatter0() throws {
+        let input = """
+            ---
+            title: Title
+            
+            version: 1.0.0
+            ---
+            """
+        let document = try MarkdownDocument(processing: input)
+        #expect(document == .init(metadata: [
+            "title": "Title",
+            "version": "1.0.0"
+        ], blocks: []))
+    }
+    
+    @Test
+    func invalidFrontmatter1() throws {
+        let input = """
+            ---
+            title: Title
+            version: 1.0.0
+            """
+        #expect(throws: (any Error).self) {
+            try MarkdownDocument(processing: input)
+        }
+    }
+    
+    @Test
+    func invalidFrontmatter2() throws {
+        let input = """
+            ---
+            title: Title
+            version:
+            """
+        #expect(throws: (any Error).self) {
+            try MarkdownDocument(processing: input)
+        }
+    }
+    
+    @Test(arguments: [
+        "<toggle id=></toggle>",
+        "<toggle id=></>",
+        "<toggle id=/>"
+    ])
+    func emptyAttrValue(input: String) throws {
+        let document = try MarkdownDocument(processing: input, customElementNames: ["toggle"])
+        #expect(document == .init(metadata: [:], blocks: [
+            .customElement(.init(
+                name: "toggle",
+                attributes: [.init(name: "id", value: "")],
+                content: [],
+                raw: input
+            ))
+        ]))
+    }
+    
+    @Test(arguments: [
+        "<toggle id=-123></toggle>",
+        "<toggle id=-123></>",
+        "<toggle id=-123/>"
+    ])
+    func integerAttrValue(input: String) throws {
+        let document = try MarkdownDocument(processing: input, customElementNames: ["toggle"])
+        #expect(document == .init(metadata: [:], blocks: [
+            .customElement(.init(
+                name: "toggle",
+                attributes: [.init(name: "id", value: "-123")],
                 content: [],
                 raw: input
             ))

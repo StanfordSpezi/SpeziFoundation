@@ -58,6 +58,7 @@ extension MarkdownDocument {
         public internal(set) var raw: String
         
         /// Reads the value of the first attribute with the specified name, if available.
+        @inlinable
         public subscript(attribute name: String) -> String? {
             attributes.first { $0.name == name }?.value
         }

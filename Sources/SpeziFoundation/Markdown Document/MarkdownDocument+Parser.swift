@@ -147,9 +147,14 @@ extension MarkdownDocument.Parser {
         while let key = try? parseIdentifier() {
             try expectAndConsume(":")
             consume(while: { $0.isWhitespace && !$0.isNewline })
-            let value = currentLine ?? ""
+            guard let value = currentLine else {
+                try emitError(.eof)
+            }
             consumeLine()
             frontmatter[key] = String(value)
+            while let currentLine, currentLine.isEmpty {
+                consumeLine()
+            }
         }
         guard currentLine == "---" else {
             try emitError(.other("Unable to find end of frontmatter"))
@@ -284,9 +289,9 @@ extension MarkdownDocument.Parser {
                 if let element = try parseCustomElement() {
                     parsedElement.content.append(.element(element))
                 } else {
-                    let text = String(parseElementTextContents().trimmingWhitespace())
+                    let text = parseElementTextContents().trimmingWhitespace()
                     if !text.isEmpty {
-                        parsedElement.content.append(.text(text))
+                        parsedElement.content.append(.text(String(text)))
                     } else {
                         // unable to parse an element, but also no text-only content in there...
                         if let element = _attemptToCloseCustomElement(parsedElement, elementStartPos: startPos) {
@@ -322,7 +327,7 @@ extension MarkdownDocument.Parser {
             text.append(currentChar)
             consume()
         }
-        return String(text.trimmingWhitespace())
+        return text.trimmingWhitespace()
     }
     
     
