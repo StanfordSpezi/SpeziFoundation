@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+// swiftlint:disable file_length
+
 import Foundation
 
 
@@ -60,7 +62,7 @@ extension MarkdownDocument {
 extension MarkdownDocument {
     struct Parser: ~Copyable {
         typealias ParseError = MarkdownDocument.ParseError
-        typealias ParsedCustomElement = MarkdownDocument.ParsedCustomElement
+        typealias CustomElement = MarkdownDocument.CustomElement
         
         private let input: String
         private let customElementNames: Set<String>
@@ -76,18 +78,28 @@ extension MarkdownDocument {
 
     
 extension MarkdownDocument.Parser {
-    consuming func parse() throws(ParseError) -> MarkdownDocument {
+    consuming func parse() throws(ParseError) -> MarkdownDocument { // swiftlint:disable:this function_body_length cyclomatic_complexity
         typealias Block = MarkdownDocument.Block
         let frontmatter = try parseFrontmatter()
         var blocks: [Block] = []
         var currentBlockText = ""
+        func terminateCurrentBlock(id: String? = nil) {
+            blocks.append(.markdown(
+                id: id ?? Self.markdownBlockId(currentBlockText),
+                rawContents: currentBlockText
+            ))
+            currentBlockText.removeAll(keepingCapacity: true)
+        }
         do {
             while let currentChar {
+                if isAtBeginningOfLine, Self.markdownBlockId(remainingInput) != nil {
+                    // terminate current block, if we're at the start of a new one whith would get an id of its own.
+                    terminateCurrentBlock()
+                }
                 if currentChar == "<", isAtBeginningOfLine,
                    let element = try parseCustomElement() {
                     if customElementNames.contains(element.name) {
-                        blocks.append(.markdown(currentBlockText))
-                        currentBlockText.removeAll(keepingCapacity: true)
+                        terminateCurrentBlock()
                         blocks.append(.customElement(element))
                     } else {
                         // continue parsing as if this were normal markdown; the downstream markdown parser will have to deal w/ this.
@@ -108,15 +120,15 @@ extension MarkdownDocument.Parser {
                 throw error
             }
         }
-        blocks.append(.markdown(currentBlockText))
+        terminateCurrentBlock()
         blocks = blocks.compactMap { block -> Block? in
             switch block {
-            case .markdown(let text):
-                let trimmed = text.trimmingWhitespace()
+            case let .markdown(id, rawContents):
+                let trimmed = rawContents.trimmingWhitespace()
                 if trimmed.isEmpty {
                     return nil
                 } else {
-                    return .markdown(String(trimmed))
+                    return .markdown(id: id, rawContents: String(trimmed))
                 }
             case .customElement:
                 return block
@@ -221,7 +233,7 @@ extension MarkdownDocument.Parser {
     }
     
     
-    private mutating func parseCustomElement() throws(ParseError) -> ParsedCustomElement? {
+    private mutating func parseCustomElement() throws(ParseError) -> CustomElement? {
         // swiftlint:disable:previous function_body_length cyclomatic_complexity
         consume(while: \.isWhitespace)
         let startPos = self.position
@@ -230,7 +242,7 @@ extension MarkdownDocument.Parser {
         }
         try expectAndConsume("<")
         let name = try parseIdentifier()
-        var parsedElement = ParsedCustomElement(name: name, raw: "")
+        var parsedElement = CustomElement(name: name, raw: "")
         var elementIsClosed = false
         loop: while true {
             switch currentChar {
@@ -278,7 +290,6 @@ extension MarkdownDocument.Parser {
                     } else {
                         // unable to parse an element, but also no text-only content in there...
                         if let element = _attemptToCloseCustomElement(parsedElement, elementStartPos: startPos) {
-//                            consume(while: \.isWhitespace)
                             return element
                         } else {
                             try emitError(.other("unable to close \(name)"))
@@ -290,7 +301,7 @@ extension MarkdownDocument.Parser {
         try emitError(.other("Unable to find closing tag for \(parsedElement)"))
     }
     
-    private mutating func _attemptToCloseCustomElement(_ element: ParsedCustomElement, elementStartPos: String.Index) -> ParsedCustomElement? {
+    private mutating func _attemptToCloseCustomElement(_ element: CustomElement, elementStartPos: String.Index) -> CustomElement? {
         let possibleClosingTags = ["</>", "</\(element.name)>"]
         for tag in possibleClosingTags {
             if remainingInput.starts(with: tag) { // swiftlint:disable:this for_where
@@ -432,6 +443,54 @@ extension MarkdownDocument.Parser {
             line: UInt(lineNumber),
             column: UInt(wholeCurrentLine.distance(from: wholeCurrentLine.startIndex, to: position))
         )
+    }
+}
+
+
+extension MarkdownDocument.Parser {
+    /// Attempts to determine a suitable id for a markdown block with the specified content.
+    ///
+    /// The id produced here is not necessarily suitable for uniquely identifying the block within a ``MarkdownDocument``;
+    /// rather we match the behaviour of e.g. GitHub, which turn headings into hyphen-separated identifiers.
+    fileprivate static func markdownBlockId(_ content: some StringProtocol) -> String? {
+        func makeId(title: some StringProtocol) -> String {
+            title.lazy
+                .flatMap { $0.lowercased() }
+                .reduce(into: "") { id, char in
+                    id.append(char.isASCII && char.isLetter ? char : "-")
+                }
+        }
+        
+        // a heading can take either of the two following forms: (https://daringfireball.net/projects/markdown/syntax#header)
+        // ```markdown
+        // # This is my heading
+        // ```
+        //
+        // ```markdown
+        // This is my heading
+        // ==================
+        // ```
+        if content.starts(with: "#") {
+            let fstLineEnd = content.firstIndex(where: \.isNewline) ?? content.endIndex
+            let fstLine = content[..<fstLineEnd]
+            guard let headingTitleStart = fstLine.firstIndex(of: " ").flatMap({ fstLine.index($0, offsetBy: 1, limitedBy: fstLine.endIndex) }) else {
+                return nil
+            }
+            let headingTitle = fstLine[headingTitleStart..<fstLineEnd]
+            return makeId(title: headingTitle)
+        } else {
+            guard let fstLineEnd = content.firstIndex(where: \.isNewline) else {
+                return nil
+            }
+            let sndLineEnd = content[content.index(after: fstLineEnd)...].firstIndex(where: \.isNewline) ?? content.endIndex
+            let fstLine = content[..<fstLineEnd]
+            let sndLine = content[content.index(after: fstLineEnd)..<sndLineEnd]
+            if !sndLine.isEmpty && (sndLine.allSatisfy { $0 == "=" } || sndLine.allSatisfy { $0 == "-" }) {
+                return makeId(title: fstLine)
+            } else {
+                return nil
+            }
+        }
     }
 }
 

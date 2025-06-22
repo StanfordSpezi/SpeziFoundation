@@ -21,7 +21,7 @@ struct MarkdownDocumentTests {
             """
         let doc = try MarkdownDocument(processing: input)
         #expect(doc == MarkdownDocument(metadata: .init(), blocks: [
-            .markdown("# Hello World\n\nHow are you doing?")
+            .markdown(id: "hello-world", rawContents: "# Hello World\n\nHow are you doing?")
         ]))
     }
     
@@ -40,6 +40,84 @@ struct MarkdownDocumentTests {
                 "version": "1.0.0"
             ],
             blocks: []
+        ))
+    }
+    
+    @Test
+    func tmp_markdownSectionIdsSimple0() throws {
+        let input = """
+            # First Heading
+            """
+        let doc = try MarkdownDocument(processing: input)
+        #expect(doc == MarkdownDocument(
+            metadata: .init(),
+            blocks: [
+                .markdown(id: "first-heading", rawContents: "# First Heading")
+            ]
+        ))
+    }
+    
+    @Test
+    func tmp_markdownSectionIdsSimple1() throws {
+        let input = """
+            First Heading
+            =============
+            """
+        let doc = try MarkdownDocument(processing: input)
+        #expect(doc == MarkdownDocument(
+            metadata: .init(),
+            blocks: [
+                .markdown(id: "first-heading", rawContents: "First Heading\n=============")
+            ]
+        ))
+    }
+    
+    @Test
+    func tmp_markdownSectionIdsSimple2() throws {
+        let input = """
+            First Heading
+            -------------
+            text
+            """
+        let doc = try MarkdownDocument(processing: input)
+        #expect(doc == MarkdownDocument(
+            metadata: .init(),
+            blocks: [
+                .markdown(id: "first-heading", rawContents: "First Heading\n-------------\ntext")
+            ]
+        ))
+    }
+    
+    @Test
+    func markdownSectionIds() throws {
+        let input = """
+            # First Heading
+            ## Second Heading
+            ### Third Heading
+            #### Fourth Heading
+            ##### Fifth Heading
+            ###### Sixth Heading
+            
+            First Heading
+            -------------
+            
+            Second Heading
+            ==============
+            
+            """
+        let doc = try MarkdownDocument(processing: input)
+        #expect(doc == MarkdownDocument(
+            metadata: .init(),
+            blocks: [
+                .markdown(id: "first-heading", rawContents: "# First Heading"),
+                .markdown(id: "second-heading", rawContents: "## Second Heading"),
+                .markdown(id: "third-heading", rawContents: "### Third Heading"),
+                .markdown(id: "fourth-heading", rawContents: "#### Fourth Heading"),
+                .markdown(id: "fifth-heading", rawContents: "##### Fifth Heading"),
+                .markdown(id: "sixth-heading", rawContents: "###### Sixth Heading"),
+                .markdown(id: "first-heading", rawContents: "First Heading\n-------------"),
+                .markdown(id: "second-heading", rawContents: "Second Heading\n==============")
+            ]
         ))
     }
     
@@ -71,7 +149,7 @@ struct MarkdownDocumentTests {
         #expect(doc == MarkdownDocument(
             metadata: .init(),
             blocks: [
-                .markdown("# Hello World\n\nWelcome to our Study"),
+                .markdown(id: "hello-world", rawContents: "# Hello World\n\nWelcome to our Study"),
                 .customElement(.init(
                     name: "toggle",
                     attributes: [
@@ -88,7 +166,7 @@ struct MarkdownDocumentTests {
                         </toggle>
                         """
                 )),
-                .markdown("Selection block:"),
+                .markdown(id: nil, rawContents: "Selection block:"),
                 .customElement(.init(
                     name: "select",
                     attributes: [
@@ -128,7 +206,7 @@ struct MarkdownDocumentTests {
                         </select>
                         """
                 )),
-                .markdown("Please sign the form below:"),
+                .markdown(id: nil, rawContents: "Please sign the form below:"),
                 .customElement(.init(
                     name: "signature",
                     attributes: [.init(name: "id", value: "s1")],
