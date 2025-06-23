@@ -45,6 +45,10 @@ Extensions on the `Calendar` and `TimeZone` types, implementing operations
 - ``Foundation/Calendar/numberOfDaysInMonth(for:)``
 - ``Foundation/Calendar/offsetInDays(from:to:)``
 
+### Date FormatStyle
+- ``Foundation/Date/FormatStyle/calendar(_:)``
+- ``Foundation/Date/FormatStyle/timeZone(_:)``
+
 
 ### Time Zone
 
