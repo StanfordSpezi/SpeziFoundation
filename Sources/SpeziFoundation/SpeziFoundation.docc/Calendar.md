@@ -57,3 +57,4 @@ Improved DST handling for Foundation's TimeZone type.
 - ``Foundation/TimeZone/DSTTransition``
 - ``Foundation/TimeZone/nextDSTTransition(after:)``
 - ``Foundation/TimeZone/nextDSTTransitions(maxCount:)``
+- ``Foundation/TimeZone/losAngeles``

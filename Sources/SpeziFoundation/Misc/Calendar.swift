@@ -352,3 +352,15 @@ extension TimeZone {
         return transitions
     }
 }
+
+
+// MARK: Time Zones
+
+extension TimeZone {
+    // swiftlint:disable force_unwrapping
+    /// The time zone for LA.
+    public static let losAngeles = TimeZone(identifier: "America/Los_Angeles")!
+    /// The time zone for Berlin.
+    public static let berlin = TimeZone(identifier: "Europe/Berlin")!
+    // swiftlint:enable force_unwrapping
+}
