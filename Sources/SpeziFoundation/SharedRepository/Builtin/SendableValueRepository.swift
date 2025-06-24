@@ -9,7 +9,7 @@
 
 /// A Sendable Shared Repository.
 public struct SendableValueRepository<Anchor> {
-    private var storage: [ObjectIdentifier: AnyRepositoryValue & Sendable] = [:]
+    private var storage: [ObjectIdentifier: any AnyRepositoryValue & Sendable] = [:]
 
 
     /// Initializes an empty shared repository.
@@ -35,7 +35,7 @@ extension SendableValueRepository: SendableSharedRepository {
 
 
 extension SendableValueRepository: Collection {
-    public typealias Index = Dictionary<ObjectIdentifier, AnyRepositoryValue & Sendable>.Index
+    public typealias Index = Dictionary<ObjectIdentifier, any AnyRepositoryValue & Sendable>.Index
 
     public var startIndex: Index {
         storage.values.startIndex
@@ -50,7 +50,7 @@ extension SendableValueRepository: Collection {
     }
 
 
-    public subscript(position: Index) -> AnyRepositoryValue & Sendable {
+    public subscript(position: Index) -> any AnyRepositoryValue & Sendable {
         storage.values[position]
     }
 }
