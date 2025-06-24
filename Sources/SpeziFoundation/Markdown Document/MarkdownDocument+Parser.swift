@@ -138,7 +138,7 @@ extension MarkdownDocument.Parser {
     }
     
     
-    private mutating func parseFrontmatter() throws(ParseError) -> [String: String] {
+    mutating func parseFrontmatter() throws(ParseError) -> [String: String] {
         guard currentLine == "---" else {
             return [:]
         }

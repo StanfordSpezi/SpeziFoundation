@@ -16,12 +16,20 @@ extension MarkdownDocument {
         
         private let storage: Storage
         
+        /// Creates a new, empty `Metadata` object.
         public init() {
             storage = .init()
         }
         
+        /// Creates a `Metadata` object from the specified key-value pairs
         public init(_ values: [String: String]) {
             self.storage = values
+        }
+        
+        /// Parses only  the frontmatter of a Markdown `String`.
+        public init(parsing markdown: String) throws(ParseError) {
+            var parser = Parser(input: markdown, customElementNames: [])
+            self.init(try parser.parseFrontmatter())
         }
         
         /// Fetches the metadata value associated with the specified key.

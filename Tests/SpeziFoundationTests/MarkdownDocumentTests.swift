@@ -115,6 +115,7 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
         #expect(document.blocks == [
             .markdown(id: nil, rawContents: "First markdown block\n- abc\n- def")
         ])
+        #expect(try MarkdownDocument.Metadata(parsing: input) == document.metadata)
     }
 
     
