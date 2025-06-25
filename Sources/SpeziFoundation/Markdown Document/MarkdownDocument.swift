@@ -9,7 +9,75 @@
 import Foundation
 
 
-/// A Markdown document
+/// A Markdown document.
+///
+/// The ``MarkdownDocument`` struct is a lightweight data type representing a (potentially pre-processed) Markdown document,
+/// consisting of optional metadata, and contents which are represented as a series of ``Block``s.
+///
+/// ### Metadata
+///
+/// When using any of the `processing:` initializers to create a ``MarkdownDocument`` (e.g.: ``init(processing:customElementNames:)-(String,_)``),
+/// any frontmatter-style metadata entries at the very beginning of the input will be parsed into a ``Metadata-swift.struct`` object.
+///
+/// The frontmatter-style metadata takes the following format:
+/// ```
+/// ---
+/// key1: value1
+/// key2: value2
+/// ---
+/// ```
+/// I.e., the metadata is a simple String-based key-value mapping, with one entry per line, that is enclosed within two `---` lines.
+///
+/// - Tip: If you just want to extract the metadata from a Markdown file and don't care about the rest of the document, you can use ``Metadata-swift.struct/init(parsing:)``.
+///
+/// ### Content Blocks
+///
+/// The ``blocks`` property stores the Markdown document's content, split up into a series of ``Block``s.
+/// A block is either a section of Markdown-formatted text (``Block/markdown(id:rawContents:)``, or an extracted ``CustomElement`` (``Block/customElement(_:)``).
+///
+/// > Important: The ``MarkdownDocument`` does not perform any Markdown _parsing_;
+///     it only performs _processing_ of the Markdown input, in the sense that it splits up the input text into a series of sections of Markdown text, and parses any custom tags that may be contained in the Markdown.
+///
+/// Additionally, the
+/// For example, creating a ``MarkdownDocument`` from the following Markdown input (which ostensibly consists of two "parts": a markdown part with two sections, and a custom element part with a single signature field):
+/// ```markdown
+/// # Study Consent Form
+/// Welcome to our study. As part of your participation, you will need to fill out and sign this consent form.
+///
+/// ## Your rights
+/// You have the right to revoke this consent at any time; if you wish to do so, contact us at studies@acme.org
+///
+/// <signature id=sig />
+/// ```
+/// would result in a ``MarkdownDocument`` consisting of a total of three blocks: two markdown blocks (one per section) and one custom element block for the signature:
+/// ```swift
+/// MarkdownDocument(
+///     metadata: [:],
+///     blocks: [
+///         .markdown(
+///             id: "study-consent-form",
+///             rawContents: """
+///                 # Study Consent Form
+///                 Welcome to our study. As part of your participation, you will need to fill out and sign this consent form.
+///                 """
+///         ),
+///         .markdown(
+///             id: "your-rights",
+///             rawContents: """
+///                 ## Your rights
+///                 You have the right to revoke this consent at any time; if you wish to do so, contact us at studies@acme.org
+///                 """
+///         ),
+///         .customElement(
+///             MarkdownDocument.CustomElement(
+///                 name: "signature",
+///                 attributes: [.init(name: "id", value: "sig")],
+///                 raw: "<signature id=sig />"
+///             )
+///         )
+///    ]
+/// )
+/// ```
 ///
 /// ## Topics
 ///

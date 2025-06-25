@@ -458,12 +458,17 @@ extension MarkdownDocument.Parser {
     /// The id produced here is not necessarily suitable for uniquely identifying the block within a ``MarkdownDocument``;
     /// rather we match the behaviour of e.g. GitHub, which turn headings into hyphen-separated identifiers.
     fileprivate static func markdownBlockId(_ content: some StringProtocol) -> String? {
-        func makeId(title: some StringProtocol) -> String {
-            title.lazy
-                .flatMap { $0.lowercased() }
-                .reduce(into: "") { id, char in
-                    id.append(char.isASCII && char.isLetter ? char : "-")
-                }
+        func makeId(title: some StringProtocol) -> String? {
+            let title = title.trimmingWhitespace()
+            return if title.isEmpty {
+                nil
+            } else {
+                title.lazy
+                    .flatMap { $0.lowercased() }
+                    .reduce(into: "") { id, char in
+                        id.append(char.isASCII && char.isLetter ? char : "-")
+                    }
+            }
         }
         
         // a heading can take either of the two following forms: (https://daringfireball.net/projects/markdown/syntax#header)

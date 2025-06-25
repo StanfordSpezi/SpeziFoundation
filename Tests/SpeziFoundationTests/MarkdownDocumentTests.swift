@@ -446,4 +446,93 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
             ))
         ]))
     }
+    
+    
+    @Test
+    func doccExample() throws {
+        let input = """
+            # Study Consent Form
+            Welcome to our study. As part of your participation, you will need to fill out and sign this consent form.
+            
+            ## Your rights
+            You have the right to revoke this consent at any time; if you wish to do so, contact us at studies@acme.org
+            
+            <signature id=sig />
+            """
+        let document = try MarkdownDocument(processing: input, customElementNames: ["signature"])
+        let expected = MarkdownDocument(
+            metadata: [:],
+            blocks: [
+                .markdown(
+                    id: "study-consent-form",
+                    rawContents: """
+                        # Study Consent Form
+                        Welcome to our study. As part of your participation, you will need to fill out and sign this consent form.
+                        """
+                ),
+                .markdown(
+                    id: "your-rights",
+                    rawContents: """
+                        ## Your rights
+                        You have the right to revoke this consent at any time; if you wish to do so, contact us at studies@acme.org
+                        """
+                ),
+                .customElement(
+                    MarkdownDocument.CustomElement(
+                        name: "signature",
+                        attributes: [.init(name: "id", value: "sig")],
+                        raw: "<signature id=sig />"
+                    )
+                )
+           ]
+        )
+        #expect(document == expected)
+    }
+    
+    @Test
+    func hruleParsing() throws {
+        let input = """
+            ---
+            title: Welcome to the Spezi Ecosystem
+            date: 2025-06-22T14:41:16+02:00
+            ---
+            
+            # Welcome to the Spezi Ecosystem
+            This article aims to provide you with a broad overview of Spezi.
+            
+            <marquee filename="PM5544.png" period=5 />
+            
+            ## Our Modules
+            Spezi is architected to be a highly modular system, allowing your application to ...
+            
+            ---
+            
+            ### SpeziHealthKit
+            text text text
+            """
+        let document = try MarkdownDocument(processing: input, customElementNames: ["marquee"])
+        #expect(document == MarkdownDocument(
+            metadata: [
+                "title": "Welcome to the Spezi Ecosystem",
+                "date": "2025-06-22T14:41:16+02:00"
+            ],
+            blocks: [
+                .markdown(
+                    id: "welcome-to-the-spezi-ecosystem",
+                    rawContents: "# Welcome to the Spezi Ecosystem\nThis article aims to provide you with a broad overview of Spezi."
+                ),
+                .customElement(.init(
+                    name: "marquee",
+                    attributes: [.init(name: "filename", value: "PM5544.png"), .init(name: "period", value: "5")],
+                    content: [],
+                    raw: #"<marquee filename="PM5544.png" period=5 />"#
+                )),
+                .markdown(
+                    id: "our-modules",
+                    rawContents: "## Our Modules\nSpezi is architected to be a highly modular system, allowing your application to ...\n\n---"
+                ),
+                .markdown(id: "spezihealthkit", rawContents: "### SpeziHealthKit\ntext text text")
+            ]
+        ))
+    }
 }
