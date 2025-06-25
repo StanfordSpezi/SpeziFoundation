@@ -12,6 +12,8 @@ import Foundation
 extension MarkdownDocument {
     /// A unit of content within a ``MarkdownDocument``.
     ///
+    /// See ``MarkdownDocument`` for more information about blocks.
+    ///
     /// ## Topics
     ///
     /// ### Enumeration Cases
@@ -24,9 +26,9 @@ extension MarkdownDocument {
     /// - ``isCustomElement``
     /// - ``customElement``
     public enum Block: Hashable, Sendable {
-        /// A block of Markdown text
+        /// A block consisting of Markdown text
         case markdown(id: String?, rawContents: String)
-        /// A parsed custom element.
+        /// A block consisting of a parsed custom element.
         case customElement(CustomElement)
         
         /// The block's stable identifier, if available.

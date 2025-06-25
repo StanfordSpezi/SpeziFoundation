@@ -539,4 +539,40 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
             ]
         ))
     }
+    
+    @Test
+    func attrValue0() throws {
+        let input = """
+            <elem id="hello world" />
+            """
+        let document = try MarkdownDocument(processing: input, customElementNames: ["elem"])
+        #expect(document == MarkdownDocument(metadata: [:], blocks: [
+            .customElement(.init(name: "elem", attributes: [.init(name: "id", value: "hello world")], content: [], raw: input))
+        ]))
+    }
+    
+    @Test(arguments: [
+        #"<elem id=1234 />"#,
+        #"<elem id="1234" />"#
+    ])
+    func attrValue1(input: String) throws {
+        let document = try MarkdownDocument(processing: input, customElementNames: ["elem"])
+        #expect(document == MarkdownDocument(metadata: [:], blocks: [
+            .customElement(.init(name: "elem", attributes: [.init(name: "id", value: "1234")], content: [], raw: input))
+        ]))
+    }
+    
+    @Test
+    func nonAsciiInput() throws {
+        let input = """
+            # Hello World 🏳️‍🌈👨‍🌾👨‍👩‍👦
+            
+            <elem id="👨‍🌾" />
+            """
+        let document = try MarkdownDocument(processing: input, customElementNames: ["elem"])
+        #expect(document == MarkdownDocument(metadata: [:], blocks: [
+            .markdown(id: "hello-world", rawContents: "# Hello World 🏳️‍🌈👨‍🌾👨‍👩‍👦"),
+            .customElement(.init(name: "elem", attributes: [.init(name: "id", value: "👨‍🌾")], content: [], raw: #"<elem id="👨‍🌾" />"#))
+        ]))
+    }
 }
