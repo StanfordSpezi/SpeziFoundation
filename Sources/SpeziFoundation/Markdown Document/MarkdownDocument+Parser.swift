@@ -8,6 +8,7 @@
 
 // swiftlint:disable file_length
 
+import Algorithms
 import Foundation
 
 
@@ -458,12 +459,21 @@ extension MarkdownDocument.Parser {
     /// The id produced here is not necessarily suitable for uniquely identifying the block within a ``MarkdownDocument``;
     /// rather we match the behaviour of e.g. GitHub, which turn headings into hyphen-separated identifiers.
     fileprivate static func markdownBlockId(_ content: some StringProtocol) -> String? {
-        func makeId(title: some StringProtocol) -> String {
-            title.lazy
-                .flatMap { $0.lowercased() }
-                .reduce(into: "") { id, char in
-                    id.append(char.isASCII && char.isLetter ? char : "-")
-                }
+        func makeId(title: some StringProtocol) -> String? {
+            let title = title.trimmingWhitespace()
+            let isValidChar = { (char: Character) in
+                char.isASCII && char.isLetter
+            }
+            return if title.isEmpty {
+                nil
+            } else {
+                title.lazy
+                    .map { $0.asciiLowercased ?? $0 }
+                    .trimming { !isValidChar($0) }
+                    .reduce(into: "") { id, char in
+                        id.append(isValidChar(char) ? char : "-")
+                    }
+            }
         }
         
         // a heading can take either of the two following forms: (https://daringfireball.net/projects/markdown/syntax#header)
@@ -507,5 +517,12 @@ extension Character {
     
     fileprivate var isValidIdent: Bool {
         isValidIdentStart || (self >= "0" && self <= "9") || self == "-"
+    }
+    
+    fileprivate var asciiLowercased: Character? {
+        guard let asciiValue, self >= "A" && self <= "Z" else {
+            return nil
+        }
+        return Character(Unicode.Scalar(asciiValue + 32))
     }
 }
