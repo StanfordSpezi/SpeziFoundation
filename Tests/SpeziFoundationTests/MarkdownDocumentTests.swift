@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+// swiftlint:disable file_length
+
 import Foundation
 @testable import SpeziFoundation
 import Testing
@@ -486,7 +488,7 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
                         raw: "<signature id=sig />"
                     )
                 )
-           ]
+            ]
         )
         #expect(document == expected)
     }
