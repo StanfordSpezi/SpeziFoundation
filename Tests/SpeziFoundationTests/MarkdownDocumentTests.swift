@@ -273,6 +273,8 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
             ]
         ))
         #expect(doc.blocks.map(\.id) == ["hello-world", "t1", nil, "s1", nil, "sig"])
+        #expect(doc.blocks.map(\.isMarkdown) == [true, false, true, false, true, false])
+        #expect(doc.blocks.map(\.isCustomElement) == [false, true, false, true, false, true])
     }
     
     @Test
