@@ -46,7 +46,7 @@ import RuntimeAssertions
 public struct OrderedArray<Element> {
     /// The comparator used to determine the ordering between two `Element`s.
     /// - returns: `true` iff the first element comares less to the second one, `false` otherwise.
-    public typealias Comparator = (Element, Element) -> Bool
+    public typealias Comparator = @Sendable (Element, Element) -> Bool
     /// The ``OrderedArray``'s underlying storage type.
     public typealias Storage = [Element]
     
@@ -104,6 +104,9 @@ public struct OrderedArray<Element> {
         }
     }
 }
+
+
+extension OrderedArray: Sendable where Element: Sendable {}
 
 
 extension OrderedArray: CustomStringConvertible, CustomDebugStringConvertible {
