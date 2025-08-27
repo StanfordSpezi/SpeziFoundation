@@ -31,7 +31,7 @@ extension Bundle {
     
     
     /// Returns the bundle's preferred languages, based on the provided array of languages.
-    public func preferredLocalizations(from preferences: [Locale.Language]) -> [Locale.Language] {
+    public func preferredLocalizations(from preferences: some Collection<Locale.Language>) -> [Locale.Language] {
         Bundle.preferredLocalizations(
             from: self.localizations,
             forPreferences: preferences.map(\.minimalIdentifier)
@@ -44,7 +44,7 @@ extension Bundle {
     /// - parameter key: the localization key to look up a value for.
     /// - parameter tables: the tables in which the lookup should be performed.
     /// - returns: a localized version of the string, obtained from the first table that contained an entry for `key`.
-    fileprivate func localizedString(forKey key: String, tables: [LocalizationLookupTable]) -> String? {
+    public func localizedString(forKey key: String, tables: [LocalizationLookupTable]) -> String? {
         let notFound = "NOT_FOUND"
         return (tables.isEmpty ? [.default] : tables).lazy
             .map { self.localizedString(forKey: key, value: notFound, table: $0.stringValue) }
@@ -77,10 +77,8 @@ extension Bundle {
         tables: [LocalizationLookupTable],
         localizations: [Locale.Language]
     ) -> String? {
-        print("\n\n\(key)")
         let tables = tables.isEmpty ? [.default] : tables
         for language in preferredLocalizations(from: localizations) {
-            print("lang: \(language.minimalIdentifier)")
             let candidateNames = [
                 language.minimalIdentifier.replacingOccurrences(of: "-", with: "_"),
                 language.minimalIdentifier.replacingOccurrences(of: "_", with: "-")
@@ -88,20 +86,13 @@ extension Bundle {
             guard let bundle = candidateNames.firstNonNil({ name -> Bundle? in
                 self.url(forResource: name, withExtension: "lproj").flatMap { Bundle(url: $0) }
             }) else {
-//                print("  skippping")
                 continue
             }
-//            guard let lproj = self.url(forResource: language.minimalIdentifier.replacingOccurrences(of: "-", with: "_"), withExtension: "lproj"),
-//                  let bundle = Bundle(url: lproj) else {
-//                print("  skippping")
-//                continue
-//            }
             if let title = bundle.localizedString(forKey: key, tables: tables) {
                 return title
             }
         }
         if false, tables.contains(.default), let title = self.localizedString(forKey: key, tables: [.default]) {
-            print("--> fallback")
             return title
         } else {
             return nil
