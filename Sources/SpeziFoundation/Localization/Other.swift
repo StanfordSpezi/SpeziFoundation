@@ -34,20 +34,9 @@ extension LocalizedStringResource {
 
 
 extension StringProtocol {
-    /// Creates a localized version of the instance conforming to `StringProtocol`.
-    ///
-    /// String literals (`StringLiteralType`) and `String.LocalizationValue` instances are tried to be localized using the provided bundle.
-    /// `String` instances are not localized. You have to manually localize a `String` instance using `String(localized:)`.
+    @_documentation(visibility: internal)
     @available(*, deprecated, message: "Prefer explicitly using LocalizedStringResource.")
-    public func localized(_ bundle: Bundle? = nil) -> LocalizedStringResource {
-        let bundleDescription = bundle.map { LocalizedStringResource.BundleDescription.atURL(from: $0) } ?? .main
-        switch self {
-        case let text as String.LocalizationValue:
-            return LocalizedStringResource(text, bundle: bundleDescription)
-        case let text as StringLiteralType:
-            return LocalizedStringResource(String.LocalizationValue(text), bundle: bundleDescription)
-        default:
-            return LocalizedStringResource(stringLiteral: String(self))
-        }
+    public func localized(_: Bundle? = nil) -> LocalizedStringResource {
+        LocalizedStringResource(stringLiteral: String(self))
     }
 }
