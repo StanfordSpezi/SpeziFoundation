@@ -10,7 +10,7 @@ import pthread
 
 
 @_documentation(visibility: internal)
-public protocol _PThreadReadWriteLockProtocol: AnyObject { // swiftlint:disable:this identifier_name
+public protocol _PThreadReadWriteLockProtocol: AnyObject { // swiftlint:disable:this type_name
     // We need the unsafe mutable pointer, as otherwise we need to pass the property as inout parameter which isn't thread safe.
     var _rwLock: UnsafeMutablePointer<pthread_rwlock_t> { get } // swiftlint:disable:this identifier_name
     
@@ -18,14 +18,16 @@ public protocol _PThreadReadWriteLockProtocol: AnyObject { // swiftlint:disable:
     ///
     /// - Parameter body: A function that reads a value while locked.
     /// - Returns: The value returned from the given function.
-    @inlinable @inline(__always)
+    @inlinable
+    @inline(__always)
     func withReadLock<Result, E>(_ body: () throws(E) -> Result) throws(E) -> Result
     
     /// Call `body` with a writing lock.
     ///
     /// - Parameter body: A function that writes a value while locked, then returns some value.
     /// - Returns: The value returned from the given function.
-    @inlinable @inline(__always)
+    @inlinable
+    @inline(__always)
     func withWriteLock<Result, E>(_ body: () throws(E) -> Result) throws(E) -> Result
 }
 
@@ -40,21 +42,24 @@ extension _PThreadReadWriteLockProtocol {
 
     @_documentation(visibility: internal)
     @inlinable
-    public func _pthreadWriteLock() { // swiftlint:disable:this identifier_name
+    @inline(__always)
+    public func _pthreadWriteLock() { // swiftlint:disable:this identifier_name missing_docs
         let status = pthread_rwlock_wrlock(_rwLock)
         assert(status == 0, "pthread_rwlock_wrlock failed with status \(status)")
     }
 
     @_documentation(visibility: internal)
     @inlinable
-    public func _pthreadReadLock() { // swiftlint:disable:this identifier_name
+    @inline(__always)
+    public func _pthreadReadLock() { // swiftlint:disable:this identifier_name missing_docs
         let status = pthread_rwlock_rdlock(_rwLock)
         assert(status == 0, "pthread_rwlock_rdlock failed with status \(status)")
     }
 
     @_documentation(visibility: internal)
     @inlinable
-    public func _pthreadUnlock() { // swiftlint:disable:this identifier_name
+    @inline(__always)
+    public func _pthreadUnlock() { // swiftlint:disable:this identifier_name missing_docs
         let status = pthread_rwlock_unlock(_rwLock)
         assert(status == 0, "pthread_rwlock_unlock failed with status \(status)")
     }
@@ -71,14 +76,14 @@ extension _PThreadReadWriteLockProtocol {
 
 extension _PThreadReadWriteLockProtocol {
     @_documentation(visibility: internal)
-    @available(*, deprecated, renamed: "withReadLock(_:)")
+    @available(*, deprecated, renamed: "withReadLock(_:)") // swiftlint:disable:next missing_docs
     public func withReadLock<Result>(body: () throws -> Result) rethrows -> Result {
         try withReadLock(body)
     }
     
     @_documentation(visibility: internal)
-    @available(*, deprecated, renamed: "withWriteLock(_:)")
-    func withWriteLock<Result>(body: () throws -> Result) rethrows -> Result {
+    @available(*, deprecated, renamed: "withWriteLock(_:)") // swiftlint:disable:next missing_docs
+    public func withWriteLock<Result>(body: () throws -> Result) rethrows -> Result {
         try withWriteLock(body)
     }
 }

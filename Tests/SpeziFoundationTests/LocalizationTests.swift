@@ -7,8 +7,7 @@
 //
 
 import Foundation
-@_spi(Testing)
-import SpeziFoundation
+@_spi(Testing) import SpeziFoundation
 import Testing
 
 
@@ -88,6 +87,7 @@ struct LocalizationTests {
 
 
 extension Locale.Language {
+    // swiftlint:disable identifier_name
     fileprivate static let en = Self(identifier: "en")
     fileprivate static let de = Self(identifier: "de")
     fileprivate static let fr = Self(identifier: "fr")
@@ -95,4 +95,5 @@ extension Locale.Language {
     fileprivate static let jp = Self(identifier: "jp")
     fileprivate static let enGB = Self(identifier: "en-GB")
     fileprivate static let esUS = Self(identifier: "es-US")
+    // swiftlint:enable identifier_name
 }

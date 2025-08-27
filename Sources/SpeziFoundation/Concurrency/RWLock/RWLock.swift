@@ -24,7 +24,8 @@ public final class RWLock: _PThreadReadWriteLockProtocol, @unchecked Sendable {
         _rwLock = Self.pthreadInit()
     }
 
-    @inlinable @inline(__always)
+    @inlinable
+    @inline(__always)
     public func withReadLock<Result, E>(_ body: () throws(E) -> Result) throws(E) -> Result {
         _pthreadWriteLock()
         defer {
@@ -33,7 +34,8 @@ public final class RWLock: _PThreadReadWriteLockProtocol, @unchecked Sendable {
         return try body()
     }
     
-    @inlinable @inline(__always)
+    @inlinable
+    @inline(__always)
     public func withWriteLock<Result, E>(_ body: () throws(E) -> Result) throws(E) -> Result {
         _pthreadWriteLock()
         defer {

@@ -30,6 +30,7 @@ extension Bundle {
     }
     
     
+    /// Returns the bundle's preferred languages, based on the provided array of languages.
     public func preferredLocalizations(from preferences: [Locale.Language]) -> [Locale.Language] {
         Bundle.preferredLocalizations(
             from: self.localizations,

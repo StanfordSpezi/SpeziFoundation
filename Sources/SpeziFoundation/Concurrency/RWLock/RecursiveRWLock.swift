@@ -29,7 +29,8 @@ public final class RecursiveRWLock: _PThreadReadWriteLockProtocol, @unchecked Se
     
     // MARK: Operations
     
-    @inlinable @inline(__always)
+    @inlinable
+    @inline(__always)
     public func withReadLock<Result, E>(_ body: () throws(E) -> Result) throws(E) -> Result {
         _readLock()
         defer {
@@ -38,7 +39,8 @@ public final class RecursiveRWLock: _PThreadReadWriteLockProtocol, @unchecked Se
         return try body()
     }
 
-    @inlinable @inline(__always)
+    @inlinable
+    @inline(__always)
     public func withWriteLock<Result, E>(_ body: () throws(E) -> Result) throws(E) -> Result {
         _writeLock()
         defer {
