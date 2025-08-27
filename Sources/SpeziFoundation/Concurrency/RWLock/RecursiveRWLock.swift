@@ -14,7 +14,7 @@ import Foundation
 /// Recursive Read-Write Lock using `pthread_rwlock`.
 ///
 /// This is a recursive version of the ``RWLock`` implementation.
-public final class RecursiveRWLock: _PThreadReadWriteLock, @unchecked Sendable {
+public final class RecursiveRWLock: _PThreadReadWriteLockProtocol, @unchecked Sendable {
     public let _rwLock: UnsafeMutablePointer<pthread_rwlock_t> // swiftlint:disable:this identifier_name
 
     private let writerThread = ManagedAtomic<pthread_t?>(nil)
@@ -29,7 +29,7 @@ public final class RecursiveRWLock: _PThreadReadWriteLock, @unchecked Sendable {
     
     // MARK: Operations
     
-    @inlinable
+    @inlinable @inline(__always)
     public func withReadLock<Result, E>(_ body: () throws(E) -> Result) throws(E) -> Result {
         _readLock()
         defer {
@@ -38,7 +38,7 @@ public final class RecursiveRWLock: _PThreadReadWriteLock, @unchecked Sendable {
         return try body()
     }
 
-    @inlinable
+    @inlinable @inline(__always)
     public func withWriteLock<Result, E>(_ body: () throws(E) -> Result) throws(E) -> Result {
         _writeLock()
         defer {

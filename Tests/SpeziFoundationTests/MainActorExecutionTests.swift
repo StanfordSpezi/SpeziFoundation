@@ -7,8 +7,9 @@
 //
 
 
+import Dispatch
 import SpeziFoundation
-import XCTest
+import Testing
 
 
 /// Internal helper actor to be able to have code run guaranteed off the main actor (by scheduling it onto a background queue)
@@ -22,25 +23,30 @@ private actor TestActor: GlobalActor {
 }
 
 
-final class MainActorExecutionTests: XCTestCase {
-    func testIfAlreadyRunningOnMainActor() {
+@Suite
+struct MainActorExecutionTests {
+    @Test
+    @MainActor
+    func ifAlreadyRunningOnMainActor() {
         // XCTest by default runs all test cases on the main thread, ie the main queue, ie the main actor.
         dispatchPrecondition(condition: .onQueue(.main))
         var didRun = false
         runOrScheduleOnMainActor {
             didRun = true
         }
-        XCTAssertTrue(didRun)
+        #expect(didRun)
     }
     
+    @Test
     @TestActor
-    func testIfRunningOffTheMainActor() async {
+    func ifRunningOffTheMainActor() async throws {
         dispatchPrecondition(condition: .notOnQueue(.main))
         dispatchPrecondition(condition: .onQueue(TestActor.shared.queue))
-        let expectation = self.expectation(description: "ran on main actor")
-        runOrScheduleOnMainActor {
-            expectation.fulfill()
+        try await confirmation { confirm in
+            runOrScheduleOnMainActor {
+                confirm()
+            }
+            try await Task.sleep(for: .seconds(0.02))
         }
-        await fulfillment(of: [expectation])
     }
 }
