@@ -70,13 +70,13 @@ extension _PThreadReadWriteLockProtocol {
 // MARK: Deprecations
 
 extension _PThreadReadWriteLockProtocol {
-    @_documentation(visibility: internal)
+//    @_documentation(visibility: internal)
     @available(*, deprecated, renamed: "withReadLock(_:)")
     public func withReadLock<Result>(body: () throws -> Result) rethrows -> Result {
         try withReadLock(body)
     }
     
-    @_documentation(visibility: internal)
+//    @_documentation(visibility: internal)
     @available(*, deprecated, renamed: "withWriteLock(_:)")
     func withWriteLock<Result>(body: () throws -> Result) rethrows -> Result {
         try withWriteLock(body)
