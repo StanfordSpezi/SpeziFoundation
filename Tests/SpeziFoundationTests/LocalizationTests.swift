@@ -53,7 +53,6 @@ struct LocalizationTests {
         for lang in allSupportedLanguages {
             let value1 = bundle.localizedString(forKey: key, value: "NOT_FOUND", table: nil, localizations: [lang])
             let value2 = bundle.localizedStringForKeyFallback(key: key, tables: [], localizations: [lang])
-            print(lang.minimalIdentifier, value1, value2)
             #expect(value1 == value2, "lang: \(lang.minimalIdentifier)")
         }
     }
