@@ -45,6 +45,10 @@ Extensions on the `Calendar` and `TimeZone` types, implementing operations
 - ``Foundation/Calendar/numberOfDaysInMonth(for:)``
 - ``Foundation/Calendar/offsetInDays(from:to:)``
 
+### Date FormatStyle
+- ``Foundation/Date/FormatStyle/calendar(_:)``
+- ``Foundation/Date/FormatStyle/timeZone(_:)``
+
 
 ### Time Zone
 
@@ -53,3 +57,4 @@ Improved DST handling for Foundation's TimeZone type.
 - ``Foundation/TimeZone/DSTTransition``
 - ``Foundation/TimeZone/nextDSTTransition(after:)``
 - ``Foundation/TimeZone/nextDSTTransitions(maxCount:)``
+- ``Foundation/TimeZone/losAngeles``

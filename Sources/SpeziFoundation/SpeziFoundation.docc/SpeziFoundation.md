@@ -55,6 +55,9 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 - ``TimeoutError``
 - ``withTimeout(of:perform:)``
 
+### Markdown
+- ``MarkdownDocument``
+
 ### Objective-C Exception Handling
 - ``catchingNSException(_:)``
 - ``CaughtNSException``

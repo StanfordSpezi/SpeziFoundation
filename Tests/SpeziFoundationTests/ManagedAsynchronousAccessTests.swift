@@ -13,7 +13,7 @@ struct ManagedAsynchronousAccessTests {
     @MainActor
     @Test
     func testResumeWithSuccess() async throws {
-        let access = ManagedAsynchronousAccess<String, Error>()
+        let access = ManagedAsynchronousAccess<String, any Error>()
         let expectedValue = "Success"
 
         try await confirmation("perform() returns with success") { confirm in
@@ -43,7 +43,7 @@ struct ManagedAsynchronousAccessTests {
     @MainActor
     @Test
     func testResumeWithError() async throws {
-        let access = ManagedAsynchronousAccess<String, Error>()
+        let access = ManagedAsynchronousAccess<String, any Error>()
 
         try await confirmation("perform() returns with error") { confirm in
             let task = Task {
@@ -70,7 +70,7 @@ struct ManagedAsynchronousAccessTests {
     @MainActor
     @Test
     func testCancelAll() async throws {
-        let access = ManagedAsynchronousAccess<Void, Error>()
+        let access = ManagedAsynchronousAccess<Void, any Error>()
 
         try await confirmation("perform() returns with cancellation error") { confirm in
             let task = Task {
@@ -130,7 +130,7 @@ struct ManagedAsynchronousAccessTests {
     
     @Test
     func testResumeWithoutOngoingAccess() {
-        let access = ManagedAsynchronousAccess<String, Error>()
+        let access = ManagedAsynchronousAccess<String, any Error>()
 
         let didResume = access.resume(returning: "No Access")
 
@@ -164,7 +164,7 @@ struct ManagedAsynchronousAccessTests {
     @MainActor
     @Test
     func testExclusiveAccess() async throws {
-        let access = ManagedAsynchronousAccess<String, Error>()
+        let access = ManagedAsynchronousAccess<String, any Error>()
         let expectedValue0 = "Success0"
         let expectedValue1 = "Success1"
 

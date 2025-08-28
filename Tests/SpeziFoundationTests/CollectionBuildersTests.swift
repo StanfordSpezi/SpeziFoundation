@@ -22,6 +22,11 @@ struct CollectionBuildersTests {
         #expect(collection == expected, sourceLocation: sourceLocation)
     }
     
+    private func mightThrow<T>(_ value: T) throws -> T {
+        value
+    }
+    
+    
     @Test
     func testArrayBuilder() {
         _imp([Int].self, expected: [1, 2, 3, 4, 5, 7, 8, 9, 52, 41]) {
@@ -50,7 +55,6 @@ struct CollectionBuildersTests {
         let greet = {
             "Hello, \($0 as String) 🚀\n"
         }
-        
         _imp(
             String.self,
             expected: """
@@ -138,5 +142,21 @@ struct CollectionBuildersTests {
             "c"
         ]
         #expect(set == expected)
+    }
+    
+    @Test
+    func testArrayBuilderThrowing() throws {
+        let array1: [Int] = Array {
+            1
+            2
+            3
+        }
+        let array2: [Int] = try Array {
+            1
+            try mightThrow(2)
+            3
+        }
+        #expect(array1 == [1, 2, 3])
+        #expect(array2 == [1, 2, 3])
     }
 }

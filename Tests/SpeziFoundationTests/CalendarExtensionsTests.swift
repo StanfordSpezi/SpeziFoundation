@@ -16,12 +16,12 @@ private struct RegionConfiguration: Hashable {
     
     static let losAngeles = Self(
         locale: .init(identifier: "en_US"),
-        timeZone: .init(identifier: "America/Los_Angeles")! // swiftlint:disable:this force_unwrapping
+        timeZone: .losAngeles
     )
     
     static let berlin = Self(
         locale: .init(identifier: "en_DE"),
-        timeZone: .init(identifier: "Europe/Berlin")! // swiftlint:disable:this force_unwrapping
+        timeZone: .berlin
     )
     
     static let current = Self(locale: .current, timeZone: .current)
@@ -347,5 +347,12 @@ final class CalendarExtensionsTests { // swiftlint:disable:this type_body_length
             try #require(cal.numberOfDaysInMonth(for: makeDate(year: 2025, month: 02, day: 01, hour: 00)) == 28)
             try #require(cal.numberOfDaysInMonth(for: makeDate(year: 2024, month: 02, day: 01, hour: 00)) == 29)
         }
+    }
+    
+    @Test
+    func testTimeZoneConstants() throws {
+        let date = try #require(cal.date(from: .init(year: 2025, month: 07, day: 17)))
+        #expect(TimeZone.losAngeles.secondsFromGMT(for: date) == -(7 * 60 * 60))
+        #expect(TimeZone.berlin.secondsFromGMT(for: date) == 2 * 60 * 60)
     }
 }

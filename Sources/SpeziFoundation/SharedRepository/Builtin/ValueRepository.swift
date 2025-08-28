@@ -9,7 +9,7 @@
 
 /// A Shared Repository.
 public struct ValueRepository<Anchor> {
-    private var storage: [ObjectIdentifier: AnyRepositoryValue] = [:]
+    private var storage: [ObjectIdentifier: any AnyRepositoryValue] = [:]
 
 
     /// Initializes an empty shared repository.
@@ -35,7 +35,7 @@ extension ValueRepository: SharedRepository {
 
 
 extension ValueRepository: Collection {
-    public typealias Index = Dictionary<ObjectIdentifier, AnyRepositoryValue>.Index
+    public typealias Index = Dictionary<ObjectIdentifier, any AnyRepositoryValue>.Index
 
     public var startIndex: Index {
         storage.values.startIndex
@@ -50,7 +50,7 @@ extension ValueRepository: Collection {
     }
 
 
-    public subscript(position: Index) -> AnyRepositoryValue {
+    public subscript(position: Index) -> any AnyRepositoryValue {
         storage.values[position]
     }
 }

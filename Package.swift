@@ -42,6 +42,7 @@ let package = Package(
             resources: [
                 .process("Resources")
             ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
             plugins: [] + swiftLintPlugin()
         ),
         .target(
@@ -53,6 +54,7 @@ let package = Package(
                 .target(name: "SpeziFoundation"),
                 .product(name: "RuntimeAssertionsTesting", package: "XCTRuntimeAssertions")
             ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
             plugins: [] + swiftLintPlugin()
         )
     ]
