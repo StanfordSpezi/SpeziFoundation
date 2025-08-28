@@ -7,7 +7,9 @@
 //
 
 import Foundation
+#if os(macOS)
 import HealthKit
+#endif
 @_spi(Testing) import SpeziFoundation
 import Testing
 
@@ -91,6 +93,7 @@ struct LocalizationTests {
     @Test
     @available(macOS 14.0, macCatalyst 17.0, *)
     func bundleLocalizationUtils2() throws {
+        #if os(macOS) || targetEnvironment(macCatalyst)
         let bundle = Bundle(for: HKHealthStore.self)
         let key1 = "STEPS"
         
@@ -105,6 +108,7 @@ struct LocalizationTests {
         
         #expect(bundle.localizedString(forKey: key1, tables: [.custom("Localizable-DataTypes")], localizations: [.de, .en]) == "Schritte")
         #expect(bundle.localizedStringForKeyFallback(key: key1, tables: [.custom("Localizable-DataTypes")], localizations: [.de, .en]) == "Schritte")
+        #endif
     }
     
     
