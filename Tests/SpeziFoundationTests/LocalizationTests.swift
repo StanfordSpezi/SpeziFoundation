@@ -106,6 +106,18 @@ struct LocalizationTests {
         #expect(bundle.localizedString(forKey: key1, tables: [.custom("Localizable-DataTypes")], localizations: [.de, .en]) == "Schritte")
         #expect(bundle.localizedStringForKeyFallback(key: key1, tables: [.custom("Localizable-DataTypes")], localizations: [.de, .en]) == "Schritte")
     }
+    
+    
+    @Test
+    func localizedStringResourceUtil() {
+        let resource = LocalizedStringResource(
+            "HELLO_WORLD",
+            defaultValue: "HELLO_WORLD",
+            bundle: .atURL(from: .module)
+        )
+        #expect(resource.localizedString(for: .init(identifier: "en_US")) == "Hello, World!")
+        #expect(resource.localizedString(for: .init(identifier: "de_DE")) == "Hallo, Welt!")
+    }
 }
 
 
