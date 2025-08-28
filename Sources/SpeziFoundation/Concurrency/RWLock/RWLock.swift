@@ -7,7 +7,7 @@
 //
 
 
-import Foundation
+public import pthread
 
 
 /// Read-Write Lock using `pthread_rwlock`.

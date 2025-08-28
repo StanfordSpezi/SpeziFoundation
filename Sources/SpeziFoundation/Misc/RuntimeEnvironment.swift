@@ -6,9 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Foundation
+public import Foundation
 #if os(macOS) || targetEnvironment(macCatalyst)
-import Security
+private import Security
 #endif
 
 

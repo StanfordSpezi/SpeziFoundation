@@ -7,7 +7,7 @@
 //
 
 import Algorithms
-import Foundation
+public import Foundation
 
 
 extension Bundle {

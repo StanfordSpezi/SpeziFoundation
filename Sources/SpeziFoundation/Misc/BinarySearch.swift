@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import enum Foundation.ComparisonResult
+public import enum Foundation.ComparisonResult
 
 
 /// The result of a binary search looking for some element in a collection.
@@ -19,6 +19,7 @@ public enum BinarySearchIndexResult<Index> {
 
 extension BinarySearchIndexResult: Equatable where Index: Equatable {}
 extension BinarySearchIndexResult: Hashable where Index: Hashable {}
+extension BinarySearchIndexResult: Sendable where Index: Sendable {}
 
 
 extension Collection {

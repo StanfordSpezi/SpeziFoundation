@@ -8,7 +8,7 @@
 
 
 import Atomics
-import Foundation
+public import Foundation
 
 
 /// Recursive Read-Write Lock using `pthread_rwlock`.

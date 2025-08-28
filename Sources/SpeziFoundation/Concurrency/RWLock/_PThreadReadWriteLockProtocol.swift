@@ -6,11 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-import pthread
+public import pthread
 
 
 @_documentation(visibility: internal)
-public protocol _PThreadReadWriteLockProtocol: AnyObject { // swiftlint:disable:this type_name
+public protocol _PThreadReadWriteLockProtocol: AnyObject, Sendable, SendableMetatype { // swiftlint:disable:this type_name
     // We need the unsafe mutable pointer, as otherwise we need to pass the property as inout parameter which isn't thread safe.
     var _rwLock: UnsafeMutablePointer<pthread_rwlock_t> { get } // swiftlint:disable:this identifier_name
     
