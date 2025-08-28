@@ -12,6 +12,14 @@ import Testing
 
 
 struct OrderedArrayTests {
+    private static let isReleaseBuild: Bool = {
+        #if DEBUG
+        false
+        #else
+        true
+        #endif
+    }()
+    
     @Test
     func orderedArray() {
         var array = OrderedArray<Int> { $0 < $1 }
@@ -97,7 +105,7 @@ struct OrderedArrayTests {
         #expect(array.capacity == capacity)
     }
     
-    @Test
+    @Test(.disabled(if: isReleaseBuild))
     func unsafeOperations() throws {
         var array = OrderedArray<Int> { $0 < $1 }
         array.insert(12)
