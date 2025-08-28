@@ -7,14 +7,16 @@
 //
 
 import Foundation
+import HealthKit
 @_spi(Testing) import SpeziFoundation
 import Testing
 
 
 @Suite
 struct LocalizationTests {
-    private let allSupportedLanguages: [Locale.Language] = [.en, .de, .es, .enGB, .esUS]
-    
+    private let allSupportedLanguages: [Locale.Language] = [
+        .en, .de, .es, .enGB, .esUS
+    ]
     
     @Test
     @available(macOS 15.4, iOS 18.4, tvOS 18.4, watchOS 11.4, visionOS 2.4, *)
@@ -57,11 +59,13 @@ struct LocalizationTests {
         }
     }
     
+    
     @Test
     @available(macOS 15.4, iOS 18.4, tvOS 18.4, watchOS 11.4, visionOS 2.4, *)
     func bundleLocalizationUtils1() throws {
         let bundle = Bundle.module
         let key = "LOCALIZATION_LANG_2"
+        
         #expect(bundle.localizedString(forKey: key, value: "nil", table: nil, localizations: [.enGB]) == "nil")
         #expect(bundle.localizedString(forKey: key, tables: [.default], localizations: [.enGB]) == nil)
         #expect(bundle.localizedStringForKeyFallback(key: key, tables: [.default], localizations: [.enGB]) == "en")
@@ -81,6 +85,26 @@ struct LocalizationTests {
         #expect(bundle.localizedStringForKeyFallback(key: key, tables: [.default], localizations: [.enGB]) == "en")
         #expect(bundle.localizedStringForKeyFallback(key: key, tables: [.default], localizations: [.enGB, .en]) == "en")
         #expect(bundle.localizedStringForKeyFallback(key: key, tables: [.default], localizations: [.de, .en]) == "de")
+    }
+    
+    
+    @Test
+    @available(macOS 14.0, macCatalyst 17.0, *)
+    func bundleLocalizationUtils2() throws {
+        let bundle = Bundle(for: HKHealthStore.self)
+        let key1 = "STEPS"
+        
+        #expect(bundle.localizedString(forKey: key1, tables: [.custom("Localizable-DataTypes")], localizations: [.de]) == "Schritte")
+        #expect(bundle.localizedStringForKeyFallback(key: key1, tables: [.custom("Localizable-DataTypes")], localizations: [.de]) == "Schritte")
+        
+        #expect(bundle.localizedString(forKey: key1, tables: [.custom("Localizable-DataTypes")], localizations: [.en]) == "Steps")
+        #expect(bundle.localizedStringForKeyFallback(key: key1, tables: [.custom("Localizable-DataTypes")], localizations: [.en]) == "Steps")
+        
+        #expect(bundle.localizedString(forKey: key1, tables: [.custom("Localizable-DataTypes")], localizations: [.en, .de]) == "Steps")
+        #expect(bundle.localizedStringForKeyFallback(key: key1, tables: [.custom("Localizable-DataTypes")], localizations: [.en, .de]) == "Steps")
+        
+        #expect(bundle.localizedString(forKey: key1, tables: [.custom("Localizable-DataTypes")], localizations: [.de, .en]) == "Schritte")
+        #expect(bundle.localizedStringForKeyFallback(key: key1, tables: [.custom("Localizable-DataTypes")], localizations: [.de, .en]) == "Schritte")
     }
 }
 

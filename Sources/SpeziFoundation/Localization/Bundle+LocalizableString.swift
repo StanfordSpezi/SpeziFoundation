@@ -78,7 +78,9 @@ extension Bundle {
         localizations: [Locale.Language]
     ) -> String? {
         let tables = tables.isEmpty ? [.default] : tables
-        for language in preferredLocalizations(from: localizations) {
+        let localizations = preferredLocalizations(from: localizations)
+        // we first look for and in each language's lproj bundle
+        for language in localizations {
             let candidateNames = [
                 language.minimalIdentifier.replacingOccurrences(of: "-", with: "_"),
                 language.minimalIdentifier.replacingOccurrences(of: "_", with: "-")
@@ -92,10 +94,36 @@ extension Bundle {
                 return title
             }
         }
-        if false, tables.contains(.default), let title = self.localizedString(forKey: key, tables: [.default]) {
-            return title
-        } else {
-            return nil
+        // if we didn't find anything, we look for loctable files.
+        for language in localizations {
+            for table in tables {
+                guard let url = self.url(
+                    forResource: table.stringValue,
+                    withExtension: "loctable",
+                    subdirectory: nil,
+                    localization: language.minimalIdentifier
+                ) else {
+                    continue
+                }
+                // NOTE: obvious potential for optimization here! there really is no need to re-read this mapping every time!
+                guard let dict = try? NSDictionary(contentsOf: url, error: ()),
+                      let entries = dict[language.minimalIdentifier] as? [String: String] else {
+                    continue
+                }
+                if let title = entries[key] {
+                    return title
+                } else {
+                    continue
+                }
+            }
         }
+        // NOTE: we could add a fallback lookup here:
+        // ```
+        // if tables.contains(.default), let title = self.localizedString(forKey: key, tables: [.default]) {
+        //     return title
+        // }
+        // ```
+        // but for now we don't, in order to match the apparent behaviour of apple's implementation.
+        return nil
     }
 }
