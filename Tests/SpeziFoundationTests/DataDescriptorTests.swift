@@ -19,9 +19,9 @@ struct DataDescriptorTests {
         let data3 = Data([0xFF, 0x00])
         let data4 = Data([0xFF, 0x00, 0xAA, 0x00])
 
-        #expect(DataDescriptor.equalBitPattern(lhs: data1, rhs: data2) == true, "Identical data should be equal")
-        #expect(DataDescriptor.equalBitPattern(lhs: data1, rhs: data3) == false, "Different length data should not be equal")
-        #expect(DataDescriptor.equalBitPattern(lhs: data1, rhs: data4) == true, "Additional zero bytes in rhs should be ignored")
+        #expect(DataDescriptor.equalBitPattern(lhs: data1, rhs: data2), "Identical data should be equal")
+        #expect(!DataDescriptor.equalBitPattern(lhs: data1, rhs: data3), "Different length data should not be equal")
+        #expect(DataDescriptor.equalBitPattern(lhs: data1, rhs: data4), "Additional zero bytes in rhs should be ignored")
     }
 
     @Test
@@ -86,7 +86,7 @@ struct DataDescriptorTests {
         let mask = Data([0xFF, 0xFF, 0xFF])
         let descriptor = DataDescriptor(data: data, mask: mask)
 
-        #expect(descriptor.matches(otherData) == false, "Data should not match when the data differs and the mask is fully applied.")
+        #expect(!descriptor.matches(otherData), "Data should not match when the data differs and the mask is fully applied.")
     }
     
     @Test
@@ -106,7 +106,7 @@ struct DataDescriptorTests {
         let mask = Data([0xFF, 0xFF, 0xFF])
         let descriptor = DataDescriptor(data: data, mask: mask)
 
-        #expect(descriptor.matches(shorterData) == false, "Data shorter than the descriptor should not match.")
+        #expect(!descriptor.matches(shorterData), "Data shorter than the descriptor should not match.")
     }
     
     @Test
@@ -128,8 +128,8 @@ struct DataDescriptorTests {
         let descriptor1 = DataDescriptor(data: data, mask: mask1)
         let descriptor2 = DataDescriptor(data: data, mask: mask2)
 
-        #expect(descriptor1.matches(maskedData) == true, "Descriptor with mask that ignores last bit should match data with last bit difference.")
-        #expect(descriptor2.matches(maskedData) == false, "Descriptor with fully applied mask should not match data with last bit difference.")
+        #expect(descriptor1.matches(maskedData), "Descriptor with mask that ignores last bit should match data with last bit difference.")
+        #expect(!descriptor2.matches(maskedData), "Descriptor with fully applied mask should not match data with last bit difference.")
     }
     
     @Test
@@ -139,6 +139,6 @@ struct DataDescriptorTests {
         let descriptor = DataDescriptor(data: Data([0xFF]), mask: Data([0b11001010]))
 
         let suffix = data[2...]
-        #expect(descriptor.matches(suffix) == false)
+        #expect(!descriptor.matches(suffix))
     }
 }

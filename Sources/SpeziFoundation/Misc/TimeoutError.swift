@@ -17,11 +17,19 @@ public struct TimeoutError {
 
 extension TimeoutError: LocalizedError {
     public var errorDescription: String? {
-        Bundle.module.localizedString(forKey: "Timeout", value: nil, table: nil)
+        #if canImport(Darwin)
+            String(localized: LocalizedStringResource("Timeout", bundle: .atURL(Bundle.module.bundleURL)))
+        #else
+            "Timeout"
+        #endif
     }
 
     public var failureReason: String? {
-        Bundle.module.localizedString(forKey: "The operation timed out.", value: nil, table: nil)
+        #if canImport(Darwin)
+            String(localized: LocalizedStringResource("The operation timed out.", bundle: .atURL(Bundle.module.bundleURL)))
+        #else
+            "The operation timed out."
+        #endif
     }
 }
 

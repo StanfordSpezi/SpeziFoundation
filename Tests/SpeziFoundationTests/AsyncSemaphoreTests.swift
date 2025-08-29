@@ -27,15 +27,15 @@ final class AsyncSemaphoreTests {   // swiftlint:disable:this type_body_length
 
         let asyncSemZero = AsyncSemaphore(value: 0)
         let wokenZero = asyncSemZero.signal()
-        #expect(wokenZero == false)
+        #expect(!wokenZero)
         
         let asyncSemOne = AsyncSemaphore(value: 1)
         let wokenOne = asyncSemOne.signal()
-        #expect(wokenOne == false)
+        #expect(!wokenOne)
         
         let asyncSemTwo = AsyncSemaphore(value: 2)
         let wokenTwo = asyncSemTwo.signal()
-        #expect(wokenTwo == false)
+        #expect(!wokenTwo)
     }
     
     @Test
@@ -63,9 +63,9 @@ final class AsyncSemaphoreTests {   // swiftlint:disable:this type_body_length
             try await Task.sleep(for: delay)
             
             // First signal resumes the suspended task
-            #expect(sem.signal() == true)
+            #expect(sem.signal())
             // Second signal does not resume any task
-            #expect(sem.signal() == false)
+            #expect(!sem.signal())
         }
     }
     
@@ -170,7 +170,7 @@ final class AsyncSemaphoreTests {   // swiftlint:disable:this type_body_length
     }
 
 
-    @Test()
+    @Test
     func testCancellationWhileSuspendedIncrementsSemaphore() async throws {
         let waitTime: Duration = .milliseconds(100)
 

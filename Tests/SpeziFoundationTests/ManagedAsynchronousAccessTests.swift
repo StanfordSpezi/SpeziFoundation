@@ -10,8 +10,8 @@
 import Testing
 
 struct ManagedAsynchronousAccessTests {
-    @MainActor
     @Test
+    @MainActor
     func testResumeWithSuccess() async throws {
         let access = ManagedAsynchronousAccess<String, any Error>()
         let expectedValue = "Success"
@@ -30,18 +30,18 @@ struct ManagedAsynchronousAccessTests {
             }
             
             try await Task.sleep(for: .milliseconds(100))
-            #expect(access.ongoingAccess == true)
+            #expect(access.ongoingAccess)
             let didResume = access.resume(returning: expectedValue)
 
-            #expect(didResume == false)
-            #expect(access.ongoingAccess == false)
+            #expect(!didResume)
+            #expect(!access.ongoingAccess)
             
             await task.value
         }
     }
     
-    @MainActor
     @Test
+    @MainActor
     func testResumeWithError() async throws {
         let access = ManagedAsynchronousAccess<String, any Error>()
 
@@ -57,18 +57,18 @@ struct ManagedAsynchronousAccessTests {
             }
             
             try await Task.sleep(for: .milliseconds(100))
-            #expect(access.ongoingAccess == true)
+            #expect(access.ongoingAccess)
             let didResume = access.resume(throwing: TimeoutError())
 
-            #expect(didResume == false)
-            #expect(access.ongoingAccess == false)
+            #expect(!didResume)
+            #expect(!access.ongoingAccess)
             
             await task.value
         }
     }
     
-    @MainActor
     @Test
+    @MainActor
     func testCancelAll() async throws {
         let access = ManagedAsynchronousAccess<Void, any Error>()
 
@@ -84,12 +84,12 @@ struct ManagedAsynchronousAccessTests {
             }
             
             try await Task.sleep(for: .milliseconds(100))
-            #expect(access.ongoingAccess == true)
-            #expect(task.isCancelled == false)
+            #expect(access.ongoingAccess)
+            #expect(!task.isCancelled)
             
             access.cancelAll()
 
-            #expect(access.ongoingAccess == false)
+            #expect(!access.ongoingAccess)
             
             await task.value
             
@@ -97,8 +97,8 @@ struct ManagedAsynchronousAccessTests {
         }
     }
     
-    @MainActor
     @Test
+    @MainActor
     func testCancelAllNeverError() async throws {
         let access = ManagedAsynchronousAccess<Void, Never>()
 
@@ -115,12 +115,12 @@ struct ManagedAsynchronousAccessTests {
             
             try await Task.sleep(for: .milliseconds(100))
             
-            #expect(access.ongoingAccess == true)
-            #expect(task.isCancelled == false)
+            #expect(access.ongoingAccess)
+            #expect(!task.isCancelled)
             
             access.cancelAll()
             
-            #expect(access.ongoingAccess == false)
+            #expect(!access.ongoingAccess)
             
             await task.value
             
@@ -134,11 +134,11 @@ struct ManagedAsynchronousAccessTests {
 
         let didResume = access.resume(returning: "No Access")
 
-        #expect(didResume == false)
+        #expect(!didResume)
     }
     
-    @MainActor
     @Test
+    @MainActor
     func testResumeWithVoidValue() async throws {
         let access = ManagedAsynchronousAccess<Void, Never>()
 
@@ -150,19 +150,19 @@ struct ManagedAsynchronousAccessTests {
             
             try await Task.sleep(for: .milliseconds(100))
             
-            #expect(access.ongoingAccess == true)
+            #expect(access.ongoingAccess)
             
             let didResume = access.resume()
             
-            #expect(didResume == false)
-            #expect(access.ongoingAccess == false)
+            #expect(!didResume)
+            #expect(!access.ongoingAccess)
             
             try await task.value
         }
     }
 
-    @MainActor
     @Test
+    @MainActor
     func testExclusiveAccess() async throws {
         let access = ManagedAsynchronousAccess<String, any Error>()
         let expectedValue0 = "Success0"
@@ -194,31 +194,31 @@ struct ManagedAsynchronousAccessTests {
                 
                 try await Task.sleep(for: .milliseconds(100))
                 
-                #expect(access.ongoingAccess == true)
+                #expect(access.ongoingAccess)
                 
                 let didResume0 = access.resume(returning: expectedValue0)
                 
-                #expect(didResume0 == true)
-                #expect(access.ongoingAccess == false)
+                #expect(didResume0)
+                #expect(!access.ongoingAccess)
                 
                 await task0.value
                 
                 try await Task.sleep(for: .milliseconds(100))
                 
-                #expect(access.ongoingAccess == true)
+                #expect(access.ongoingAccess)
                 
                 let didResume1 = access.resume(returning: expectedValue1)
                 
-                #expect(didResume1 == false)
-                #expect(access.ongoingAccess == false)
+                #expect(!didResume1)
+                #expect(!access.ongoingAccess)
 
                 await task1.value
             }
         }
     }
     
-    @MainActor
     @Test
+    @MainActor
     func testExclusiveAccessNeverError() async throws {
         let access = ManagedAsynchronousAccess<String, Never>()
         let expectedValue0 = "Success0"
@@ -249,23 +249,23 @@ struct ManagedAsynchronousAccessTests {
                 
                 try await Task.sleep(for: .milliseconds(100))
                 
-                #expect(access.ongoingAccess == true)
+                #expect(access.ongoingAccess)
                 
                 let didResume0 = access.resume(returning: expectedValue0)
                 
-                #expect(didResume0 == true)
-                #expect(access.ongoingAccess == false)
+                #expect(didResume0)
+                #expect(!access.ongoingAccess)
                 
                 try await task0.value
                 
                 try await Task.sleep(for: .milliseconds(100))
                 
-                #expect(access.ongoingAccess == true)
+                #expect(access.ongoingAccess)
                 
                 let didResume1 = access.resume(returning: expectedValue1)
                 
-                #expect(didResume1 == false)
-                #expect(access.ongoingAccess == false)
+                #expect(!didResume1)
+                #expect(!access.ongoingAccess)
                 
                 try await task1.value
             }
