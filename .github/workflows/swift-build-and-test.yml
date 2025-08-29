@@ -54,8 +54,8 @@ on:
         required: false
 
 jobs:
-  linux_build_and_test:
-    name: Build and Test on Linux
+  swift_build_and_test:
+    name: Build and Test Swift on Linux
     runs-on: ${{ fromJson(inputs.runsonlabels) }}
     defaults:
       run:

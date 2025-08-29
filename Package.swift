@@ -31,10 +31,17 @@ let package = Package(
         .package(url: "https://github.com/StanfordBDHG/XCTRuntimeAssertions.git", from: "2.0.0")
     ] + swiftLintPackage(),
     targets: [
+        .systemLibrary(
+            name: "CZlib",
+            path: "Sources/CZlib",
+            pkgConfig: "zlib",
+            providers: [.apt(["zlib1g-dev"])]
+        ),
         .target(
             name: "SpeziFoundation",
             dependencies: [
                 .target(name: "SpeziFoundationObjC"),
+                .target(name: "CZlib", condition: .when(platforms: [.linux])),
                 .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "Algorithms", package: "swift-algorithms"),
                 .product(name: "RuntimeAssertions", package: "XCTRuntimeAssertions")
