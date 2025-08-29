@@ -14,12 +14,7 @@ COPY . .
 
 RUN swift package resolve
 
-# Build SpeziFoundation & Tests
-RUN swift build  --build-tests -v
-
-
-
 # Run Tests
-RUN swift test --skip-build
+RUN swift test -v
 
 
