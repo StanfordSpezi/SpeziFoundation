@@ -17,4 +17,8 @@ Work with localized resources.
 - ``Foundation/LocalizedStringResource/BundleDescription/atURL(from:)``
 
 ### Working with Localized File Resources
+- ``LocalizedFileResource``
+- ``LocalizationKey``
+- ``LocalizedFileResolution``
+- ``LocaleMatchingBehaviour``
 

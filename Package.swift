@@ -56,6 +56,7 @@ let package = Package(
         .target(
             name: "SpeziLocalization",
             dependencies: [
+                .target(name: "SpeziFoundation"),
                 .product(name: "Algorithms", package: "swift-algorithms")
             ],
             swiftSettings: [

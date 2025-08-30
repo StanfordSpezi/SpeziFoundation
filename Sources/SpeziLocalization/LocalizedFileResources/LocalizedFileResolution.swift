@@ -9,6 +9,7 @@
 private import Algorithms
 public import Foundation
 private import OSLog
+private import SpeziFoundation
 
 
 /// Namespace for Localized File Resolution operations
@@ -29,9 +30,7 @@ extension LocalizedFileResolution {
     /// Resolves a localized resource from a set of inputs, based on an unlocalizdd filename and a target locale.
     public static func resolve(
         _ resource: LocalizedFileResource,
-//        named unlocalizedFilename: String,
         from candidates: some Collection<URL>,
-//        locale: Locale,
         using localeMatchingBehaviour: LocaleMatchingBehaviour = .preferLanguageMatch,
         fallback fallbackLocale: LocalizationKey? = .enUS
     ) -> LocalizedFileResource.Resolved? {
@@ -107,30 +106,5 @@ extension StringProtocol {
         filename.removeFirst(rawLocalization.count + 1)
         let fileExtension = String(filename)
         return (baseName, fileExtension, rawLocalization)
-    }
-}
-
-extension BidirectionalCollection {
-    /// Determines whether the collection ends with the elements of another collection.
-    public func ends(
-        with possibleSuffix: some BidirectionalCollection<Element>
-    ) -> Bool where Element: Equatable {
-        ends(with: possibleSuffix, by: ==)
-    }
-    
-    /// Determines whether the collection ends with the elements of another collection.
-    public func ends<PossibleSuffix: BidirectionalCollection, E: Error>(
-        with possibleSuffix: PossibleSuffix,
-        by areEquivalent: (Element, PossibleSuffix.Element) throws(E) -> Bool
-    ) throws(E) -> Bool {
-        guard self.count >= possibleSuffix.count else {
-            return false
-        }
-        for (elem1, elem2) in zip(self.reversed(), possibleSuffix.reversed()) {
-            guard try areEquivalent(elem1, elem2) else {
-                return false
-            }
-        }
-        return true
     }
 }
