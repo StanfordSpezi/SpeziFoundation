@@ -1,0 +1,154 @@
+//
+// This source file is part of the Stanford Spezi open source project
+//
+// SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
+//
+// SPDX-License-Identifier: MIT
+//
+
+import Foundation
+@testable import SpeziLocalization
+import Testing
+
+
+@Suite
+struct LocalizationBundleTests {
+    @Test
+    func parseFilename() throws {
+        let resolved = try #require(LocalizedFileResource.Resolved(
+            resource: "Consent.md",
+            url: URL(filePath: "Consent+en-US.md")
+        ))
+        #expect(resolved.unlocalizedFilename == "Consent.md")
+        #expect(resolved.fullFilenameIncludingLocalization == "Consent+en-US.md")
+        #expect(resolved.localization == .enUS)
+    }
+    
+    @Test
+    func urlExtensions() {
+        #expect(URL(filePath: "/abc/def+en-US.txt").strippingLocalizationSuffix() == URL(filePath: "/abc/def.txt"))
+        #expect(URL(filePath: "/def+en-US.txt").strippingLocalizationSuffix() == URL(filePath: "/def.txt"))
+        #expect(URL(filePath: "def+en-US.txt").strippingLocalizationSuffix().absoluteURL == URL(filePath: "def.txt").absoluteURL)
+        #expect(URL(filePath: "/def+en-US").strippingLocalizationSuffix() == URL(filePath: "/def"))
+        #expect(URL(filePath: "def+en-US").strippingLocalizationSuffix().absoluteURL == URL(filePath: "def").absoluteURL)
+    }
+    
+    @Test
+    func resolveFromList() throws { // swiftlint:disable:this function_body_length
+        let inputUrls = [
+            "/news/Welcome.md",
+            "/news/Welcome+en-US.md",
+            "/news/Welcome+es-US.md",
+            "/news/Welcome+en-UK.md",
+            "/news/Welcome+de-DE.md",
+            "/news/Update.md",
+            "/news/Update+en-US.md",
+            "/news/Update+es-US.md",
+            "/news/Update+de-US.md"
+        ].map { URL(filePath: $0) }
+        
+        func imp(
+            _ resource: LocalizedFileResource,
+            using localeMatchingBehavior: LocaleMatchingBehaviour,
+            fallback: LocalizationKey? = nil, // swiftlint:disable:this function_default_parameter_at_end
+            expectedPath: String,
+            expectedLocalization: LocalizationKey,
+            sourceLocation: SourceLocation = #_sourceLocation
+        ) throws {
+            let resolved = try #require(
+                LocalizedFileResolution.resolve(resource, from: inputUrls, using: localeMatchingBehavior, fallback: fallback),
+                sourceLocation: sourceLocation
+            )
+            #expect(resolved.url.path == expectedPath, sourceLocation: sourceLocation)
+            #expect(resolved.localization == expectedLocalization, sourceLocation: sourceLocation)
+        }
+        
+        try imp(
+            LocalizedFileResource(name: "Welcome.md", locale: .enUS),
+            using: .requirePerfectMatch,
+            expectedPath: "/news/Welcome+en-US.md",
+            expectedLocalization: .enUS
+        )
+        
+        try imp(
+            LocalizedFileResource(name: "news/Welcome.md", locale: .enUS),
+            using: .requirePerfectMatch,
+            expectedPath: "/news/Welcome+en-US.md",
+            expectedLocalization: .enUS
+        )
+        try imp(
+            LocalizedFileResource(name: "/news/Welcome.md", locale: .enUS),
+            using: .requirePerfectMatch,
+            expectedPath: "/news/Welcome+en-US.md",
+            expectedLocalization: .enUS
+        )
+        
+        for behavior in [LocaleMatchingBehaviour.requirePerfectMatch, .preferLanguageMatch, .preferRegionMatch] {
+            try imp(
+                LocalizedFileResource(name: "Welcome.md", locale: .deDE),
+                using: behavior,
+                expectedPath: "/news/Welcome+de-DE.md",
+                expectedLocalization: .deDE
+            )
+        }
+        try imp(
+            LocalizedFileResource(name: "Welcome.md", locale: .deUS),
+            using: .preferLanguageMatch,
+            expectedPath: "/news/Welcome+de-DE.md",
+            expectedLocalization: .deDE
+        )
+        do {
+            let resolved0 = LocalizedFileResolution.resolve(
+                LocalizedFileResource(name: "Welcome.md", locale: .deUS),
+                from: inputUrls,
+                using: .preferRegionMatch,
+                fallback: nil
+            )
+            #expect(resolved0 == nil)
+            let resolved1 = LocalizedFileResolution.resolve(
+                LocalizedFileResource(name: "Welcome.md", locale: .deUS),
+                from: inputUrls,
+                using: .requirePerfectMatch,
+                fallback: nil
+            )
+            #expect(resolved1 == nil)
+        }
+        
+        try imp(
+            LocalizedFileResource(name: "Update.md", locale: .enUS),
+            using: .requirePerfectMatch,
+            expectedPath: "/news/Update+en-US.md",
+            expectedLocalization: .enUS
+        )
+        try imp(
+            LocalizedFileResource(name: "Update.md", locale: .deUS),
+            using: .requirePerfectMatch,
+            expectedPath: "/news/Update+de-US.md",
+            expectedLocalization: .deUS
+        )
+        
+        for behaviour in [LocaleMatchingBehaviour.requirePerfectMatch, .preferRegionMatch, .preferLanguageMatch] {
+            try imp(
+                LocalizedFileResource(name: "Update.md", locale: .enUS),
+                using: behaviour,
+                expectedPath: "/news/Update+en-US.md",
+                expectedLocalization: .enUS
+            )
+        }
+    }
+}
+
+
+extension Locale {
+    static let enUS = Self(identifier: "en_US")
+    static let enUK = Self(identifier: "en_UK")
+    static let esUS = Self(identifier: "es_US")
+    static let esUK = Self(identifier: "es_UK")
+    static let deDE = Self(identifier: "de_DE")
+    static let deUS = Self(identifier: "de_US")
+}
+
+extension LocalizationKey {
+    static let deDE = Self(language: .init(identifier: "de"), region: .germany)
+    static let deUS = Self(language: .init(identifier: "de"), region: .unitedStates)
+}

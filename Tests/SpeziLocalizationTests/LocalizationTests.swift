@@ -10,7 +10,7 @@ import Foundation
 #if os(macOS) || targetEnvironment(macCatalyst)
 import HealthKit
 #endif
-@_spi(Testing) import SpeziFoundation
+@_spi(Testing) import SpeziLocalization
 import Testing
 
 
@@ -44,8 +44,15 @@ struct LocalizationTests {
     @Test
     func preferredLocalizationsSpecializations() {
         let bundle = Bundle.module
-        #expect(bundle.preferredLocalizations(from: [.enGB]) == [.enGB, .en])
-        #expect(bundle.preferredLocalizations(from: [.esUS]) == [.esUS, .es])
+        let idents = { ($0 as [Locale.Language]).map(\.minimalIdentifier) }
+        #expect(idents(bundle.preferredLocalizations(from: [.enGB])) == idents([.enGB, .en]))
+        #expect(idents(bundle.preferredLocalizations(from: [.esUS])) == idents([.esUS, .es]))
+        #expect(idents(bundle.preferredLocalizations(from: [.enGB, .en])) == idents([.enGB, .en]))
+        #expect(idents(bundle.preferredLocalizations(from: [.en, .enGB])) == idents([.en]))
+        #expect(idents(bundle.preferredLocalizations(from: [.fr], limitToPreferences: false)).starts(with: ["fr", "en", "en-GB", "de"]))
+        #expect(idents(bundle.preferredLocalizations(from: [.fr, .es], limitToPreferences: false)).starts(with: ["fr", "es", "es-US", "en", "en-GB"]))
+        #expect(idents(bundle.preferredLocalizations(from: [.de, .enGB], limitToPreferences: false)).starts(with: ["de", "en-GB", "en"]))
+        #expect(idents(bundle.preferredLocalizations(from: [.de], limitToPreferences: false)).starts(with: ["de", "en", "en-GB"]))
     }
     
     
@@ -69,7 +76,7 @@ struct LocalizationTests {
         let key = "LOCALIZATION_LANG_2"
         
         #expect(bundle.localizedString(forKey: key, value: "nil", table: nil, localizations: [.enGB]) == "nil")
-        #expect(bundle.localizedString(forKey: key, tables: [.default], localizations: [.enGB]) == nil)
+        #expect(bundle.localizedString(forKey: key, tables: [.default], localizations: [.enGB]) == "en")
         #expect(bundle.localizedStringForKeyFallback(key: key, tables: [.default], localizations: [.enGB]) == "en")
         
         #expect(bundle.localizedString(forKey: key, value: "nil", table: nil, localizations: [.enGB, .en]) == "nil")

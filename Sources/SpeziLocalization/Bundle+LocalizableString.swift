@@ -29,14 +29,28 @@ extension Bundle {
         }
     }
     
-    
     /// Returns the bundle's preferred languages, based on the provided array of languages.
-    public func preferredLocalizations(from preferences: some Collection<Locale.Language>) -> [Locale.Language] {
-        Bundle.preferredLocalizations(
-            from: self.localizations,
-            forPreferences: preferences.map(\.minimalIdentifier)
-        )
-        .map { .init(identifier: $0) }
+    ///
+    /// - parameter limitToPreferences: Defaults to `true`. Whether the function should only consider and return languages that are related to the preferences.
+    ///     Setting this to `false` will cause the function to always return all localizations supported by the bundle, sorted
+    public func preferredLocalizations(from preferences: some Collection<Locale.Language>, limitToPreferences: Bool = true) -> [Locale.Language] {
+        if limitToPreferences {
+            return Bundle.preferredLocalizations(
+                from: self.localizations,
+                forPreferences: preferences.map(\.minimalIdentifier)
+            )
+            .map { .init(identifier: $0) }
+        } else {
+            let preferences = preferences.map(\.minimalIdentifier)
+            var bundleLocalizations = self.localizations
+            var langs: [Locale.Language] = []
+            while !bundleLocalizations.isEmpty {
+                let result = Bundle.preferredLocalizations(from: bundleLocalizations, forPreferences: preferences)
+                bundleLocalizations.removeAll { result.contains($0) }
+                langs.append(contentsOf: result.map { .init(identifier: $0) })
+            }
+            return langs
+        }
     }
     
     /// Looks up the localized version of a string in multiple tables, returning the first match.
@@ -51,14 +65,25 @@ extension Bundle {
             .first { $0 != notFound }
     }
     
-    public func localizedString( // swiftlint:disable:this missing_docs
+    /// Looks up the localized version of a string in multiple tables, returning the first match.
+    ///
+    /// - Note: This function differs from `Bundle`'s `localizedString(forKey:value:table:localizations:)` function,
+    ///     in that it performs more extensive fallback language lookups; e.g. if you pass in only `en-GB`,
+    ///     but your bundle doesn't define a value for `key` for `en-GB`, but does for `en`, this function will return the `en` translation,
+    ///     instead of returning `nil`.
+    ///
+    /// - parameter key: the localization key to look up a value for.
+    /// - parameter tables: the tables in which the lookup should be performed. An empty value will lead to a lookup in the ``LocalizationLookupTable/default`` table.
+    /// - parameter localizations: Array of preferred `Locale.Language`s.
+    /// - returns: a localized version of the string, obtained from the first table that contained an entry for `key`.
+    public func localizedString(
         forKey key: String,
         tables: [LocalizationLookupTable],
         localizations: [Locale.Language]
     ) -> String? {
         if #available(macOS 15.4, iOS 18.4, tvOS 18.4, watchOS 11.4, visionOS 2.4, *) {
             let notFound = "NOT_FOUND"
-            return localizations.lazy.compactMap { lang in
+            return preferredLocalizations(from: localizations).lazy.compactMap { lang in
                 (tables.isEmpty ? [.default] : tables).lazy
                     .map { self.localizedString(forKey: key, value: notFound, table: $0.stringValue, localizations: [lang]) }
                     .first { $0 != notFound }
