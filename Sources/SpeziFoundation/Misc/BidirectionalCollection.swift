@@ -9,6 +9,7 @@
 
 extension BidirectionalCollection {
     /// Determines whether the collection ends with the elements of another collection.
+    @inlinable
     public func ends(
         with possibleSuffix: some BidirectionalCollection<Element>
     ) -> Bool where Element: Equatable {

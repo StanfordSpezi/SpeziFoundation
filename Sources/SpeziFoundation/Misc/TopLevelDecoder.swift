@@ -52,6 +52,4 @@ public protocol TopLevelDecoder {
 
 
 extension JSONDecoder: TopLevelDecoder {}
-
-
 extension PropertyListDecoder: TopLevelDecoder {}

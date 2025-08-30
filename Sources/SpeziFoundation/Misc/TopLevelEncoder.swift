@@ -42,6 +42,4 @@ public protocol TopLevelEncoder {
 
 
 extension JSONEncoder: TopLevelEncoder {}
-
-
 extension PropertyListEncoder: TopLevelEncoder {}

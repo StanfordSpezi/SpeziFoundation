@@ -16,6 +16,7 @@ extension FileManager {
     }
     
     /// Determines whether a file system item exists at the specified file url.
+    @inlinable
     public func itemExists(at url: URL) -> Bool {
         fileExists(atPath: url.path)
     }
