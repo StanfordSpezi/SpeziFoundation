@@ -11,17 +11,39 @@ public import Foundation
 
 /// Locale information used to localize files, and to resolve them.
 ///
-/// A ``LocalizationKey`` consists of a ``language`` and a ``region``.
-public struct LocalizationKey: Hashable, LosslessStringConvertible, Sendable {
+/// A Localization Key consists of a ``language`` and a ``region``.
+///
+/// ## Topics
+///
+/// ### Initializers
+/// - ``init(language:region:)``
+/// - ``init(locale:)``
+/// - ``init(parsingFilename:)``
+/// - ``init(_:)``
+///
+/// ### Properties
+/// - ``language``
+/// - ``region``
+/// - ``description``
+///
+/// ### Instance Methods
+/// - ``score(against:using:)``
+public struct LocalizationKey: Hashable, Sendable {
+    /// The `en-US` localization key
     public static let enUS = Self(language: .init(identifier: "en"), region: .unitedStates)
     
+    /// The localization key's language
     public let language: Locale.Language
+    /// The localization key's region
     public let region: Locale.Region
     
-    public var description: String {
-        language.minimalIdentifier + "-" + region.identifier
+    /// Creates a new Localization Key
+    public init(language: Locale.Language, region: Locale.Region) {
+        self.language = language
+        self.region = region
     }
     
+    /// Creates a new Localization Key, from a `Locale`
     public init(locale: Locale) {
         guard let region = locale.region else {
             // this should be exceedingly unlikely to happen: https://stackoverflow.com/a/74563008
@@ -30,27 +52,7 @@ public struct LocalizationKey: Hashable, LosslessStringConvertible, Sendable {
         self.init(language: locale.language, region: region)
     }
     
-    public init(language: Locale.Language, region: Locale.Region) {
-        self.language = language
-        self.region = region
-    }
-    
-    /// Attempts to create a Localization Key, by parsing the input.
-    public init?(_ description: String) {
-        let components = description.split(separator: "-")
-        guard components.count == 2 else {
-            return nil
-        }
-        let languageIdentifier = components[0]
-        let regionIdentifier = components[1]
-        guard let language = Locale.Language.systemLanguages.first(where: { $0.minimalIdentifier == languageIdentifier }),
-              let region = Locale.Region.isoRegions.first(where: { $0.identifier == regionIdentifier }) else {
-            return nil
-        }
-        self.init(language: language, region: region)
-    }
-    
-    /// Creates a new `LocalizationKey` by extracting a localization suffix from a filename
+    /// Creates a new Localization Key by extracting a localization suffix from a filename
     public init?(parsingFilename filename: String) {
         guard let components = filename.parseLocalizationComponents(),
               let localization = LocalizationKey(components.rawLocalization) else {
@@ -84,5 +86,27 @@ public struct LocalizationKey: Hashable, LosslessStringConvertible, Sendable {
         case .custom(let imp):
             return imp(self, .init(locale: locale))
         }
+    }
+}
+
+
+extension LocalizationKey: LosslessStringConvertible {
+    public var description: String {
+        language.minimalIdentifier + "-" + region.identifier
+    }
+    
+    /// Attempts to create a Localization Key, by parsing the input.
+    public init?(_ description: String) {
+        let components = description.split(separator: "-")
+        guard components.count == 2 else {
+            return nil
+        }
+        let languageIdentifier = components[0]
+        let regionIdentifier = components[1]
+        guard let language = Locale.Language.systemLanguages.first(where: { $0.minimalIdentifier == languageIdentifier }),
+              let region = Locale.Region.isoRegions.first(where: { $0.identifier == regionIdentifier }) else {
+            return nil
+        }
+        self.init(language: language, region: region)
     }
 }

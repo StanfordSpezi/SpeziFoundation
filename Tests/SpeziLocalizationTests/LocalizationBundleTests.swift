@@ -64,20 +64,20 @@ struct LocalizationBundleTests {
         }
         
         try imp(
-            LocalizedFileResource(name: "Welcome.md", locale: .enUS),
+            LocalizedFileResource("Welcome.md", locale: .enUS),
             using: .requirePerfectMatch,
             expectedPath: "/news/Welcome+en-US.md",
             expectedLocalization: .enUS
         )
         
         try imp(
-            LocalizedFileResource(name: "news/Welcome.md", locale: .enUS),
+            LocalizedFileResource("news/Welcome.md", locale: .enUS),
             using: .requirePerfectMatch,
             expectedPath: "/news/Welcome+en-US.md",
             expectedLocalization: .enUS
         )
         try imp(
-            LocalizedFileResource(name: "/news/Welcome.md", locale: .enUS),
+            LocalizedFileResource("/news/Welcome.md", locale: .enUS),
             using: .requirePerfectMatch,
             expectedPath: "/news/Welcome+en-US.md",
             expectedLocalization: .enUS
@@ -85,28 +85,28 @@ struct LocalizationBundleTests {
         
         for behavior in [LocaleMatchingBehaviour.requirePerfectMatch, .preferLanguageMatch, .preferRegionMatch] {
             try imp(
-                LocalizedFileResource(name: "Welcome.md", locale: .deDE),
+                LocalizedFileResource("Welcome.md", locale: .deDE),
                 using: behavior,
                 expectedPath: "/news/Welcome+de-DE.md",
                 expectedLocalization: .deDE
             )
         }
         try imp(
-            LocalizedFileResource(name: "Welcome.md", locale: .deUS),
+            LocalizedFileResource("Welcome.md", locale: .deUS),
             using: .preferLanguageMatch,
             expectedPath: "/news/Welcome+de-DE.md",
             expectedLocalization: .deDE
         )
         do {
             let resolved0 = LocalizedFileResolution.resolve(
-                LocalizedFileResource(name: "Welcome.md", locale: .deUS),
+                LocalizedFileResource("Welcome.md", locale: .deUS),
                 from: inputUrls,
                 using: .preferRegionMatch,
                 fallback: nil
             )
             #expect(resolved0 == nil)
             let resolved1 = LocalizedFileResolution.resolve(
-                LocalizedFileResource(name: "Welcome.md", locale: .deUS),
+                LocalizedFileResource("Welcome.md", locale: .deUS),
                 from: inputUrls,
                 using: .requirePerfectMatch,
                 fallback: nil
@@ -115,13 +115,13 @@ struct LocalizationBundleTests {
         }
         
         try imp(
-            LocalizedFileResource(name: "Update.md", locale: .enUS),
+            LocalizedFileResource("Update.md", locale: .enUS),
             using: .requirePerfectMatch,
             expectedPath: "/news/Update+en-US.md",
             expectedLocalization: .enUS
         )
         try imp(
-            LocalizedFileResource(name: "Update.md", locale: .deUS),
+            LocalizedFileResource("Update.md", locale: .deUS),
             using: .requirePerfectMatch,
             expectedPath: "/news/Update+de-US.md",
             expectedLocalization: .deUS
@@ -129,7 +129,7 @@ struct LocalizationBundleTests {
         
         for behaviour in [LocaleMatchingBehaviour.requirePerfectMatch, .preferRegionMatch, .preferLanguageMatch] {
             try imp(
-                LocalizedFileResource(name: "Update.md", locale: .enUS),
+                LocalizedFileResource("Update.md", locale: .enUS),
                 using: behaviour,
                 expectedPath: "/news/Update+en-US.md",
                 expectedLocalization: .enUS

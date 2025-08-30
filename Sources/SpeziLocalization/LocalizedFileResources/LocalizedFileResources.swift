@@ -9,7 +9,23 @@
 public import Foundation
 
 
-/// Information about a File's localization.
+/// A reference to a localized file.
+///
+/// ## Topics
+///
+/// ### Initializers
+/// - ``init(_:locale:)
+/// - ``init(stringLiteral:)``
+///
+/// ### Properties
+/// - ``name``
+/// - ``locale``
+///
+/// ### Instance Methods
+/// - ``locale(_:)``
+///
+/// ### Other
+/// - ``Resolved``
 public struct LocalizedFileResource: Hashable, Sendable {
     /// The unlocalized filename, including the extension.
     public let name: String
@@ -18,7 +34,8 @@ public struct LocalizedFileResource: Hashable, Sendable {
     /// Use this property to override the locale used by the file resolution mechanism.
     public var locale: Locale
     
-    public init(name: String, locale: Locale = .current) {
+    /// Creates a new Localized File Resource.
+    public init(_ name: String, locale: Locale = .current) {
         self.name = name
         self.locale = locale
     }
@@ -26,8 +43,9 @@ public struct LocalizedFileResource: Hashable, Sendable {
 
 
 extension LocalizedFileResource: ExpressibleByStringLiteral {
+    /// Creates a new Localized File Resource from a String literal, using the current locale.
     public init(stringLiteral value: String) {
-        self.init(name: value)
+        self.init(value)
     }
 }
 
@@ -35,7 +53,7 @@ extension LocalizedFileResource: ExpressibleByStringLiteral {
 extension LocalizedFileResource {
     /// Creates a new ``LocalizedFileResource`` that will get resolved using the specified `Locale`.
     public func locale(_ locale: Locale) -> Self {
-        Self(name: name, locale: locale)
+        Self(name, locale: locale)
     }
 }
 
@@ -43,6 +61,7 @@ extension LocalizedFileResource {
 // MARK: LocalizedFileResource.Resolved
 
 extension LocalizedFileResource {
+    /// A resolved ``LocalizedFileResource``.
     public struct Resolved: Hashable, Sendable {
         /// The underlying ``LocalizedFileResource`` used when looking up this localized file.
         public let resource: LocalizedFileResource
