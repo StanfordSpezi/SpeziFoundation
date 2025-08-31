@@ -31,8 +31,9 @@ extension Bundle {
     
     /// Returns the bundle's preferred languages, based on the provided array of languages.
     ///
+    /// - parameter preferences: The preferred `Locale.Language`s.
     /// - parameter limitToPreferences: Defaults to `true`. Whether the function should only consider and return languages that are related to the preferences.
-    ///     Setting this to `false` will cause the function to always return all localizations supported by the bundle, sorted
+    ///     Setting this to `false` will cause the function to always return all localizations supported by the bundle, sorted by preference.
     public func preferredLocalizations(from preferences: some Collection<Locale.Language>, limitToPreferences: Bool = true) -> [Locale.Language] {
         if limitToPreferences {
             return Bundle.preferredLocalizations(

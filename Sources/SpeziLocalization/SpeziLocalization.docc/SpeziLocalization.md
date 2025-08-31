@@ -2,9 +2,6 @@
 
 Work with localized resources.
 
-## Overview
-
-
 
 ## Topics
 
