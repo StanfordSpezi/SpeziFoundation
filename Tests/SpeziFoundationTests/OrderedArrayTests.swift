@@ -105,7 +105,7 @@ struct OrderedArrayTests {
         #expect(array.capacity == capacity)
     }
     
-    @Test(.disabled(if: isReleaseBuild))
+    @Test
     func unsafeOperations() throws {
         var array = OrderedArray<Int> { $0 < $1 }
         array.insert(12)

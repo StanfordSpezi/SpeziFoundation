@@ -68,6 +68,15 @@ extension LocalizedFileResource {
 
 extension LocalizedFileResource {
     /// A resolved ``LocalizedFileResource``.
+    ///
+    /// ## Topics
+    ///
+    /// ### Instance Properties
+    /// - ``url``
+    /// - ``resource``
+    /// - ``localization``
+    /// - ``unlocalizedFilename``
+    /// - ``fullFilenameIncludingLocalization``
     public struct Resolved: Hashable, Sendable {
         /// The underlying ``LocalizedFileResource`` used when looking up this localized file.
         public let resource: LocalizedFileResource
