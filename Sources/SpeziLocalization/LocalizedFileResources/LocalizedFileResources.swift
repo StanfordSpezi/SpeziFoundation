@@ -17,7 +17,7 @@ public import Foundation
 /// ## Topics
 ///
 /// ### Initializers
-/// - ``init(_:locale:)
+/// - ``init(_:locale:)``
 /// - ``init(stringLiteral:)``
 ///
 /// ### Properties
