@@ -39,6 +39,7 @@ struct LocalizationBundleTests {
             "/news/Welcome.md",
             "/news/Welcome+en-US.md",
             "/news/Welcome+es-US.md",
+            "/news/Welcome+es-ES.md",
             "/news/Welcome+en-UK.md",
             "/news/Welcome+de-DE.md",
             "/news/Update.md",
@@ -135,6 +136,26 @@ struct LocalizationBundleTests {
                 expectedLocalization: .enUS
             )
         }
+        
+        try imp(
+            LocalizedFileResource("Welcome.md", locale: .esES),
+            using: .default,
+            expectedPath: "/news/Welcome+es-ES.md",
+            expectedLocalization: .esES
+        )
+        try imp(
+            LocalizedFileResource("Update.md", locale: .esES),
+            using: .default,
+            expectedPath: "/news/Update+es-US.md",
+            expectedLocalization: .esUS
+        )
+        try imp(
+            LocalizedFileResource("Welcome.md", locale: .frFR),
+            using: .default,
+            fallback: .enUS,
+            expectedPath: "/news/Welcome+en-US.md",
+            expectedLocalization: .enUS
+        )
     }
 }
 
@@ -146,9 +167,14 @@ extension Locale {
     static let esUK = Self(identifier: "es_UK")
     static let deDE = Self(identifier: "de_DE")
     static let deUS = Self(identifier: "de_US")
+    static let esES = Self(identifier: "es_ES")
+    static let frFR = Self(identifier: "fr_FR")
 }
 
 extension LocalizationKey {
     static let deDE = Self(language: .init(identifier: "de"), region: .germany)
     static let deUS = Self(language: .init(identifier: "de"), region: .unitedStates)
+    static let esUS = Self(language: .init(identifier: "es"), region: .unitedStates)
+    static let esES = Self(language: .init(identifier: "es"), region: .spain)
+    static let frFR = Self(language: .init(identifier: "fr"), region: .france)
 }

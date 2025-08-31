@@ -44,10 +44,12 @@ public struct LocalizationKey: Hashable, Sendable {
     }
     
     /// Creates a new Localization Key, from a `Locale`
-    public init(locale: Locale) {
+    ///
+    /// This initializer fails if the locale's region is nil. This will happen if you use e.g. `Locale(identifier: "fr")` instead of `Locale(identifier: "fr-FR")`.
+    public init?(locale: Locale) {
         guard let region = locale.region else {
             // this should be exceedingly unlikely to happen: https://stackoverflow.com/a/74563008
-            preconditionFailure("Invalid input: locale.region is nil")
+            return nil
         }
         self.init(language: locale.language, region: region)
     }
@@ -64,7 +66,7 @@ public struct LocalizationKey: Hashable, Sendable {
     /// Match a Localization Key against a Locale.
     ///
     /// Determines how well the LocalizationKey matches the Locale, on a scale from 0 to 1.
-    public func score(against locale: Locale, using localeMatchingBehaviour: LocaleMatchingBehaviour) -> Double {
+    public func score(against locale: Locale, using localeMatchingBehaviour: LocaleMatchingBehaviour = .default) -> Double {
         let languageMatches = if let selfCode = self.language.languageCode, let otherCode = locale.language.languageCode {
             selfCode.identifier == otherCode.identifier
         } else {
@@ -84,7 +86,10 @@ public struct LocalizationKey: Hashable, Sendable {
         case .preferRegionMatch:
             return regionMatches ? 0.8 : languageMatches ? 0.75 : 0
         case .custom(let imp):
-            return imp(self, .init(locale: locale))
+            guard let key = LocalizationKey(locale: locale) else {
+                return 0
+            }
+            return imp(self, key)
         }
     }
 }

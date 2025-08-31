@@ -28,10 +28,39 @@ extension LocalizedFileResolution {
     }
     
     /// Resolves a localized resource from a set of inputs, based on an unlocalizdd filename and a target locale.
+    ///
+    /// Use this function to match a ``LocalizedFileResource`` against a list of candidate `URL`s representing localized files,
+    /// determining which `URL` is the "closest" match w.t.t. the file resource.
+    ///
+    /// Example:
+    /// ```swift
+    /// let urls = [
+    ///     "/news/Welcome+en-US.md",
+    ///     "/news/Welcome+es-US.md",
+    ///     "/news/Welcome+en-UK.md",
+    ///     "/news/Welcome+de-DE.md"
+    /// ].map { URL(filePath: $0) }
+    /// // Since no explicit locale is specified, the file resource will get resolved using the current locale,
+    /// // and, assuming you're in the US and your device is english, "/news/Welcome+en-US.md" will be returned.
+    /// let _ = resolve(LocalizedFileResource("Welcome.md"), from: urls)
+    /// // We explicitly specify the "es" locale; this will cause `resolve` to return "/news/Welcomd+es-US.md",
+    /// // since that's the closest match.
+    /// // If we had a "/news/Welcome+es-ES.md" file, that'd get returned instead.
+    /// let _ = resolve(LocalizedFileResource("Welcome.md", locale: .init(identifier: "es-ES")), from: urls)
+    /// // In this case, the file resolution will return "/news/Welcome+en-US.md";
+    /// // none of the files match the input locale (neither w.r.t. the language, nor w.r.t. the region),
+    /// // and the "en-US" locale is the `resolve` function's implicit fallback.
+    /// let _ = resolve(LocalizedFileResource("Welcome.md", locale: .init(identifier: "fr-FR")), from: urls)
+    /// ```
+    ///
+    /// - parameter resource: The file resource that should be resolved.
+    /// - parameter candidates: List of file `URL`s against which `resource` should be resolved.
+    /// - parameter localeMatchingBehaviour: The ``LocaleMatchingBehaviour`` that should be used when resolving the file resource
+    /// - parameter fallbackLocale: An optional fallback locale, used in case no match exists for the `resource`'s locale.
     public static func resolve(
         _ resource: LocalizedFileResource,
         from candidates: some Collection<URL>,
-        using localeMatchingBehaviour: LocaleMatchingBehaviour = .preferLanguageMatch,
+        using localeMatchingBehaviour: LocaleMatchingBehaviour = .default,
         fallback fallbackLocale: LocalizationKey? = .enUS
     ) -> LocalizedFileResource.Resolved? {
         let candidates: [ScoredCandidate] = candidates
@@ -41,7 +70,9 @@ extension LocalizedFileResolution {
             .map { ScoredCandidate(fileResource: $0, score: $0.localization.score(against: resource.locale, using: localeMatchingBehaviour)) }
             .sorted(by: >)
         guard let candidate = candidates.first, candidate.score > 0.5 else {
-            Self.logger.error("Unable to find url for \(resource.name) and locale \(resource.locale) (key: \(LocalizationKey(locale: resource.locale))).")
+            Self.logger.error(
+                "Unable to find url for \(resource.name) and locale \(resource.locale) (key: \(LocalizationKey(locale: resource.locale).debugDescription))."
+            )
             if candidates.isEmpty {
                 Self.logger.error("No candidates")
             } else {
