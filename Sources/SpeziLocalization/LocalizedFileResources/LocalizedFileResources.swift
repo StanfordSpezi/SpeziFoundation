@@ -38,7 +38,10 @@ public struct LocalizedFileResource: Hashable, Sendable {
     public var locale: Locale
     
     /// Creates a new Localized File Resource.
-    public init(_ name: String, locale: Locale = .current) {
+    ///
+    /// - parameter name: The non-localized name of the file.
+    /// - parameter locale: The locale that should be used when resolving the file reference. Defaults to the user's current locale.
+    public init(_ name: String, locale: Locale = .autoupdatingCurrent) {
         self.name = name
         self.locale = locale
     }
@@ -46,7 +49,7 @@ public struct LocalizedFileResource: Hashable, Sendable {
 
 
 extension LocalizedFileResource: ExpressibleByStringLiteral {
-    /// Creates a new Localized File Resource from a String literal, using the current locale.
+    /// Creates a new Localized File Resource from a String literal, using the autoupdating current locale.
     public init(stringLiteral value: String) {
         self.init(value)
     }
