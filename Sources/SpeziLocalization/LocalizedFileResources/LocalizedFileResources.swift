@@ -11,6 +11,9 @@ public import Foundation
 
 /// A reference to a localized file.
 ///
+/// Similar to how Foundation's `LocalizedStringResource` is used as a key for looking up a concrete localization of a string in an app's `Localizable.xcstrings` catalogue,
+/// the `LocalizedFileResource` type is used as a key to look up a localized version of a file, from a set of candidates (see ``LocalizedFileResolution/resolve(_:from:using:fallback:)``).
+///
 /// ## Topics
 ///
 /// ### Initializers

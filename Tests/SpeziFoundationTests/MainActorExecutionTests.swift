@@ -46,7 +46,7 @@ struct MainActorExecutionTests {
             runOrScheduleOnMainActor {
                 confirm()
             }
-            try await Task.sleep(for: .seconds(0.02))
+            try await Task.sleep(for: .seconds(0.5))
         }
     }
 }
