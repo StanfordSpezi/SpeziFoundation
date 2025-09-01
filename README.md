@@ -19,6 +19,18 @@ SPDX-License-Identifier: MIT
 Spezi Foundation provides a base layer of functionality useful in many applications, including fundamental types, algorithms, extensions, and data structures.
 
 
+## Components
+
+The SpeziFoundation package consists of 2 targets:
+- [SpeziFoundation](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation):
+    - Extensions related to concurrency, collection, etc;
+    - Data structures;
+    - Markdown processing
+    - See [the docs](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation) for an exhaustive list. 
+- [SpeziLocalization](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezilocalization):
+    - Localization-related utilities, for working with both string and file-level localization 
+
+
 ## Installation
 
 The project can be added to your Xcode project or Swift Package using the [Swift Package Manager](https://github.com/apple/swift-package-manager).

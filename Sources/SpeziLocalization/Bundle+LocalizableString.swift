@@ -56,9 +56,9 @@ extension Bundle {
     
     /// Looks up the localized version of a string in multiple tables, returning the first match.
     ///
-    /// - parameter key: the localization key to look up a value for.
-    /// - parameter tables: the tables in which the lookup should be performed.
-    /// - returns: a localized version of the string, obtained from the first table that contained an entry for `key`.
+    /// - parameter key: The localization key to look up a value for.
+    /// - parameter tables: The tables in which the lookup should be performed.
+    /// - returns: A localized version of the string, obtained from the first table that contained an entry for `key`.
     public func localizedString(forKey key: String, tables: [LocalizationLookupTable]) -> String? {
         let notFound = "NOT_FOUND"
         return (tables.isEmpty ? [.default] : tables).lazy
@@ -73,10 +73,10 @@ extension Bundle {
     ///     but your bundle doesn't define a value for `key` for `en-GB`, but does for `en`, this function will return the `en` translation,
     ///     instead of returning `nil`.
     ///
-    /// - parameter key: the localization key to look up a value for.
-    /// - parameter tables: the tables in which the lookup should be performed. An empty value will lead to a lookup in the ``LocalizationLookupTable/default`` table.
+    /// - parameter key: The localization key to look up a value for.
+    /// - parameter tables: The tables in which the lookup should be performed. An empty value will lead to a lookup in the ``LocalizationLookupTable/default`` table.
     /// - parameter localizations: Array of preferred `Locale.Language`s.
-    /// - returns: a localized version of the string, obtained from the first table that contained an entry for `key`.
+    /// - returns: A localized version of the string, obtained from the first table that contained an entry for `key`.
     public func localizedString(
         forKey key: String,
         tables: [LocalizationLookupTable],

@@ -3,6 +3,13 @@
 Work with localized resources.
 
 
+## Overview
+
+The SpeziLocalization target implements localization-related facilities, for working with localized string and file resources.
+
+It defines extensions on `Bundle` and `LocalizedStringResource` to enable applications to work with multiple/dynamic localizations at runtime, and implements a `LocalizedStringResource`-inspired ``LocalizedFileResource`` type for working with file-based localization. 
+
+
 ## Topics
 
 ### Working with Localized Strings

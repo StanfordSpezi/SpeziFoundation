@@ -27,8 +27,9 @@ public import Foundation
 /// ### Instance Methods
 /// - ``locale(_:)``
 ///
-/// ### Other
+/// ### File Resource Resolution
 /// - ``Resolved``
+/// - ``LocalizedFileResolution/resolve(_:from:using:fallback:)``
 public struct LocalizedFileResource: Hashable, Sendable {
     /// The unlocalized filename, including the extension.
     public let name: String
