@@ -251,6 +251,7 @@ extension OrderedArray {
     }
     
     /// Determines whether the array contains the specified element.
+    @inlinable
     public func contains(_ element: Element) -> Bool {
         firstIndex(of: element) != nil
     }

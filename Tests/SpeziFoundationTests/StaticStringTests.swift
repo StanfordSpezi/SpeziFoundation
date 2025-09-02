@@ -26,6 +26,7 @@ private func s2(_ string: StaticScalar) -> StaticString {
 }
 
 
+@Suite
 struct StaticStringTests {
     @Test
     func equality() {

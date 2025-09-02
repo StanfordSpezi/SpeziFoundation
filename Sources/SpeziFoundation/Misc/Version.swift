@@ -91,7 +91,7 @@ public struct Version: Hashable, Sendable {
 
 extension Version {
     /// Whether this is a pre-release version, determined based on the existence of e.g. a `-alpha` or `-x.y.z` suffix.
-    public var isPrereleaseVersion: Bool {
+    @inlinable public var isPrereleaseVersion: Bool {
         !prereleaseIdentifiers.isEmpty
     }
 }
