@@ -80,7 +80,7 @@ extension LocalizedFileResource {
     /// - ``fullFilenameIncludingLocalization``
     public struct Resolved: Hashable, Sendable {
         /// The underlying ``LocalizedFileResource`` used when looking up this localized file.
-        public private(set) var resource: LocalizedFileResource
+        public let resource: LocalizedFileResource
         /// The (localized) URL of the file.
         public let url: URL
         /// The URL's file name (including the file extension), with the localization suffix removed.
@@ -115,19 +115,6 @@ extension LocalizedFileResource {
                 unlocalizedFilename: "\(components.baseName).\(fileExtension)",
                 localization: localization
             )
-        }
-        
-        /// Creates a new `LocalizedFileResource.Resolved` by parsing a URL.
-        ///
-        /// - Note: The ``resource`` of the returned object will be initialized using the unlocalized filename and the *current* locale,
-        ///     even though the actual localization of the file at `url` might be completely different.
-        public init?(url: URL) {
-            let dummyResource = LocalizedFileResource("")
-            guard let resolved = Self(resource: dummyResource, url: url) else {
-                return nil
-            }
-            self = resolved
-            self.resource = LocalizedFileResource(unlocalizedFilename, locale: .current)
         }
     }
 }

@@ -102,6 +102,23 @@ extension LocalizedFileResolution {
 }
 
 
+extension LocalizedFileResolution {
+    /// Extract's information about a localized file.
+    ///
+    /// - parameter url: The `URL` of a localized file (e.g., `/Users/spezi/Documents/Welcome+en-US.md`).
+    /// - returns: If `URL` contains localization info compatible with SpeziLocalization: the `URL`, with its localization into stripped, and the extracted localization info; otherwise `nil`.
+    public static func parse(_ url: URL) -> (unlocalizedUrl: URL, localization: LocalizationKey)? {
+        guard let components = url.lastPathComponent.parseLocalizationComponents(),
+              let fileExtension = components.fileExtension,
+              let localization = LocalizationKey(components.rawLocalization) else {
+            return nil
+        }
+        let strippedUrl = url.deletingLastPathComponent().appending(component: components.baseName).appendingPathExtension(fileExtension)
+        return (strippedUrl, localization)
+    }
+}
+
+
 extension URL {
     fileprivate func matches(unlocalizedFilename: String) -> Bool {
         self.strippingLocalizationSuffix().pathComponents.ends(with: unlocalizedFilename.split(separator: "/"), by: ==)
