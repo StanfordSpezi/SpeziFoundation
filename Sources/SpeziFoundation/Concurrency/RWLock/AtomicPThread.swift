@@ -14,7 +14,7 @@ import Glibc
 #endif
 
 #if canImport(Darwin)
-typealias AtomicPThread = ManagedAtomic<pthread_t?>
+typealias AtomicPThread = ManagedAtomic<pthread_t?> // swiftlint:disable:this file_types_order
 #else
 // Glibc (Linux): `pthread_t` is `UInt`
 // Darwin (macOS/iOS): `pthread_t` is `UnsafeMutablePointer<_opaque_pthread_t>`

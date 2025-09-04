@@ -396,7 +396,7 @@ extension MarkdownDocument.Parser {
     }
     
     private mutating func consume(_ count: Int = 1) {
-        guard count > 0 else {
+        guard count > 0 else { // swiftlint:disable:this empty_count
             return
         }
         let newIndex = input.index(position, offsetBy: count)

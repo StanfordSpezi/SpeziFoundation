@@ -7,12 +7,11 @@
 //
 
 @testable import SpeziFoundation
-import XCTest
 import Testing
+import XCTest
 
 @Suite
 struct RWLockTests {
-    
     @Test(.timeLimit(.minutes(1)))
     func testConcurrentReads() async {
         let lock = RWLock()
@@ -244,6 +243,7 @@ struct RWLockTests {
         }
     }
     
+    // swiftlint:disable function_body_length closure_body_length
     @Test(.timeLimit(.minutes(1)))
     func testRecursiveWriteRecursiveAcquisition() async {
         let lock = RecursiveRWLock()
@@ -252,7 +252,6 @@ struct RWLockTests {
                 await confirmation("WriteRead") { expectation3 in
                     await confirmation("Write") { expectation4 in
                         await confirmation("Race") { expectation5 in
-                            
                             async let task1: Void = Task.detached {
                                 lock.withWriteLock {
                                     usleep(50_000) // Simulate write delay 50 ms
@@ -307,5 +306,5 @@ struct RWLockTests {
             }
         }
     }
+    // swiftlint:enable function_body_length closure_body_length
 }
-
