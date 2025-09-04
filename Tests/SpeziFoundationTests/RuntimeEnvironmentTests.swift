@@ -14,7 +14,7 @@ import Testing
 struct RuntimeEnvironmentTests {
     @Test
     func sandbox() {
-        #if os(macOS)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         // by default, the tests aren't sandboxed on macOS
         #expect(!ProcessInfo.isRunningInSandbox)
         #else

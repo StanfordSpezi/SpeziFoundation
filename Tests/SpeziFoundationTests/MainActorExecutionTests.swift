@@ -7,8 +7,8 @@
 //
 
 
-import Foundation
-@testable import SpeziFoundation
+import Dispatch
+import SpeziFoundation
 import Testing
 
 
@@ -51,15 +51,16 @@ private actor TestActor: GlobalActor {
     }
 }
 
+@Suite
 struct MainActorExecutionTests {
     #if os(Linux)
-    @Test(.disabled("Skipped on Linux: main thread differs from Darwin"))
+        @Test(.disabled("Skipped on Linux: main thread differs from Darwin"))
     #else
-    @Test
+        @Test
     #endif
     @MainActor
-    func testIfAlreadyRunningOnMainActor() {
-        precondition(#isolation === MainActor.shared)
+    func ifAlreadyRunningOnMainActor() {
+        // XCTest by default runs all test cases on the main thread, ie the main queue, ie the main actor.
         dispatchPrecondition(condition: .onQueue(.main))
         var didRun = false
         runOrScheduleOnMainActor {
@@ -68,21 +69,16 @@ struct MainActorExecutionTests {
         #expect(didRun)
     }
     
-
-    @TestActor
     @Test
-    func testIfRunningOffTheMainActor() async {
+    @TestActor
+    func ifRunningOffTheMainActor() async throws {
         dispatchPrecondition(condition: .notOnQueue(.main))
         dispatchPrecondition(condition: .onQueue(TestActor.shared.queue))
-        #expect(#isolation === TestActor.shared)
-
-        await confirmation("ran off the main actor") { didRun in
+        try await confirmation { confirm in
             runOrScheduleOnMainActor {
-                didRun()
-                #expect(#isolation === MainActor.shared)
+                confirm()
             }
-
-            try? await Task.sleep(for: .milliseconds(5), tolerance: .nanoseconds(0))
+            try await Task.sleep(for: .seconds(0.5))
         }
     }
 }

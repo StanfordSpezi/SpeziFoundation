@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Foundation
+public import Foundation
 
 
 /// A type that supports encoding.
@@ -42,6 +42,4 @@ public protocol TopLevelEncoder {
 
 
 extension JSONEncoder: TopLevelEncoder {}
-
-
 extension PropertyListEncoder: TopLevelEncoder {}

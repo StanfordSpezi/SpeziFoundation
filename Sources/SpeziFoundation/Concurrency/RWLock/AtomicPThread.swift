@@ -20,7 +20,7 @@ import Glibc
 // Atomics support optionals of pointer types (Darwin), but not optionals of integer types (Glibc).
 //
 // To provide a similar representation on Glibc, we store UInts as non-optionals, and map `nil` <-> `0`.
-package struct AtomicPThread {
+struct AtomicPThread {
   private static let none: pthread_t = 0
   private let raw = ManagedAtomic<pthread_t>(none)
 
@@ -38,5 +38,5 @@ package struct AtomicPThread {
   }
 }
 #else
-package typealias AtomicPThread = ManagedAtomic<pthread_t?>
+typealias AtomicPThread = ManagedAtomic<pthread_t?>
 #endif

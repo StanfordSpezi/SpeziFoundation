@@ -20,15 +20,17 @@ let package = Package(
         .watchOS(.v10),
         .visionOS(.v1),
         .macOS(.v14),
+        .macCatalyst(.v17),
         .tvOS(.v17)
     ],
     products: [
-        .library(name: "SpeziFoundation", targets: ["SpeziFoundation"])
+        .library(name: "SpeziFoundation", targets: ["SpeziFoundation"]),
+        .library(name: "SpeziLocalization", targets: ["SpeziLocalization"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.2.0"),
         .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.2.0"),
-        .package(url: "https://github.com/StanfordBDHG/XCTRuntimeAssertions.git", from: "2.0.0")
+        .package(url: "https://github.com/StanfordBDHG/XCTRuntimeAssertions.git", from: "2.2.0")
     ] + swiftLintPackage(),
     targets: [
         .systemLibrary(
@@ -49,17 +51,41 @@ let package = Package(
             resources: [
                 .process("Resources")
             ],
-            swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("InternalImportsByDefault")
+            ],
             plugins: [] + swiftLintPlugin()
         ),
         .target(
             name: "SpeziFoundationObjC"
+        ),
+        .target(
+            name: "SpeziLocalization",
+            dependencies: [
+                .target(name: "SpeziFoundation"),
+                .product(name: "Algorithms", package: "swift-algorithms")
+            ],
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("InternalImportsByDefault")
+            ],
+            plugins: [] + swiftLintPlugin()
         ),
         .testTarget(
             name: "SpeziFoundationTests",
             dependencies: [
                 .target(name: "SpeziFoundation"),
                 .product(name: "RuntimeAssertionsTesting", package: "XCTRuntimeAssertions")
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
+            plugins: [] + swiftLintPlugin()
+        ),
+        .testTarget(
+            name: "SpeziLocalizationTests",
+            dependencies: [
+                .target(name: "SpeziLocalization"),
+                .target(name: "SpeziFoundation")
             ],
             swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
             plugins: [] + swiftLintPlugin()

@@ -6,8 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Foundation
 #if canImport(ObjectiveC)
+public import class Foundation.NSException
 import SpeziFoundationObjC
 
 

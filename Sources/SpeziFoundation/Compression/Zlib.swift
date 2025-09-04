@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Foundation
+public import Foundation
 #if canImport(zlib)
 import zlib
 #elseif canImport(CZlib)

@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Foundation
+public import Foundation
 
 
 /// A type that supports decoding.
@@ -52,6 +52,4 @@ public protocol TopLevelDecoder {
 
 
 extension JSONDecoder: TopLevelDecoder {}
-
-
 extension PropertyListDecoder: TopLevelDecoder {}

@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Algorithms
+public import Algorithms
 
 extension StringProtocol {
     /// Removes all leading and trailing whitespace (including newlines) from the string.

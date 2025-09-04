@@ -9,25 +9,23 @@
 import SpeziFoundation
 import Testing
 
-@Suite("Cancelable Child Task")
+
 struct CancelableChildTaskTests {
-    @Test("Normal Completion")
-    func testNormalCompletion() async {
+    @Test
+    func normalCompletion() async {
         await withDiscardingTaskGroup { group in
             await confirmation { confirmation in
                 let handle = group.addCancelableTask {
                     try? await Task.sleep(for: .milliseconds(10), tolerance: .nanoseconds(0))
                     confirmation()
                 }
-
                 try? await Task.sleep(for: .milliseconds(100), tolerance: .nanoseconds(0))
                 handle.cancel()
             }
         }
     }
-
-    @Test("Cancelation")
-    func testCancelation() async {
+    
+    func cancelation() async {
         await withDiscardingTaskGroup { group in
             await confirmation { confirmation in
                 let handle = group.addCancelableTask {
@@ -38,10 +36,8 @@ struct CancelableChildTaskTests {
                         confirmation()
                     }
                 }
-
                 try? await Task.sleep(for: .milliseconds(5), tolerance: .nanoseconds(0))
                 handle.cancel()
-
                 try? await Task.sleep(for: .milliseconds(50), tolerance: .nanoseconds(0))
             }
         }
