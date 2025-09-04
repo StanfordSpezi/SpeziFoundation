@@ -1,0 +1,42 @@
+//
+// This source file is part of the Stanford Spezi open-source project
+//
+// SPDX-FileCopyrightText: 2024 Stanford University and the project authors (see CONTRIBUTORS.md)
+//
+// SPDX-License-Identifier: MIT
+//
+
+import Atomics
+import Foundation
+
+#if canImport(Glibc)
+import Glibc
+#endif
+
+#if os(Linux)
+// Glibc (Linux): `pthread_t` is `UInt`
+// Darwin (macOS/iOS): `pthread_t` is `UnsafeMutablePointer<_opaque_pthread_t>`
+//
+// Atomics support optionals of pointer types (Darwin), but not optionals of integer types (Glibc).
+//
+// To provide a similar representation on Glibc, we store UInts as non-optionals, and map `nil` <-> `0`.
+package struct AtomicPThread {
+  private static let none: pthread_t = 0
+  private let raw = ManagedAtomic<pthread_t>(none)
+
+    init(_ initial: pthread_t? = nil) {
+        raw.store(initial ?? Self.none, ordering: .relaxed)
+    }
+
+    func load(ordering _: AtomicLoadOrdering) -> pthread_t? {
+        let loadedValue = raw.load(ordering: .relaxed)
+        return loadedValue == Self.none ? nil : loadedValue
+    }
+
+    func store(_ value: pthread_t?, ordering _: AtomicStoreOrdering) {
+        raw.store(value ?? Self.none, ordering: .relaxed)
+  }
+}
+#else
+package typealias AtomicPThread = ManagedAtomic<pthread_t?>
+#endif
