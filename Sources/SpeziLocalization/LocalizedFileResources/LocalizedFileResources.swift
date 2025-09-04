@@ -121,7 +121,7 @@ extension LocalizedFileResource {
         ///
         /// - Note: The ``resource`` of the returned object will be initialized using the unlocalized filename and the *current* locale,
         ///     even though the actual localization of the file at `url` might be completely different.
-        public init?(url url: URL) {
+        public init?(url: URL) {
             let dummyResource = LocalizedFileResource("")
             guard let resolved = Self(resource: dummyResource, url: url) else {
                 return nil

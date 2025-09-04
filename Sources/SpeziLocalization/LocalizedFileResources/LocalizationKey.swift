@@ -105,16 +105,6 @@ extension LocalizationKey: LosslessStringConvertible {
     
     /// Attempts to create a Localization Key, by parsing the input.
     public init?(_ description: String) {
-        let components = description.split(separator: "-")
-        guard components.count == 2 else {
-            return nil
-        }
-        let languageIdentifier = components[0]
-        let regionIdentifier = components[1]
-        guard let language = Locale.Language.systemLanguages.first(where: { $0.minimalIdentifier == languageIdentifier }),
-              let region = Locale.Region.isoRegions.first(where: { $0.identifier == regionIdentifier }) else {
-            return nil
-        }
-        self.init(language: language, region: region)
+        self.init(locale: .init(identifier: description))
     }
 }

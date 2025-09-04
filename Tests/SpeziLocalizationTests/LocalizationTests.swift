@@ -143,6 +143,15 @@ struct LocalizationTests {
         #expect(LocalizationKey(locale: .init(identifier: "en-DE"))?.description == "en-DE")
         #expect(LocalizationKey(locale: .init(identifier: "es_DE"))?.description == "es-DE")
     }
+    
+    @Test
+    func lozalisationKeyParsing() {
+        #expect(Locale(identifier: "en-UK").language == .enGB)
+        #expect(Locale(identifier: "en-UK").region == .unitedKingdom)
+        #expect(Locale(identifier: "en-UK").region?.isISORegion == true)
+        #expect(LocalizationKey("en-UK") == LocalizationKey(language: .en, region: .unitedKingdom))
+        #expect(LocalizationKey("en-GB") == LocalizationKey(language: .en, region: .unitedKingdom))
+    }
 }
 
 

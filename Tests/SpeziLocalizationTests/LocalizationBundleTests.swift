@@ -157,6 +157,47 @@ struct LocalizationBundleTests {
             expectedLocalization: .enUS
         )
     }
+    
+    
+    @Test
+    func resolve2() throws {
+        let urls: [URL] = try [
+            "gs://myheart-counts-development.firebasestorage.app/public/news/Update+en-US.md",
+            "gs://myheart-counts-development.firebasestorage.app/public/news/Update+en-UK.md",
+            "gs://myheart-counts-development.firebasestorage.app/public/news/Update+es-US.md",
+            "gs://myheart-counts-development.firebasestorage.app/public/news/Welcome+en-US.md",
+            "gs://myheart-counts-development.firebasestorage.app/public/news/Welcome+en-UK.md",
+            "gs://myheart-counts-development.firebasestorage.app/public/news/Welcome+es-US.md"
+        ].map { try URL($0, strategy: .url) }
+        
+        func imp(
+            _ resource: LocalizedFileResource,
+            using localeMatchingBehavior: LocaleMatchingBehaviour,
+            fallback: LocalizationKey? = nil, // swiftlint:disable:this function_default_parameter_at_end
+            expectedPath: String,
+            expectedLocalization: LocalizationKey,
+            sourceLocation: SourceLocation = #_sourceLocation
+        ) throws {
+            let resolved = try #require(
+                LocalizedFileResolution.resolve(resource, from: urls, using: localeMatchingBehavior, fallback: fallback),
+                sourceLocation: sourceLocation
+            )
+            #expect(resolved.url.path == expectedPath, sourceLocation: sourceLocation)
+            #expect(resolved.localization == expectedLocalization, sourceLocation: sourceLocation)
+        }
+        try imp(
+            LocalizedFileResource("Update.md", locale: .enUK),
+            using: .preferLanguageMatch,
+            expectedPath: "/public/news/Update+en-UK.md",
+            expectedLocalization: .enUK
+        )
+        try imp(
+            LocalizedFileResource("Update.md", locale: .esUK),
+            using: .preferLanguageMatch,
+            expectedPath: "/public/news/Update+es-US.md",
+            expectedLocalization: .esUS
+        )
+    }
 }
 
 
@@ -174,6 +215,7 @@ extension Locale {
 extension LocalizationKey {
     static let deDE = Self(language: .init(identifier: "de"), region: .germany)
     static let deUS = Self(language: .init(identifier: "de"), region: .unitedStates)
+    static let enUK = Self(language: .init(identifier: "en"), region: .unitedKingdom)
     static let esUS = Self(language: .init(identifier: "es"), region: .unitedStates)
     static let esES = Self(language: .init(identifier: "es"), region: .spain)
     static let frFR = Self(language: .init(identifier: "fr"), region: .france)
