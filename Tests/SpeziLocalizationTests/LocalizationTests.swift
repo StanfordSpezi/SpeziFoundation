@@ -13,7 +13,9 @@ import HealthKit
 @_spi(Testing) import SpeziLocalization
 import Testing
 
-
+// Suite is Skipped on Linux:
+// localization methods are unavailable outside Apple platforms
+#if canImport(Darwin)
 @Suite
 struct LocalizationTests {
     private let allSupportedLanguages: [Locale.Language] = [
@@ -143,3 +145,5 @@ extension Locale.Language {
     fileprivate static let esUS = Self(identifier: "es-US")
     // swiftlint:enable identifier_name
 }
+
+#endif

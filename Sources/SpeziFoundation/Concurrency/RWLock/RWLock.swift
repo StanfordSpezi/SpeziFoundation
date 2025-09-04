@@ -10,7 +10,7 @@
 public import pthread
 #endif
 #if canImport(Glibc)
-import Glibc
+public import Glibc
 #endif
 
 /// Read-Write Lock using `pthread_rwlock`.

@@ -13,7 +13,9 @@ import Foundation
 import Glibc
 #endif
 
-#if os(Linux)
+#if canImport(Darwin)
+typealias AtomicPThread = ManagedAtomic<pthread_t?>
+#else
 // Glibc (Linux): `pthread_t` is `UInt`
 // Darwin (macOS/iOS): `pthread_t` is `UnsafeMutablePointer<_opaque_pthread_t>`
 //
@@ -37,6 +39,4 @@ struct AtomicPThread {
         raw.store(value ?? Self.none, ordering: .relaxed)
   }
 }
-#else
-typealias AtomicPThread = ManagedAtomic<pthread_t?>
 #endif

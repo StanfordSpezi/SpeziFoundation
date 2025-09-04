@@ -8,13 +8,13 @@
 
 private import Algorithms
 public import Foundation
-private import OSLog
+private import Logging
 private import SpeziFoundation
 
 
 /// Namespace for Localized File Resolution operations
 public enum LocalizedFileResolution {
-    private static let logger = Logger(subsystem: "edu.stanford.SpeziLocalization", category: "FileResolution")
+    private static let logger = Logger(label: "edu.stanford.SpeziLocalization")
 }
 
 extension LocalizedFileResolution {

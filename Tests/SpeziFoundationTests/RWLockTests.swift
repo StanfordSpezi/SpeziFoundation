@@ -85,7 +85,7 @@ struct RWLockTests {
         }
     }
     
-    #if !os(Linux)
+    #if !canImport(Darwin)
     // This test is temporarily disabled on Linux.
     //
     // Reason: `lock.isWriteLocked()` behaves differently between Glibc (Linux) and macOS.
@@ -101,7 +101,10 @@ struct RWLockTests {
     // See
     // - https://linux.die.net/man/3/pthread_rwlock_trywrlock
     // - https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/pthread_rwlock_trywrlock.3.html
+    @Test(.disabled())
+    #else
     @Test
+    #endif
     func testIsWriteLocked() {
         let lock = RWLock()
     
@@ -115,7 +118,6 @@ struct RWLockTests {
         usleep(50_000) // Give the other thread time to lock (50ms)
         #expect(!lock.isWriteLocked())
     }
-    #endif
     
     @Test
     func testMultipleLocksAcquired() async {
