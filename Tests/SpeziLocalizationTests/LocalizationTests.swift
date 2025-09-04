@@ -10,7 +10,7 @@ import Foundation
 #if os(macOS) || targetEnvironment(macCatalyst)
 import HealthKit
 #endif
-@_spi(Testing) import SpeziLocalization
+@_spi(Testing) @testable import SpeziLocalization
 import Testing
 
 
