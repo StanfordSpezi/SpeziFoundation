@@ -8,7 +8,6 @@
 
 import Atomics
 import Foundation
-
 #if canImport(Glibc)
 import Glibc
 #endif
