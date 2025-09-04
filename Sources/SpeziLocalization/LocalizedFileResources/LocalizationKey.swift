@@ -51,7 +51,10 @@ public struct LocalizationKey: Hashable, Sendable {
             // this should be exceedingly unlikely to happen: https://stackoverflow.com/a/74563008
             return nil
         }
-        self.init(language: locale.language, region: region)
+        // we need to reset the region that's embedded in the language (if any), bc we otherwise have that twice.
+        var components = Locale.Language.Components(identifier: locale.language.minimalIdentifier)
+        components.region = nil
+        self.init(language: .init(components: components), region: region)
     }
     
     /// Creates a new Localization Key by extracting a localization suffix from a filename
