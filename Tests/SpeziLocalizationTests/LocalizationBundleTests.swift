@@ -198,6 +198,53 @@ struct LocalizationBundleTests {
             expectedLocalization: .esUS
         )
     }
+    
+    
+    @Test
+    func localeStuff() {
+        #expect(LocalizationKey(locale: .enUS) == LocalizationKey(language: .init(identifier: "en"), region: .unitedStates))
+        #expect(LocalizationKey(locale: .enUK) == LocalizationKey(language: .init(identifier: "en"), region: .unitedKingdom))
+    }
+    
+    
+    @Test
+    func parseLocalizationInfo() throws {
+        func imp(
+            url: String,
+            expected: (unlocalizedUrl: String, localization: LocalizationKey)?,
+            sourceLocation: SourceLocation = #_sourceLocation
+        ) throws {
+            let url = try URL(url, strategy: .url)
+            let result = LocalizedFileResolution.parse(url)
+            switch expected {
+            case nil:
+                #expect(result == nil, sourceLocation: sourceLocation)
+            case let .some(expected):
+                let result = try #require(result, "Expected nil, but got \(String(describing: result))", sourceLocation: sourceLocation)
+                let expectedUrl = try URL(expected.unlocalizedUrl, strategy: .url)
+                #expect(result.unlocalizedUrl == expectedUrl, sourceLocation: sourceLocation)
+                #expect(result.localization == expected.localization, sourceLocation: sourceLocation)
+            }
+        }
+        
+        try imp(url: "file:///news/Welcome.md", expected: nil)
+        try imp(
+            url: "file:///news/Welcome+en-US.md",
+            expected: ("file:///news/Welcome.md", try #require(.init(locale: .enUS)))
+        )
+        try imp(
+            url: "file:///news/Welcome+es-US.md",
+            expected: ("file:///news/Welcome.md", try #require(.init(locale: .esUS)))
+        )
+        try imp(
+            url: "file:///news/Welcome+en-UK.md",
+            expected: ("file:///news/Welcome.md", try #require(.init(locale: .enUK)))
+        )
+        try imp(
+            url: "file:///news/Welcome+en-DE.md",
+            expected: ("file:///news/Welcome.md", try #require(.init(locale: .enDE)))
+        )
+    }
 }
 
 
@@ -210,6 +257,7 @@ extension Locale {
     static let deUS = Self(identifier: "de_US")
     static let esES = Self(identifier: "es_ES")
     static let frFR = Self(identifier: "fr_FR")
+    static let enDE = Self(identifier: "en_DE")
 }
 
 extension LocalizationKey {
