@@ -8,8 +8,7 @@
 
 #if canImport(pthread)
 public import pthread
-#endif
-#if canImport(Glibc)
+#elseif canImport(Glibc)
 public import Glibc
 #endif
 

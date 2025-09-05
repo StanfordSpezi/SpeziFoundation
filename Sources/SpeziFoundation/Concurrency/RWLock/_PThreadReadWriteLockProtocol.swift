@@ -8,9 +8,10 @@
 
 #if canImport(pthread)
 public import pthread
-#endif
-#if canImport(Glibc)
+#elseif canImport(Glibc)
 public import Glibc
+#else
+#error("Unsupported platform: neither pthread nor Glibc is available")
 #endif
 
 

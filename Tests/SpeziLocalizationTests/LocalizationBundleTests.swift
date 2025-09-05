@@ -10,13 +10,10 @@ import Foundation
 @testable import SpeziLocalization
 import Testing
 
+#if canImport(Darwin) // "Skipping on non-Darwin platforms: no systemLanguages available"
 @Suite
 struct LocalizationBundleTests {
-    #if canImport(Darwin)
     @Test
-    #else
-    @Test(.disabled("Skipping on non-Darwin platforms: no systemLanguages available"))
-    #endif
     func parseFilename() throws {
         let resolved = try #require(LocalizedFileResource.Resolved(
             resource: "Consent.md",
@@ -36,11 +33,7 @@ struct LocalizationBundleTests {
         #expect(URL(filePath: "def+en-US").strippingLocalizationSuffix().absoluteURL == URL(filePath: "def").absoluteURL)
     }
     
-    #if canImport(Darwin)
     @Test
-    #else
-    @Test(.disabled("Skipping on non-Darwin platforms: no systemLanguages available"))
-    #endif
     func resolveFromList() throws { // swiftlint:disable:this function_body_length
         let inputUrls = [
             "/news/Welcome.md",
@@ -275,3 +268,4 @@ extension LocalizationKey {
     static let esES = Self(language: .init(identifier: "es"), region: .spain)
     static let frFR = Self(language: .init(identifier: "fr"), region: .france)
 }
+#endif

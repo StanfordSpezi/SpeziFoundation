@@ -8,13 +8,12 @@
 
 import Atomics
 import Foundation
-#if canImport(Glibc)
-import Glibc
-#endif
 
 #if canImport(Darwin)
 typealias AtomicPThread = ManagedAtomic<pthread_t?> // swiftlint:disable:this file_types_order
-#else
+#elseif canImport(Glibc)
+import Glibc
+
 // Glibc (Linux): `pthread_t` is `UInt`
 // Darwin (macOS/iOS): `pthread_t` is `UnsafeMutablePointer<_opaque_pthread_t>`
 //
@@ -38,4 +37,6 @@ struct AtomicPThread {
         raw.store(value ?? Self.none, ordering: .relaxed)
   }
 }
+#else
+#error("No Darwin and Glibc module found: can't provide a definition for AtomicPThread.")
 #endif

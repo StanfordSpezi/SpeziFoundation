@@ -12,52 +12,19 @@ import SpeziFoundation
 import Testing
 
 
+#if canImport(Darwin)
 /// Internal helper actor to be able to have code run guaranteed off the main actor (by scheduling it onto a background queue)
 @globalActor
 private actor TestActor: GlobalActor {
-    final class DispatchQueueExecutor: SerialExecutor {
-         private let queue: DispatchQueue
-
-         init(queue: DispatchQueue) {
-             self.queue = queue
-         }
-
-         func enqueue(_ job: UnownedJob) {
-             self.queue.async {
-                 job.runSynchronously(on: self.asUnownedSerialExecutor())
-             }
-         }
-
-         func asUnownedSerialExecutor() -> UnownedSerialExecutor {
-             UnownedSerialExecutor(ordinary: self)
-         }
-
-        func checkIsolated() {
-            dispatchPrecondition(condition: .onQueue(self.queue))
-        }
-    }
-    
     static let shared = TestActor()
-
-    let queue = DispatchQueue(label: "Queue")
-    private let executor: DispatchQueueExecutor
-    
+    let queue = DispatchQueue(label: "Queue") as! DispatchSerialQueue // swiftlint:disable:this force_cast
     nonisolated var unownedExecutor: UnownedSerialExecutor {
-        executor.asUnownedSerialExecutor()
-    }
-
-    init() {
-        self.executor = DispatchQueueExecutor(queue: queue)
+        queue.asUnownedSerialExecutor()
     }
 }
 
 @Suite
 struct MainActorExecutionTests {
-    #if os(Linux)
-        @Test(.disabled("Skipped on Linux: main thread differs from Darwin"))
-    #else
-        @Test
-    #endif
     @MainActor
     func ifAlreadyRunningOnMainActor() {
         // XCTest by default runs all test cases on the main thread, ie the main queue, ie the main actor.
@@ -82,3 +49,4 @@ struct MainActorExecutionTests {
         }
     }
 }
+#endif
