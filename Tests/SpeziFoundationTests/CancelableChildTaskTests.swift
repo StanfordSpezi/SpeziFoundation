@@ -25,6 +25,7 @@ struct CancelableChildTaskTests {
         }
     }
     
+    @Test
     func cancelation() async {
         await withDiscardingTaskGroup { group in
             await confirmation { confirmation in

@@ -10,7 +10,7 @@ import Foundation
 @testable import SpeziLocalization
 import Testing
 
-
+#if canImport(Darwin) // "Skipping on non-Darwin platforms: no systemLanguages available"
 @Suite
 struct LocalizationBundleTests {
     @Test
@@ -268,3 +268,4 @@ extension LocalizationKey {
     static let esES = Self(language: .init(identifier: "es"), region: .spain)
     static let frFR = Self(language: .init(identifier: "fr"), region: .france)
 }
+#endif

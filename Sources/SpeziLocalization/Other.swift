@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+#if canImport(Darwin) // LocalizedStringResource doesn't exist on Linux
+
 public import Foundation
 
 
@@ -42,3 +44,4 @@ extension StringProtocol {
         LocalizedStringResource(stringLiteral: String(self))
     }
 }
+#endif
