@@ -6,11 +6,12 @@
 // SPDX-License-Identifier: MIT
 //
 
+// swiftlint:disable file_types_order
 import Atomics
 import Foundation
 
 #if canImport(Darwin)
-typealias AtomicPThread = ManagedAtomic<pthread_t?> // swiftlint:disable:this file_types_order
+typealias AtomicPThread = ManagedAtomic<pthread_t?>
 #elseif canImport(Glibc)
 import Glibc
 
