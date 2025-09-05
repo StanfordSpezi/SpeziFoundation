@@ -10,7 +10,7 @@ import Foundation
 #if os(macOS) || targetEnvironment(macCatalyst)
 import HealthKit
 #endif
-@_spi(Testing) import SpeziLocalization
+@_spi(Testing) @testable import SpeziLocalization
 import Testing
 
 
@@ -128,6 +128,29 @@ struct LocalizationTests {
         )
         #expect(resource.localizedString(for: .init(identifier: "en_US")) == "Hello, World!")
         #expect(resource.localizedString(for: .init(identifier: "de_DE")) == "Hallo, Welt!")
+    }
+    
+    
+    @Test
+    func localizationKeys() throws {
+        #expect(Locale(identifier: "en-UK") == Locale(identifier: "en-GB"))
+        #expect(Locale(identifier: "en-UK").identifier == "en-GB")
+        #expect(LocalizationKey(locale: .init(identifier: "de_DE"))?.description == "de-DE")
+        #expect(LocalizationKey(locale: .init(identifier: "de-DE"))?.description == "de-DE")
+        #expect(LocalizationKey(locale: .init(identifier: "en-US"))?.description == "en-US")
+        #expect(LocalizationKey(locale: .init(identifier: "en-UK"))?.description == "en-GB")
+        #expect(LocalizationKey(locale: .init(identifier: "en-GB"))?.description == "en-GB")
+        #expect(LocalizationKey(locale: .init(identifier: "en-DE"))?.description == "en-DE")
+        #expect(LocalizationKey(locale: .init(identifier: "es_DE"))?.description == "es-DE")
+    }
+    
+    @Test
+    func lozalisationKeyParsing() {
+        #expect(Locale(identifier: "en-UK").language == .enGB)
+        #expect(Locale(identifier: "en-UK").region == .unitedKingdom)
+        #expect(Locale(identifier: "en-UK").region?.isISORegion == true)
+        #expect(LocalizationKey("en-UK") == LocalizationKey(language: .en, region: .unitedKingdom))
+        #expect(LocalizationKey("en-GB") == LocalizationKey(language: .en, region: .unitedKingdom))
     }
 }
 
