@@ -51,7 +51,8 @@ public struct LocalizationKey: Hashable, Sendable {
             // this should be exceedingly unlikely to happen: https://stackoverflow.com/a/74563008
             return nil
         }
-        self.init(language: locale.language, region: region)
+        // we need to reset the region that's embedded in the language (if any), bc we otherwise have that twice.
+        self.init(language: locale.language.withRegion(nil), region: region)
     }
     
     /// Creates a new Localization Key by extracting a localization suffix from a filename
@@ -67,14 +68,24 @@ public struct LocalizationKey: Hashable, Sendable {
     ///
     /// Determines how well the LocalizationKey matches the Locale, on a scale from 0 to 1.
     public func score(against locale: Locale, using localeMatchingBehaviour: LocaleMatchingBehaviour = .default) -> Double {
-        let languageMatches = if let selfCode = self.language.languageCode, let otherCode = locale.language.languageCode {
+        score(
+            against: locale.language.withRegion(locale.language.region ?? locale.region),
+            using: localeMatchingBehaviour
+        )
+    }
+    
+    /// Match a Localization Key against a Language.
+    ///
+    /// Determines how well the LocalizationKey matches the Language, on a scale from 0 to 1.
+    public func score(against other: Locale.Language, using localeMatchingBehaviour: LocaleMatchingBehaviour = .default) -> Double {
+        let languageMatches = if let selfCode = self.language.languageCode, let otherCode = other.languageCode {
             selfCode.identifier == otherCode.identifier
         } else {
-            self.language.minimalIdentifier == locale.language.minimalIdentifier
+            self.language.minimalIdentifier == other.minimalIdentifier
         }
         // IDEA: maybe also allow matching against parent regions?
         // (eg: if the user is in Canada, but the region in the key is just north america in general, that should still match...)
-        let regionMatches = locale.region?.identifier == self.region.identifier
+        let regionMatches = other.region?.identifier == self.region.identifier
         guard !(languageMatches && regionMatches) else { // perfect match
             return 1
         }
@@ -86,11 +97,19 @@ public struct LocalizationKey: Hashable, Sendable {
         case .preferRegionMatch:
             return regionMatches ? 0.8 : languageMatches ? 0.75 : 0
         case .custom(let imp):
-            guard let key = LocalizationKey(locale: locale) else {
+            guard let region = other.region else {
                 return 0
             }
+            let key = LocalizationKey(language: other, region: region)
             return imp(self, key)
         }
+    }
+}
+
+
+extension LocalizationKey: Equatable {
+    public static func == (lhs: LocalizationKey, rhs: LocalizationKey) -> Bool {
+        lhs.region == rhs.region && lhs.language.isEquivalent(to: rhs.language)
     }
 }
 
@@ -102,16 +121,6 @@ extension LocalizationKey: LosslessStringConvertible {
     
     /// Attempts to create a Localization Key, by parsing the input.
     public init?(_ description: String) {
-        let components = description.split(separator: "-")
-        guard components.count == 2 else {
-            return nil
-        }
-        let languageIdentifier = components[0]
-        let regionIdentifier = components[1]
-        guard let language = Locale.Language.systemLanguages.first(where: { $0.minimalIdentifier == languageIdentifier }),
-              let region = Locale.Region.isoRegions.first(where: { $0.identifier == regionIdentifier }) else {
-            return nil
-        }
-        self.init(language: language, region: region)
+        self.init(locale: .init(identifier: description))
     }
 }

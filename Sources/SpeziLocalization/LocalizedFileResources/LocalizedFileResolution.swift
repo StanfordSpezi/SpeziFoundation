@@ -63,41 +63,67 @@ extension LocalizedFileResolution {
         using localeMatchingBehaviour: LocaleMatchingBehaviour = .default,
         fallback fallbackLocale: LocalizationKey? = .enUS
     ) -> LocalizedFileResource.Resolved? {
-        let candidates: [ScoredCandidate] = candidates
-            .lazy
-            .compactMap { LocalizedFileResource.Resolved(resource: resource, url: $0) }
-            .filter { $0.url.matches(unlocalizedFilename: resource.name) }
-            .map { ScoredCandidate(fileResource: $0, score: $0.localization.score(against: resource.locale, using: localeMatchingBehaviour)) }
-            .sorted(by: >)
-        guard let candidate = candidates.first, candidate.score > 0.5 else {
-            Self.logger.error(
-                "Unable to find url for \(resource.name) and locale \(resource.locale) (key: \(LocalizationKey(locale: resource.locale).debugDescription))."
-            )
-            if candidates.isEmpty {
-                Self.logger.error("No candidates")
-            } else {
-                Self.logger.error("Candidates:")
-                for candidate in candidates {
-                    Self.logger.error("- \(candidate.score) @ \(candidate.fileResource.fullFilenameIncludingLocalization)")
+        let languages: [Locale.Language] = {
+            var langs = Bundle.main.preferredLocalizations(from: [resource.locale.language])
+            if !langs.contains(resource.locale.language) {
+                langs.insert(resource.locale.language, at: 0)
+            }
+            if let fallbackLocale {
+                langs.append(fallbackLocale.language.withRegion(fallbackLocale.region))
+            }
+            return langs
+        }()
+        for language in languages {
+            let candidates: [ScoredCandidate] = candidates
+                .lazy
+                .compactMap { LocalizedFileResource.Resolved(resource: resource, url: $0) }
+                .filter { $0.url.matches(unlocalizedFilename: resource.name) }
+                .map { ScoredCandidate(fileResource: $0, score: $0.localization.score(against: language, using: localeMatchingBehaviour)) }
+                .sorted(by: >)
+            guard let candidate = candidates.first, candidate.score > 0.5 else {
+                Self.logger.error(
+                    "Unable to find url for \(resource.name) and language \(language.minimalIdentifier)."
+                )
+                if candidates.isEmpty {
+                    Self.logger.error("No candidates")
+                } else {
+                    Self.logger.error("Candidates:")
+                    for candidate in candidates {
+                        Self.logger.error("- \(candidate.score) @ \(candidate.fileResource.fullFilenameIncludingLocalization)")
+                    }
+                }
+                continue
+            }
+            if let equallyBestRanked = candidates.lazy.chunked(by: { $0.score == $1.score }).first, !equallyBestRanked.isEmpty { // always true
+                guard equallyBestRanked.count == 1 else {
+                    var errorMsg = "Error: Found multiple candidates for \(resource.name) @ \(language.minimalIdentifier), all of which are equally ranked!"
+                    for candidate in candidates {
+                        errorMsg.append("\n- \(candidate.score) @ \(candidate.fileResource.fullFilenameIncludingLocalization)")
+                    }
+                    Self.logger.error("\(errorMsg)")
+                    continue
                 }
             }
-            if let fallbackLocale, let fallback = candidates.first(where: { $0.fileResource.localization == fallbackLocale }) {
-                Self.logger.warning("Falling back to \(fallbackLocale) locale.")
-                return fallback.fileResource
-            }
+            return candidate.fileResource
+        }
+        return nil
+    }
+}
+
+
+extension LocalizedFileResolution {
+    /// Extract's information about a localized file.
+    ///
+    /// - parameter url: The `URL` of a localized file (e.g., `/Users/spezi/Documents/Welcome+en-US.md`).
+    /// - returns: If `URL` contains localization info compatible with SpeziLocalization: the `URL`, with its localization into stripped, and the extracted localization info; otherwise `nil`.
+    public static func parse(_ url: URL) -> (unlocalizedUrl: URL, localization: LocalizationKey)? {
+        guard let components = url.lastPathComponent.parseLocalizationComponents(),
+              let fileExtension = components.fileExtension,
+              let localization = LocalizationKey(components.rawLocalization) else {
             return nil
         }
-        if let equallyBestRanked = candidates.lazy.chunked(by: { $0.score == $1.score }).first, !equallyBestRanked.isEmpty { // will always be true.
-            guard equallyBestRanked.count == 1 else {
-                var errorMsg = "Error: Found multiple candidates for \(resource.name) @ \(resource.locale), all of which are equally ranked! Returning nil."
-                for candidate in candidates {
-                    errorMsg.append("\n- \(candidate.score) @ \(candidate.fileResource.fullFilenameIncludingLocalization)")
-                }
-                Self.logger.error("\(errorMsg)")
-                return nil
-            }
-        }
-        return candidate.fileResource
+        let strippedUrl = url.deletingLastPathComponent().appending(component: components.baseName).appendingPathExtension(fileExtension)
+        return (strippedUrl, localization)
     }
 }
 
@@ -117,6 +143,15 @@ extension URL {
             newUrl.appendPathExtension(fileExtension)
         }
         return newUrl
+    }
+}
+
+
+extension Locale.Language {
+    func withRegion(_ region: Locale.Region?) -> Self {
+        var components = Locale.Language.Components(identifier: self.maximalIdentifier)
+        components.region = region
+        return .init(components: components)
     }
 }
 
