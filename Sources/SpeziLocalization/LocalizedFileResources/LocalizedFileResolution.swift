@@ -108,6 +108,17 @@ extension LocalizedFileResolution {
         }
         return nil
     }
+    
+    
+    /// Selects all candidates that might match `resource`, ignoring the specified locale.
+    public static func selectCandidatesIgnoringLocalization(
+        matching resource: LocalizedFileResource,
+        from candidates: some Collection<URL>
+    ) -> [LocalizedFileResource.Resolved] {
+        candidates.lazy
+            .compactMap { LocalizedFileResource.Resolved(resource: resource, url: $0) }
+            .filter { $0.url.matches(unlocalizedFilename: resource.name) }
+    }
 }
 
 
