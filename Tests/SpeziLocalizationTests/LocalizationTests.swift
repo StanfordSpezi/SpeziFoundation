@@ -145,12 +145,34 @@ struct LocalizationTests {
     }
     
     @Test
-    func lozalisationKeyParsing() {
+    func localizationKeyParsing() {
         #expect(Locale(identifier: "en-UK").language == .enGB)
         #expect(Locale(identifier: "en-UK").region == .unitedKingdom)
         #expect(Locale(identifier: "en-UK").region?.isISORegion == true)
         #expect(LocalizationKey("en-UK") == LocalizationKey(language: .en, region: .unitedKingdom))
         #expect(LocalizationKey("en-GB") == LocalizationKey(language: .en, region: .unitedKingdom))
+    }
+    
+    @Test
+    func localizationKeyEquality() throws {
+        let keys = [
+            LocalizationKey(language: .init(identifier: "en"), region: .unitedKingdom),
+            try #require(LocalizationKey("en-UK")),
+            try #require(LocalizationKey("en-GB"))
+        ]
+        for key1 in keys {
+            for key2 in keys {
+                #expect(key1 == key2)
+                #expect(key2 == key1)
+                #expect(key1.region == key2.region)
+                #expect(key2.region == key1.region)
+                #expect(key1.language.isEquivalent(to: key2.language))
+                #expect(key2.language.isEquivalent(to: key1.language))
+            }
+        }
+        for _ in 0..<5_000 {
+            #expect(Set(keys).count == 1)
+        }
     }
 }
 

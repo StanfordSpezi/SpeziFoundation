@@ -12,7 +12,7 @@ import Testing
 
 
 @Suite
-struct LocalizationBundleTests {
+struct LocalizationBundleTests { // swiftlint:disable:this type_body_length
     @Test
     func parseFilename() throws {
         let resolved = try #require(LocalizedFileResource.Resolved(
@@ -197,6 +197,51 @@ struct LocalizationBundleTests {
             expectedPath: "/public/news/Update+es-US.md",
             expectedLocalization: .esUS
         )
+    }
+    
+    
+    @Test
+    func resolve3() throws {
+        let url = URL(filePath: "/news/Welcome.md")
+        let resolved = try #require(LocalizedFileResolution.resolve("Welcome.md", from: [url]))
+        #expect(resolved.url == url)
+        #expect(resolved.localization == .init(language: Locale.current.language, region: .unknown))
+    }
+    
+    
+    @Test
+    func resolve4() throws {
+        let urls = [
+            "/news/Welcome.md",
+            "/news/Welcome+en-US.md",
+            "/news/Welcome+es-US.md",
+            "/news/Welcome+es-ES.md",
+            "/news/Welcome+en-UK.md",
+            "/news/Welcome+de-DE.md",
+            "/news/Update.md",
+            "/news/Update+en-US.md",
+            "/news/Update+es-US.md",
+            "/news/Update+de-US.md"
+        ].map { URL(filePath: $0) }
+        #expect(LocalizedFileResolution.selectCandidatesIgnoringLocalization(
+            matching: LocalizedFileResource("Welcome.md"),
+            from: urls
+        ) == [
+            try #require(LocalizedFileResource.Resolved(resource: "Welcome.md", url: URL(filePath: "/news/Welcome+en-US.md"))),
+            try #require(LocalizedFileResource.Resolved(resource: "Welcome.md", url: URL(filePath: "/news/Welcome+es-US.md"))),
+            try #require(LocalizedFileResource.Resolved(resource: "Welcome.md", url: URL(filePath: "/news/Welcome+es-ES.md"))),
+            try #require(LocalizedFileResource.Resolved(resource: "Welcome.md", url: URL(filePath: "/news/Welcome+en-UK.md"))),
+            try #require(LocalizedFileResource.Resolved(resource: "Welcome.md", url: URL(filePath: "/news/Welcome+de-DE.md")))
+        ])
+        
+        #expect(LocalizedFileResolution.selectCandidatesIgnoringLocalization(
+            matching: LocalizedFileResource("Update.md"),
+            from: urls
+        ) == [
+            try #require(LocalizedFileResource.Resolved(resource: "Update.md", url: URL(filePath: "/news/Update+en-US.md"))),
+            try #require(LocalizedFileResource.Resolved(resource: "Update.md", url: URL(filePath: "/news/Update+es-US.md"))),
+            try #require(LocalizedFileResource.Resolved(resource: "Update.md", url: URL(filePath: "/news/Update+de-US.md")))
+        ])
     }
     
     

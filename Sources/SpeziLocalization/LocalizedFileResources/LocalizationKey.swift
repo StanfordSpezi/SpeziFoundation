@@ -28,7 +28,7 @@ public import Foundation
 ///
 /// ### Instance Methods
 /// - ``score(against:using:)``
-public struct LocalizationKey: Hashable, Sendable {
+public struct LocalizationKey: Sendable {
     /// The `en-US` localization key
     public static let enUS = Self(language: .init(identifier: "en"), region: .unitedStates)
     
@@ -107,9 +107,16 @@ public struct LocalizationKey: Hashable, Sendable {
 }
 
 
-extension LocalizationKey: Equatable {
+extension LocalizationKey: Hashable {
     public static func == (lhs: LocalizationKey, rhs: LocalizationKey) -> Bool {
         lhs.region == rhs.region && lhs.language.isEquivalent(to: rhs.language)
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(region)
+        // we implement equality based on `Locale.Language.isEquivalent(to:)`, which internally compares the
+        // two languages' maximalIdentifier, so we also need to use that to build up our hash value.
+        hasher.combine(language.maximalIdentifier)
     }
 }
 
