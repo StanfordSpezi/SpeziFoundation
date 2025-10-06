@@ -116,5 +116,15 @@ extension LocalizedFileResource {
                 localization: localization
             )
         }
+        
+        /// Creates a special `LocalizedFileResource.Resolved` representing an unlocalized file.
+        ///
+        /// For these instances, the `localization` will be set to the system language and an unknown region.
+        init(unlocalized resource: LocalizedFileResource, url: URL) {
+            self.resource = resource
+            self.url = url
+            self.unlocalizedFilename = url.lastPathComponent
+            self.localization = .init(language: Locale.current.language, region: .unknown)
+        }
     }
 }
