@@ -79,7 +79,7 @@ extension MarkdownDocument {
 
 
 extension MarkdownDocument.Parser {
-    consuming func parse() throws(ParseError) -> MarkdownDocument { // swiftlint:disable:this function_body_length cyclomatic_complexity
+    consuming func parse(baseUrl: URL?) throws(ParseError) -> MarkdownDocument { // swiftlint:disable:this function_body_length cyclomatic_complexity
         typealias Block = MarkdownDocument.Block
         let frontmatter = try parseFrontmatter()
         var blocks: [Block] = []
@@ -135,7 +135,7 @@ extension MarkdownDocument.Parser {
                 return block
             }
         }
-        return .init(metadata: .init(frontmatter), blocks: blocks)
+        return MarkdownDocument(metadata: .init(frontmatter), blocks: blocks, baseUrl: baseUrl)
     }
     
     
