@@ -102,6 +102,7 @@ public import Foundation
 /// ### Instance Properties
 /// - ``metadata``
 /// - ``blocks``
+/// - ``baseUrl``
 ///
 /// ### Supporting Types
 /// - ``Metadata``
@@ -111,11 +112,14 @@ public struct MarkdownDocument: Hashable, Sendable {
     public var metadata: Metadata
     /// The document's content blocks.
     public var blocks: [Block]
+    /// The `URL` that should be used when resolving relative links and references in the Markdown content.
+    public var baseUrl: URL?
     
     /// Creates a new Markdown document.
-    public init(metadata: Metadata, blocks: [Block]) {
+    public init(metadata: Metadata, blocks: [Block], baseUrl: URL? = nil) {
         self.metadata = metadata
         self.blocks = blocks
+        self.baseUrl = baseUrl
     }
     
     /// Creates a new Markdown document by processing a `String`.
@@ -126,9 +130,10 @@ public struct MarkdownDocument: Hashable, Sendable {
     /// - parameter text: The Markdown string to process.
     /// - parameter customElementNames: A `Set` of HTML tag names which should be processed into custom elements.
     ///     Any HTML tags encountered that aren't specified in the set will be treated as if they were part of the normal markdown text.
-    public init(processing text: String, customElementNames: Set<String> = []) throws(ParseError) {
+    /// - parameter baseUrl: The document's base url.
+    public init(processing text: String, customElementNames: Set<String> = [], baseUrl: URL? = nil) throws(ParseError) {
         let parser = Parser(input: text, customElementNames: customElementNames)
-        self = try parser.parse()
+        self = try parser.parse(baseUrl: baseUrl)
     }
     
     /// Creates a new Markdown document by processing a `Data` object.
@@ -139,11 +144,12 @@ public struct MarkdownDocument: Hashable, Sendable {
     /// - parameter data: The Markdown data to process.
     /// - parameter customElementNames: A `Set` of HTML tag names which should be processed into custom elements.
     ///     Any HTML tags encountered that aren't specified in the set will be treated as if they were part of the normal markdown text.
-    public init(processing data: Data, customElementNames: Set<String> = []) throws(ParseError) {
+    /// - parameter baseUrl: The document's base url.
+    public init(processing data: Data, customElementNames: Set<String> = [], baseUrl: URL? = nil) throws(ParseError) {
         guard let text = String(data: data, encoding: .utf8) else {
             throw ParseError(kind: .nonUTF8Input, sourceLoc: .zero)
         }
-        try self.init(processing: text, customElementNames: customElementNames)
+        try self.init(processing: text, customElementNames: customElementNames, baseUrl: baseUrl)
     }
     
     /// Creates a new Markdown document by processing the contents of a file.
@@ -154,10 +160,12 @@ public struct MarkdownDocument: Hashable, Sendable {
     /// - parameter url: The URL of the markdown file to process.
     /// - parameter customElementNames: A `Set` of HTML tag names which should be processed into custom elements.
     ///     Any HTML tags encountered that aren't specified in the set will be treated as if they were part of the normal markdown text.
-    public init(processingContentsOf url: URL, customElementNames: Set<String> = []) throws {
+    /// - parameter baseUrl: The document's base url. If `nil`, `url` will be used instead, with the last path component (the file itself) omitted.
+    public init(processingContentsOf url: URL, customElementNames: Set<String> = [], baseUrl: URL? = nil) throws {
         try self.init(
             processing: Data(contentsOf: url),
-            customElementNames: customElementNames
+            customElementNames: customElementNames,
+            baseUrl: baseUrl ?? url.deletingLastPathComponent()
         )
     }
 }

@@ -358,23 +358,29 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
             <toggle id=t1>T1</>
             """
         let data = try #require(input.data(using: .utf8))
-        let url = URL.temporaryDirectory
-            .appending(component: UUID().uuidString)
-            .appendingPathExtension("md")
+        let dirUrl = URL.temporaryDirectory.appending(component: UUID().uuidString, directoryHint: .isDirectory)
+        defer {
+            try? FileManager.default.removeItem(at: dirUrl)
+        }
+        let url = dirUrl.appending(component: "doc.md")
+        try FileManager.default.createDirectory(at: dirUrl, withIntermediateDirectories: true)
         try data.write(to: url)
-        
         let document = try MarkdownDocument(processingContentsOf: url, customElementNames: ["toggle"])
-        #expect(document == .init(metadata: [
-            "title": "Title"
-        ], blocks: [
-            .markdown(id: "hello-world", rawContents: "# Hello World"),
-            .customElement(.init(
-                name: "toggle",
-                attributes: [.init(name: "id", value: "t1")],
-                content: [.text("T1")],
-                raw: "<toggle id=t1>T1</>"
-            ))
-        ]))
+        #expect(document == MarkdownDocument(
+            metadata: [
+                "title": "Title"
+            ],
+            blocks: [
+                .markdown(id: "hello-world", rawContents: "# Hello World"),
+                .customElement(.init(
+                    name: "toggle",
+                    attributes: [.init(name: "id", value: "t1")],
+                    content: [.text("T1")],
+                    raw: "<toggle id=t1>T1</>"
+                ))
+            ],
+            baseUrl: dirUrl
+        ))
     }
     
     @Test
