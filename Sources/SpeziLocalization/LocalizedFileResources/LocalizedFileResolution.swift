@@ -32,6 +32,8 @@ extension LocalizedFileResolution {
     /// Use this function to match a ``LocalizedFileResource`` against a list of candidate `URL`s representing localized files,
     /// determining which `URL` is the "closest" match w.t.t. the file resource.
     ///
+    /// If no matching localized candidate exists, but there is a non-localized candidate whose name matches the `resource`, that candidate is returned.
+    ///
     /// Example:
     /// ```swift
     /// let urls = [
@@ -57,7 +59,7 @@ extension LocalizedFileResolution {
     /// - parameter candidates: List of file `URL`s against which `resource` should be resolved.
     /// - parameter localeMatchingBehaviour: The ``LocaleMatchingBehaviour`` that should be used when resolving the file resource
     /// - parameter fallbackLocale: An optional fallback locale, used in case no match exists for the `resource`'s locale.
-    public static func resolve(
+    public static func resolve( // swiftlint:disable:this function_body_length
         _ resource: LocalizedFileResource,
         from candidates: some Collection<URL>,
         using localeMatchingBehaviour: LocaleMatchingBehaviour = .default,
@@ -73,6 +75,7 @@ extension LocalizedFileResolution {
             }
             return langs
         }()
+        var canReturnUnlocalizedMatch = true
         for language in languages {
             let candidates: [ScoredCandidate] = candidates
                 .lazy
@@ -87,6 +90,7 @@ extension LocalizedFileResolution {
                 if candidates.isEmpty {
                     Self.logger.error("No candidates")
                 } else {
+                    canReturnUnlocalizedMatch = false
                     Self.logger.error("Candidates:")
                     for candidate in candidates {
                         Self.logger.error("- \(candidate.score) @ \(candidate.fileResource.fullFilenameIncludingLocalization)")
@@ -101,12 +105,31 @@ extension LocalizedFileResolution {
                         errorMsg.append("\n- \(candidate.score) @ \(candidate.fileResource.fullFilenameIncludingLocalization)")
                     }
                     Self.logger.error("\(errorMsg)")
+                    canReturnUnlocalizedMatch = false
                     continue
                 }
             }
             return candidate.fileResource
         }
+        // if we weren't able to find anything above, see if we can fall back to an unlocalized version of the requested resource.
+        if canReturnUnlocalizedMatch,
+           case let unlocalizedCandidates = candidates.filter({ $0.matches(unlocalizedFilename: resource.name) }),
+           let candidate = unlocalizedCandidates.first,
+           unlocalizedCandidates.count == 1 {
+            return LocalizedFileResource.Resolved(unlocalized: resource, url: candidate)
+        }
         return nil
+    }
+    
+    
+    /// Selects all candidates that might match `resource`, ignoring the specified locale.
+    public static func selectCandidatesIgnoringLocalization(
+        matching resource: LocalizedFileResource,
+        from candidates: some Collection<URL>
+    ) -> [LocalizedFileResource.Resolved] {
+        candidates.lazy
+            .compactMap { LocalizedFileResource.Resolved(resource: resource, url: $0) }
+            .filter { $0.url.matches(unlocalizedFilename: resource.name) }
     }
 }
 
