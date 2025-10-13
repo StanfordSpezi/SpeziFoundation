@@ -44,6 +44,16 @@ The project can be added to your Xcode project or Swift Package using the [Swift
 
 Contributions to this project are welcome. Please make sure to read the [contribution guidelines](https://github.com/StanfordSpezi/.github/blob/main/CONTRIBUTING.md) and the [contributor covenant code of conduct](https://github.com/StanfordSpezi/.github/blob/main/CODE_OF_CONDUCT.md) first.
 
+## Testing on Linux
+
+You can test SpeziFoundation on Linux using Docker. To do this, run the following command:
+
+```bash
+docker build -t spezi-foundation .
+```
+
+This will build the container and run the tests.
+
 
 ## License
 

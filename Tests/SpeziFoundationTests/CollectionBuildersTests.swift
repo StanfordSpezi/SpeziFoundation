@@ -6,28 +6,28 @@
 // SPDX-License-Identifier: MIT
 //
 
-import SpeziFoundation
-import XCTest
+import Foundation
+@testable import SpeziFoundation
+import Testing
 
 
-final class CollectionBuildersTests: XCTestCase {
+struct CollectionBuildersTests {
     private func _imp<C: RangeReplaceableCollection>(
         _: C.Type,
         expected: C,
         @RangeReplaceableCollectionBuilder<C> _ make: () -> C,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        _ sourceLocation: SourceLocation = #_sourceLocation
     ) where C: Equatable {
         let collection = make()
-        XCTAssertEqual(collection, expected, file: file, line: line)
+        #expect(collection == expected, sourceLocation: sourceLocation)
     }
-    
     
     private func mightThrow<T>(_ value: T) throws -> T {
         value
     }
     
     
+    @Test
     func testArrayBuilder() {
         _imp([Int].self, expected: [1, 2, 3, 4, 5, 7, 8, 9, 52, 41]) {
             1
@@ -46,9 +46,11 @@ final class CollectionBuildersTests: XCTestCase {
                 41
             }
         }
-        XCTAssertEqual(Array<Int> {}, []) // swiftlint:disable:this syntactic_sugar
+        
+        #expect(Array<Int> {} == []) // swiftlint:disable:this syntactic_sugar empty_collection_literal
     }
     
+    @Test
     func testStringBuilder() {
         let greet = {
             "Hello, \($0 as String) 🚀\n"
@@ -90,9 +92,10 @@ final class CollectionBuildersTests: XCTestCase {
         }
     }
     
-    
+    @Test
     func testSetBuilder() {
-        XCTAssertEqual(Set<Int> {}, Set<Int>())
+        #expect(Set<Int> {} == Set<Int>())
+        
         let greet = {
             "Hello, \($0 as String) 🚀"
         }
@@ -138,10 +141,10 @@ final class CollectionBuildersTests: XCTestCase {
             "b",
             "c"
         ]
-        XCTAssertEqual(set, expected)
+        #expect(set == expected)
     }
     
-    
+    @Test
     func testArrayBuilderThrowing() throws {
         let array1: [Int] = Array {
             1
@@ -153,7 +156,7 @@ final class CollectionBuildersTests: XCTestCase {
             try mightThrow(2)
             3
         }
-        XCTAssertEqual(array1, [1, 2, 3])
-        XCTAssertEqual(array2, [1, 2, 3])
+        #expect(array1 == [1, 2, 3])
+        #expect(array2 == [1, 2, 3])
     }
 }

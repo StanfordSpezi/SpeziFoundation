@@ -9,6 +9,8 @@
 #ifndef ObjCExceptionHandling_h
 #define ObjCExceptionHandling_h
 
+#if defined(__APPLE__)
+
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSException.h>
 
@@ -20,4 +22,6 @@ NSException *_Nullable InvokeBlockCatchingNSExceptionIfThrown(NS_NOESCAPE void(^
 
 NS_ASSUME_NONNULL_END
 
+#endif
 #endif /* ObjCExceptionHandling_h */
+

@@ -12,6 +12,7 @@ import SpeziFoundation
 import Testing
 
 
+#if canImport(Darwin)
 /// Internal helper actor to be able to have code run guaranteed off the main actor (by scheduling it onto a background queue)
 @globalActor
 private actor TestActor: GlobalActor {
@@ -22,10 +23,8 @@ private actor TestActor: GlobalActor {
     }
 }
 
-
 @Suite
 struct MainActorExecutionTests {
-    @Test
     @MainActor
     func ifAlreadyRunningOnMainActor() {
         // XCTest by default runs all test cases on the main thread, ie the main queue, ie the main actor.
@@ -50,3 +49,4 @@ struct MainActorExecutionTests {
         }
     }
 }
+#endif

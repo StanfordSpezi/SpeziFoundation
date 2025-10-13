@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+#if defined(__APPLE__)
+
 #import "ObjCExceptionHandling.h"
 
 NSException *_Nullable InvokeBlockCatchingNSExceptionIfThrown(NS_NOESCAPE void(^block)(void)) {
@@ -16,3 +18,5 @@ NSException *_Nullable InvokeBlockCatchingNSExceptionIfThrown(NS_NOESCAPE void(^
         return exception;
     }
 }
+
+#endif

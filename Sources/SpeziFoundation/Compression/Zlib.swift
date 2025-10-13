@@ -7,8 +7,13 @@
 //
 
 public import Foundation
+#if canImport(zlib)
 import zlib
-
+#elseif canImport(CZlib)
+import CZlib
+#else
+#error("No zlib module found. On Linux ensure that you have zlib1g-dev installed.")
+#endif
 
 /// A wrapper around the `zlib` compression library
 public enum Zlib: CompressionAlgorithm {
@@ -30,7 +35,7 @@ public enum Zlib: CompressionAlgorithm {
             let outputBufferSize = compressBound(UInt(inputBuffer.count))
             let outputBuffer: UnsafeMutablePointer<UInt8> = .allocate(capacity: Int(outputBufferSize))
             var compressedSize: UInt = outputBufferSize
-            let status = zlib.compress2(outputBuffer, &compressedSize, inputBufferPtr, UInt(inputBuffer.count), 9)
+            let status = compress2(outputBuffer, &compressedSize, inputBufferPtr, UInt(inputBuffer.count), 9)
             switch status {
             case Z_OK:
                 return .success(Data(bytesNoCopy: outputBuffer, count: Int(compressedSize), deallocator: .free))
@@ -71,7 +76,7 @@ public enum Zlib: CompressionAlgorithm {
             let outputBufferSize = UInt(expectedOutputLength)
             let outputBuffer: UnsafeMutablePointer<UInt8> = .allocate(capacity: Int(outputBufferSize))
             var decompressedSize: UInt = outputBufferSize
-            let status = zlib.uncompress(outputBuffer, &decompressedSize, inputBufferPtr, UInt(inputBuffer.count))
+            let status = uncompress(outputBuffer, &decompressedSize, inputBufferPtr, UInt(inputBuffer.count))
             switch status {
             case Z_OK:
                 return .success(Data(bytesNoCopy: outputBuffer, count: Int(decompressedSize), deallocator: .free))
