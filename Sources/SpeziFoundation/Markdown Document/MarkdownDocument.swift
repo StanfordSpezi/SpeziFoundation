@@ -161,11 +161,25 @@ public struct MarkdownDocument: Hashable, Sendable {
     /// - parameter customElementNames: A `Set` of HTML tag names which should be processed into custom elements.
     ///     Any HTML tags encountered that aren't specified in the set will be treated as if they were part of the normal markdown text.
     /// - parameter baseUrl: The document's base url. If `nil`, `url` will be used instead, with the last path component (the file itself) omitted.
-    public init(processingContentsOf url: URL, customElementNames: Set<String> = [], baseUrl: URL? = nil) throws {
+    public init(contentsOf url: URL, customElementNames: Set<String> = [], baseUrl: URL? = nil) throws {
         try self.init(
             processing: Data(contentsOf: url),
             customElementNames: customElementNames,
             baseUrl: baseUrl ?? url.deletingLastPathComponent()
         )
+    }
+    
+    /// Creates a new Markdown document by processing the contents of a file.
+    ///
+    /// Note that thie doesn't perform any Markdown parsing on its own; rather, it splits up a markdown file into a sequence of blocks,
+    /// each of which is either markdown content or a custom HTML element.
+    ///
+    /// - parameter url: The URL of the markdown file to process.
+    /// - parameter customElementNames: A `Set` of HTML tag names which should be processed into custom elements.
+    ///     Any HTML tags encountered that aren't specified in the set will be treated as if they were part of the normal markdown text.
+    /// - parameter baseUrl: The document's base url. If `nil`, `url` will be used instead, with the last path component (the file itself) omitted
+    @available(*, deprecated, renamed: "init(contentsOf:customElementNames:baseUrl:)")
+    public init(processingContentsOf url: URL, customElementNames: Set<String> = [], baseUrl: URL? = nil) throws {
+        try self.init(contentsOf: url, customElementNames: customElementNames, baseUrl: baseUrl)
     }
 }
