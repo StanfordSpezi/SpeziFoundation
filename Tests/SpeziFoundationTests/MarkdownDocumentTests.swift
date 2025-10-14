@@ -365,7 +365,7 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
         let url = dirUrl.appending(component: "doc.md")
         try FileManager.default.createDirectory(at: dirUrl, withIntermediateDirectories: true)
         try data.write(to: url)
-        let document = try MarkdownDocument(processingContentsOf: url, customElementNames: ["toggle"])
+        let document = try MarkdownDocument(contentsOf: url, customElementNames: ["toggle"])
         #expect(document == MarkdownDocument(
             metadata: [
                 "title": "Title"
