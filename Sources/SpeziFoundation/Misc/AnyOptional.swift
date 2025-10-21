@@ -19,8 +19,13 @@
 public protocol AnyOptional: ExpressibleByNilLiteral {
     /// The underlying type of the Optional
     associatedtype Wrapped
-
-
+    
+    /// Constructs an empty instance of the Optional.
+    static var none: Self { get }
+    
+    /// Constructs a non-empty empty instance of the Optional.
+    static func some(_ wrapped: Wrapped) -> Self
+    
     /// This property provides access to the underlying Optional
     var unwrappedOptional: Optional<Wrapped> { get }
     // swiftlint:disable:previous syntactic_sugar
