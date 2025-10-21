@@ -7,6 +7,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+// swiftlint:disable syntactic_sugar type_contents_order
+
 
 /// A type erased `Optional`.
 ///
@@ -28,14 +30,10 @@ public protocol AnyOptional: ExpressibleByNilLiteral {
     
     /// This property provides access to the underlying Optional
     var unwrappedOptional: Optional<Wrapped> { get }
-    // swiftlint:disable:previous syntactic_sugar
-    // Disabling syntactic_sugar, improves readability and showcases what really happens here.
 }
 
 
 extension Optional: AnyOptional {
-    // Disabling syntactic_sugar, improves readability and showcases what really happens here.
-    // swiftlint:disable:next syntactic_sugar
     public var unwrappedOptional: Optional<Wrapped> {
         self
     }
