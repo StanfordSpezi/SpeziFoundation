@@ -31,15 +31,15 @@ struct CancelableChildTaskTests {
             await confirmation { confirmation in
                 let handle = group.addCancelableTask {
                     do {
-                        try await Task.sleep(for: .milliseconds(30), tolerance: .nanoseconds(0))
+                        try await Task.sleep(for: .milliseconds(60), tolerance: .nanoseconds(0))
                         Issue.record("Task was not cancelled!")
                     } catch {
                         confirmation()
                     }
                 }
-                try? await Task.sleep(for: .milliseconds(5), tolerance: .nanoseconds(0))
+                try? await Task.sleep(for: .milliseconds(10), tolerance: .nanoseconds(0))
                 handle.cancel()
-                try? await Task.sleep(for: .milliseconds(50), tolerance: .nanoseconds(0))
+                try? await Task.sleep(for: .milliseconds(100), tolerance: .nanoseconds(0))
             }
         }
     }
