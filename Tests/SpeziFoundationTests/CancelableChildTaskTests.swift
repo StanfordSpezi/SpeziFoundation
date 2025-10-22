@@ -9,6 +9,8 @@
 import SpeziFoundation
 import Testing
 
+@MainActor
+@Suite
 struct CancelableChildTaskTests {
     @Test
     func normalCompletion() async {
