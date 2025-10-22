@@ -59,7 +59,7 @@ extension Sequence {
     
     /// An asynchronous version of Swift's `Sequence.reduce(_:_:)` function.
     @inlinable
-    public func reduce<Result>(
+    public func reduceAsync<Result>(
         _ initialResult: Result,
         _ nextPartialResult: (Result, Element) async throws -> Result
     ) async rethrows -> Result {
@@ -72,13 +72,13 @@ extension Sequence {
     
     /// An asynchronous version of Swift's `Sequence.reduce(into:_:)` function.
     @inlinable
-    public func reduce<Result>(
+    public func reduceAsync<Result>(
         into initial: Result,
-        _ nextPartialResult: (inout Result, Element) async throws -> Void
+        _ updateAccumulatingResult: (inout Result, Element) async throws -> Void
     ) async rethrows -> Result {
         var result = initial
         for element in self {
-            try await nextPartialResult(&result, element)
+            try await updateAccumulatingResult(&result, element)
         }
         return result
     }

@@ -21,8 +21,8 @@ Binary search over Collections, and other Sequence extensions
 ### Sequence and Collection operations
 - ``Swift/Sequence/isSorted(by:)``
 - ``Swift/Sequence/mapIntoSet(_:)``
-- ``Swift/Sequence/reduce(_:_:)``
-- ``Swift/Sequence/reduce(into:_:)``
+- ``Swift/Sequence/reduceAsync(_:_:)``
+- ``Swift/Sequence/reduceAsync(into:_:)``
 - ``Swift/RangeReplaceableCollection/remove(at:)``
 - ``Swift/Collection/subscript(safe:)``
 - ``Swift/Array/subscript(unsafe:)``

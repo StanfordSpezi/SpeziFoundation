@@ -50,7 +50,7 @@ struct SequenceExtensions {
     @Test
     func asyncReduce() async throws {
         let names = ["Paul", "Lukas"]
-        let reduced = try await names.reduce(0) { acc, name in
+        let reduced = try await names.reduceAsync(0) { acc, name in
             try await Task.sleep(for: .seconds(0.2)) // best i could think of to get some trivial async-ness in here...
             return acc + name.count
         }
@@ -60,7 +60,7 @@ struct SequenceExtensions {
     @Test
     func asyncReduceInto() async throws {
         let names = ["Paul", "Lukas"]
-        let reduced = try await names.reduce(into: 0) { acc, name in
+        let reduced = try await names.reduceAsync(into: 0) { acc, name in
             try await Task.sleep(for: .seconds(0.2)) // best i could think of to get some trivial async-ness in here...
             acc += name.count
         }
