@@ -10,7 +10,7 @@ import SpeziFoundation
 import Testing
 
 @MainActor
-@Suite
+@Suite(.serialized)
 struct CancelableChildTaskTests {
     @Test
     func normalCompletion() async {
