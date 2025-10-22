@@ -29,22 +29,22 @@ struct CancelableChildTaskTests {
     @Test
     func cancelation() async {
         await withDiscardingTaskGroup { group in
-            let start = Date()
+            let (stream, continuation) = AsyncStream<Void>.makeStream()
             await confirmation { confirmation in
                 let handle = group.addCancelableTask {
                     do {
+                        continuation.yield()
+                        continuation.finish()
                         try await Task.sleep(for: .milliseconds(60), tolerance: .nanoseconds(0))
-                        let duration = -start.timeIntervalSinceNow
-                        print("XX Task ran for \(duration) seconds")
                         Issue.record("Task was not cancelled!")
                     } catch {
                         confirmation()
                     }
                 }
-                try? await Task.sleep(for: .milliseconds(10), tolerance: .nanoseconds(0))
+                for await _ in stream {
+                    break
+                }
                 handle.cancel()
-                let duration = -start.timeIntervalSinceNow
-                print("XX Cancel was called after \(duration) seconds")
                 try? await Task.sleep(for: .milliseconds(100), tolerance: .nanoseconds(0))
             }
         }
