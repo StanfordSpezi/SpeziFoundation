@@ -136,7 +136,7 @@ extension Bundle {
                     continue
                 }
                 // NOTE: obvious potential for optimization here! there really is no need to re-read this mapping every time!
-                guard let dict = try? NSDictionary(contentsOf: url, error: ()),
+                guard let dict = NSDictionary(contentsOf: url),
                       let entries = dict[language.minimalIdentifier] as? [String: String] else {
                     continue
                 }
