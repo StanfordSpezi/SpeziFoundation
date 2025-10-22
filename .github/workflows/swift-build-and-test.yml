@@ -70,13 +70,13 @@ jobs:
           lfs: ${{ inputs.checkout_lfs }}
       - name: Setup Swift (with version)
         if: ${{ inputs.swiftVersion != '' }}
-        uses: swift-actions/setup-swift@v2
+        uses: SwiftyLab/setup-swift@v1
         with:
           swift-version: ${{ inputs.swiftVersion }}
 
       - name: Setup Swift (default)
         if: ${{ inputs.swiftVersion == '' }}
-        uses: swift-actions/setup-swift@v2
+        uses: SwiftyLab/setup-swift@v1
        
       - name: Build Package
         run: swift build -v
