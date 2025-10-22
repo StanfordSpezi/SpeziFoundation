@@ -12,10 +12,6 @@ import Testing
 struct CancelableChildTaskTests {
     @Test
     func normalCompletion() async {
-        #warning("TODO: Fix test later")
-        if 3 > 1 {
-            return
-        }
         await withDiscardingTaskGroup { group in
             await confirmation { confirmation in
                 let handle = group.addCancelableTask {
@@ -30,10 +26,6 @@ struct CancelableChildTaskTests {
     
     @Test
     func cancelation() async {
-        #warning("TODO: Fix test later")
-        if 3 > 1 {
-            return
-        }
         await withDiscardingTaskGroup { group in
             let (stream, continuation) = AsyncStream<Void>.makeStream()
             await confirmation { confirmation in
