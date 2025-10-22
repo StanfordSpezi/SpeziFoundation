@@ -34,9 +34,9 @@ struct CancelableChildTaskTests {
                 let handle = group.addCancelableTask {
                     do {
                         try await Task.sleep(for: .milliseconds(60), tolerance: .nanoseconds(0))
+                        let duration = -start.timeIntervalSinceNow
+                        print("XX Task ran for \(duration) seconds")
                         Issue.record("Task was not cancelled!")
-                        let duration = -start.timeIntervalSinceNow 
-                        print("Task ran for \(duration) seconds")
                     } catch {
                         confirmation()
                     }
@@ -44,7 +44,7 @@ struct CancelableChildTaskTests {
                 try? await Task.sleep(for: .milliseconds(10), tolerance: .nanoseconds(0))
                 handle.cancel()
                 let duration = -start.timeIntervalSinceNow
-                print("Cancel was called after \(duration) seconds")
+                print("XX Cancel was called after \(duration) seconds")
                 try? await Task.sleep(for: .milliseconds(100), tolerance: .nanoseconds(0))
             }
         }
