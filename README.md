@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
              
 -->
 
+
 # SpeziFoundation
 
 [![Build and Test](https://github.com/StanfordSpezi/SpeziFoundation/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/StanfordSpezi/SpeziFoundation/actions/workflows/build-and-test.yml)
