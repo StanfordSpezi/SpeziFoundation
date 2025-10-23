@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-import os
 @_spi(APISupport) @testable import SpeziFoundation
 import XCTest
 
