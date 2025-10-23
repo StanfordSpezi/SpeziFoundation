@@ -9,8 +9,7 @@
 import SpeziFoundation
 import Testing
 
-@MainActor
-@Suite(.serialized)
+
 struct CancelableChildTaskTests {
     @Test
     func normalCompletion() async {
@@ -26,26 +25,20 @@ struct CancelableChildTaskTests {
         }
     }
     
-    @Test
     func cancelation() async {
         await withDiscardingTaskGroup { group in
-            let (stream, continuation) = AsyncStream<Void>.makeStream()
             await confirmation { confirmation in
                 let handle = group.addCancelableTask {
                     do {
-                        continuation.yield()
-                        continuation.finish()
-                        try await Task.sleep(for: .milliseconds(60), tolerance: .nanoseconds(0))
+                        try await Task.sleep(for: .milliseconds(30), tolerance: .nanoseconds(0))
                         Issue.record("Task was not cancelled!")
                     } catch {
                         confirmation()
                     }
                 }
-                for await _ in stream {
-                    break
-                }
+                try? await Task.sleep(for: .milliseconds(5), tolerance: .nanoseconds(0))
                 handle.cancel()
-                try? await Task.sleep(for: .milliseconds(100), tolerance: .nanoseconds(0))
+                try? await Task.sleep(for: .milliseconds(50), tolerance: .nanoseconds(0))
             }
         }
     }

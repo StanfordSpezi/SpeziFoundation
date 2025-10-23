@@ -1,7 +1,7 @@
 //
 // This source file is part of the Stanford Spezi open-source project
 //
-// SPDX-FileCopyrightText: 2024 Stanford University and the project authors (see CONTRIBUTORS.md)
+// SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
 //
 // SPDX-License-Identifier: MIT
 //
@@ -9,10 +9,11 @@
 @testable import SpeziFoundation
 import Testing
 
+@MainActor
+@Suite
 struct ManagedAsynchronousAccessTests {
     @Test
-    @MainActor
-    func testResumeWithSuccess() async throws {
+    func resumeWithSuccess() async throws {
         let access = ManagedAsynchronousAccess<String, any Error>()
         let expectedValue = "Success"
 
@@ -41,8 +42,7 @@ struct ManagedAsynchronousAccessTests {
     }
     
     @Test
-    @MainActor
-    func testResumeWithError() async throws {
+    func resumeWithError() async throws {
         let access = ManagedAsynchronousAccess<String, any Error>()
 
         try await confirmation("perform() returns with error") { confirm in
@@ -68,8 +68,7 @@ struct ManagedAsynchronousAccessTests {
     }
     
     @Test
-    @MainActor
-    func testCancelAll() async throws {
+    func cancelAll() async throws {
         let access = ManagedAsynchronousAccess<Void, any Error>()
 
         try await confirmation("perform() returns with cancellation error") { confirm in
@@ -98,8 +97,7 @@ struct ManagedAsynchronousAccessTests {
     }
     
     @Test
-    @MainActor
-    func testCancelAllNeverError() async throws {
+    func cancelAllNeverError() async throws {
         let access = ManagedAsynchronousAccess<Void, Never>()
 
         try await confirmation("perform() returns with cancellation error") { confirm in
@@ -129,7 +127,7 @@ struct ManagedAsynchronousAccessTests {
     }
     
     @Test
-    func testResumeWithoutOngoingAccess() {
+    func resumeWithoutOngoingAccess() {
         let access = ManagedAsynchronousAccess<String, any Error>()
 
         let didResume = access.resume(returning: "No Access")
@@ -138,8 +136,7 @@ struct ManagedAsynchronousAccessTests {
     }
     
     @Test
-    @MainActor
-    func testResumeWithVoidValue() async throws {
+    func resumeWithVoidValue() async throws {
         let access = ManagedAsynchronousAccess<Void, Never>()
 
         try await confirmation("perform() returns with cancellation error") { confirm in
@@ -162,8 +159,7 @@ struct ManagedAsynchronousAccessTests {
     }
 
     @Test
-    @MainActor
-    func testExclusiveAccess() async throws {
+    func exclusiveAccess() async throws {
         let access = ManagedAsynchronousAccess<String, any Error>()
         let expectedValue0 = "Success0"
         let expectedValue1 = "Success1"
@@ -218,8 +214,7 @@ struct ManagedAsynchronousAccessTests {
     }
     
     @Test
-    @MainActor
-    func testExclusiveAccessNeverError() async throws {
+    func exclusiveAccessNeverError() async throws {
         let access = ManagedAsynchronousAccess<String, Never>()
         let expectedValue0 = "Success0"
         let expectedValue1 = "Success1"

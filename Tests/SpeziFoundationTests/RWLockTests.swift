@@ -6,85 +6,77 @@
 // SPDX-License-Identifier: MIT
 //
 
-@testable import SpeziFoundation
-import Testing
+import SpeziFoundation
 import XCTest
 
-@Suite
-struct RWLockTests {
-    @Test(.timeLimit(.minutes(1)))
-    func testConcurrentReads() async {
+
+final class RWLockTests: XCTestCase {
+    func testConcurrentReads() {
         let lock = RWLock()
-        await confirmation("First read") { expectation1 in
-            await confirmation("Second read") { expectation2 in
-                async let task1: Void = Task.detached {
-                    lock.withReadLock {
-                        usleep(100_000) // Simulate read delay (100ms)
-                        expectation1()
-                    }
-                }.value
-                
-                async let task2: Void = Task.detached {
-                    lock.withReadLock {
-                        usleep(100_000) // Simulate read delay (100ms)
-                        expectation2()
-                    }
-                }.value
-                
-                _ = await (task1, task2)
+        let expectation1 = self.expectation(description: "First read")
+        let expectation2 = self.expectation(description: "Second read")
+
+        Task.detached {
+            lock.withReadLock {
+                usleep(100_000) // Simulate read delay (200ms)
+                expectation1.fulfill()
             }
         }
-    }
-    
-    @Test(.timeLimit(.minutes(1)))
-    func testWriteBlocksOtherWrites() async throws {
-        let lock = RWLock()
-        try await confirmation("First write") { expectation1 in
-            try await confirmation("Second write") { expectation2 in
-                async let task1: Void = Task.detached {
-                    lock.withWriteLock {
-                        usleep(200_000) // Simulate write delay (200ms)
-                        expectation1()
-                    }
-                }.value
-                
-                async let task2: Void = Task.detached {
-                    try await Task.sleep(for: .milliseconds(100))
-                    lock.withWriteLock {
-                        expectation2()
-                    }
-                }.value
-                
-                _ = try await (task1, task2)
+
+        Task.detached {
+            lock.withReadLock {
+                usleep(100_000) // Simulate read delay (200ms)
+                expectation2.fulfill()
             }
         }
+
+        wait(for: [expectation1, expectation2], timeout: 1.0)
     }
-    
-    @Test(.timeLimit(.minutes(1)))
-    func testWriteBlocksReads() async throws {
+
+    func testWriteBlocksOtherWrites() {
         let lock = RWLock()
-        try await confirmation("Write") { expectation1 in
-            try await confirmation("Read") { expectation2 in
-                async let task1: Void = Task.detached {
-                    lock.withWriteLock {
-                        usleep(200_000) // Simulate write delay (200ms)
-                        expectation1()
-                    }
-                }.value
-                
-                async let task2: Void = Task.detached {
-                    try await Task.sleep(for: .milliseconds(100))
-                    lock.withReadLock {
-                        expectation2()
-                    }
-                }.value
-                
-                _ = try await (task1, task2)
+        let expectation1 = self.expectation(description: "First write")
+        let expectation2 = self.expectation(description: "Second write")
+
+        Task.detached {
+            lock.withWriteLock {
+                usleep(200_000) // Simulate write delay (200ms)
+                expectation1.fulfill()
             }
         }
+
+        Task.detached {
+            try await Task.sleep(for: .milliseconds(100))
+            lock.withWriteLock {
+                expectation2.fulfill()
+            }
+        }
+
+        wait(for: [expectation1, expectation2], timeout: 1.0)
     }
-    
-    #if !canImport(Darwin)
+
+    func testWriteBlocksReads() {
+        let lock = RWLock()
+        let expectation1 = self.expectation(description: "Write")
+        let expectation2 = self.expectation(description: "Read")
+
+        Task.detached {
+            lock.withWriteLock {
+                usleep(200_000) // Simulate write delay (200ms)
+                expectation1.fulfill()
+            }
+        }
+
+        Task.detached {
+            try await Task.sleep(for: .milliseconds(100))
+            lock.withReadLock {
+                expectation2.fulfill()
+            }
+        }
+
+        wait(for: [expectation1, expectation2], timeout: 1.0)
+    }
+
     // This test is temporarily disabled on Linux.
     //
     // Reason: `lock.isWriteLocked()` behaves differently between Glibc (Linux) and macOS.
@@ -100,211 +92,183 @@ struct RWLockTests {
     // See
     // - https://linux.die.net/man/3/pthread_rwlock_trywrlock
     // - https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/pthread_rwlock_trywrlock.3.html
-    @Test(.disabled())
-    #else
-    @Test
-    #endif
     func testIsWriteLocked() {
+#if canImport(Darwin)
         let lock = RWLock()
-    
+
         Task.detached {
             lock.withWriteLock {
-                #expect(lock.isWriteLocked())
+                XCTAssertTrue(lock.isWriteLocked())
                 usleep(100_000) // Simulate write delay (100ms)
             }
         }
-        
+
         usleep(50_000) // Give the other thread time to lock (50ms)
-        #expect(!lock.isWriteLocked())
+        XCTAssertFalse(lock.isWriteLocked())
+#endif
     }
-    
-    @Test
-    func testMultipleLocksAcquired() async {
+
+
+    func testMultipleLocksAcquired() {
         let lock1 = RWLock()
         let lock2 = RWLock()
-        
-        await confirmation("Read") { expectation1 in
-            async let task: Void = Task.detached {
-                lock1.withReadLock {
-                    lock2.withReadLock {
-                        expectation1()
-                    }
+        let expectation1 = self.expectation(description: "Read")
+
+        Task.detached {
+            lock1.withReadLock {
+                lock2.withReadLock {
+                    expectation1.fulfill()
                 }
-            }.value
-            
-            await task
+            }
         }
+
+        wait(for: [expectation1], timeout: 1.0)
     }
 
-    @Test(.timeLimit(.minutes(1)))
-    func testConcurrentReadsRecursive() async {
+
+    func testConcurrentReadsRecursive() {
         let lock = RecursiveRWLock()
-        await confirmation("First read") { expectation1 in
-            await confirmation("Second read") { expectation2 in
-                async let task1: Void = Task.detached {
-                    lock.withReadLock {
-                        usleep(100_000) // Simulate read delay 100 ms
-                        expectation1()
-                    }
-                }.value
-                
-                async let task2: Void = Task.detached {
-                    lock.withReadLock {
-                        usleep(100_000) // Simulate read delay 100ms
-                        expectation2()
-                    }
-                }.value
-                
-                _ = await (task1, task2)
+        let expectation1 = self.expectation(description: "First read")
+        let expectation2 = self.expectation(description: "Second read")
+
+        Task.detached {
+            lock.withReadLock {
+                usleep(100_000) // Simulate read delay 100 ms
+                expectation1.fulfill()
             }
         }
-    }
-    
-    @Test(.timeLimit(.minutes(1)))
-    func testWriteBlocksOtherWritesRecursive() async throws {
-        let lock = RecursiveRWLock()
-        try await confirmation("First write") { expectation1 in
-            try await confirmation("Second write") { expectation2 in
-                async let task1: Void = Task.detached {
-                    lock.withWriteLock {
-                        usleep(200_000) // Simulate write delay 200ms
-                        expectation1()
-                    }
-                }.value
-                    
-                async let task2: Void = Task.detached {
-                    try await Task.sleep(for: .milliseconds(100))
-                    lock.withWriteLock {
-                        expectation2()
-                    }
-                }.value
-                    
-                _ = try await (task1, task2)
+
+        Task.detached {
+            lock.withReadLock {
+                usleep(100_000) // Simulate read delay 100ms
+                expectation2.fulfill()
             }
         }
-    }
-    
-    @Test(.timeLimit(.minutes(1)))
-    func testWriteBlocksReadsRecursive() async throws {
-        let lock = RecursiveRWLock()
-        try await confirmation("Write") { expectation1 in
-            try await confirmation("Read") { expectation2 in
-                async let task1: Void = Task.detached {
-                    lock.withWriteLock {
-                        usleep(200_000) // Simulate write delay 200 ms
-                        expectation1()
-                    }
-                }.value
-                
-                async let task2: Void = Task.detached {
-                    try await Task.sleep(for: .milliseconds(100))
-                    lock.withReadLock {
-                        expectation2()
-                    }
-                }.value
-                
-                _ = try await (task1, task2)
-            }
-        }
+
+        wait(for: [expectation1, expectation2], timeout: 1.0)
     }
 
-    @Test(.timeLimit(.minutes(1)))
-    func testMultipleLocksAcquiredRecursive() async {
+    func testWriteBlocksOtherWritesRecursive() {
+        let lock = RecursiveRWLock()
+        let expectation1 = self.expectation(description: "First write")
+        let expectation2 = self.expectation(description: "Second write")
+
+        Task.detached {
+            lock.withWriteLock {
+                usleep(200_000) // Simulate write delay 200ms
+                expectation1.fulfill()
+            }
+        }
+
+        Task.detached {
+            try await Task.sleep(for: .milliseconds(100))
+            lock.withWriteLock {
+                expectation2.fulfill()
+            }
+        }
+
+        wait(for: [expectation1, expectation2], timeout: 1.0)
+    }
+
+    func testWriteBlocksReadsRecursive() {
+        let lock = RecursiveRWLock()
+        let expectation1 = self.expectation(description: "Write")
+        let expectation2 = self.expectation(description: "Read")
+
+        Task.detached {
+            lock.withWriteLock {
+                usleep(200_000) // Simulate write delay 200 ms
+                expectation1.fulfill()
+            }
+        }
+
+        Task.detached {
+            try await Task.sleep(for: .milliseconds(100))
+            lock.withReadLock {
+                expectation2.fulfill()
+            }
+        }
+
+        wait(for: [expectation1, expectation2], timeout: 1.0)
+    }
+
+    func testMultipleLocksAcquiredRecursive() {
         let lock1 = RecursiveRWLock()
         let lock2 = RecursiveRWLock()
+        let expectation1 = self.expectation(description: "Read")
 
-        await confirmation("Read") { expectation1 in
-            async let task: Void = Task.detached {
-                lock1.withReadLock {
-                    lock2.withReadLock {
-                        expectation1()
-                    }
+        Task.detached {
+            lock1.withReadLock {
+                lock2.withReadLock {
+                    expectation1.fulfill()
                 }
-            }.value
-            
-            await task
+            }
         }
-    }
-    
-    @Test(.timeLimit(.minutes(1)))
-    func testRecursiveReadReadAcquisition() async {
-        let lock = RecursiveRWLock()
 
-        await confirmation("Read") { expectation1 in
-            async let task: Void = Task.detached {
+        wait(for: [expectation1], timeout: 1.0)
+    }
+
+    func testRecursiveReadReadAcquisition() {
+        let lock = RecursiveRWLock()
+        let expectation1 = self.expectation(description: "Read")
+
+        Task.detached {
+            lock.withReadLock {
                 lock.withReadLock {
-                    lock.withReadLock {
-                        expectation1()
+                    expectation1.fulfill()
+                }
+            }
+        }
+
+        wait(for: [expectation1], timeout: 1.0)
+    }
+
+    func testRecursiveWriteRecursiveAcquisition() {
+        let lock = RecursiveRWLock()
+        let expectation1 = self.expectation(description: "Read")
+        let expectation2 = self.expectation(description: "ReadWrite")
+        let expectation3 = self.expectation(description: "WriteRead")
+        let expectation4 = self.expectation(description: "Write")
+
+        let expectation5 = self.expectation(description: "Race")
+
+        Task.detached {
+            lock.withWriteLock {
+                usleep(50_000) // Simulate write delay 50 ms
+                lock.withReadLock {
+                    expectation1.fulfill()
+                    usleep(200_000) // Simulate write delay 200 ms
+                    lock.withWriteLock {
+                        expectation2.fulfill()
                     }
                 }
-            }.value
-            
-            await task
+
+                lock.withWriteLock {
+                    usleep(200_000) // Simulate write delay 200 ms
+                    lock.withReadLock {
+                        expectation3.fulfill()
+                    }
+                    expectation4.fulfill()
+                }
+            }
         }
-    }
-    
-    // swiftlint:disable function_body_length closure_body_length
-    @Test(.timeLimit(.minutes(1)))
-    func testRecursiveWriteRecursiveAcquisition() async {
-        let lock = RecursiveRWLock()
-        await confirmation("Write") { expectation1 in
-            await confirmation("ReadWrite") { expectation2 in
-                await confirmation("WriteRead") { expectation3 in
-                    await confirmation("Write") { expectation4 in
-                        await confirmation("Race") { expectation5 in
-                            async let task1: Void = Task.detached {
-                                lock.withWriteLock {
-                                    usleep(50_000) // Simulate write delay 50 ms
-                                    lock.withReadLock {
-                                        expectation1()
-                                        usleep(
-                                            200_000
-                                        ) // Simulate write delay 200 ms
-                                        lock.withWriteLock {
-                                            expectation2()
-                                        }
-                                    }
-                        
-                                    lock.withWriteLock {
-                                        usleep(
-                                            200_000
-                                        ) // Simulate write delay 200 ms
-                                        lock.withReadLock {
-                                            expectation3()
-                                        }
-                                        expectation4()
-                                    }
-                                }
-                            }.value
-                        
-                            async let task2: Void = Task.detached {
-                                await withDiscardingTaskGroup { group in
-                                    for _ in 0..<10 {
-                                        group.addTask {
-                                            // random sleep up to 50 ms
-                                            try? await Task
-                                                .sleep(
-                                                    nanoseconds: UInt64
-                                                        .random(
-                                                            in: 0...50_000_000
-                                                        )
-                                                )
-                                            lock.withWriteLock {
-                                                _ = usleep(100)
-                                            }
-                                        }
-                                    }
-                                }
-                        
-                                expectation5()
-                            }.value
-                        
-                            _ = await (task1, task2)
+
+        Task.detached {
+            await withDiscardingTaskGroup { group in
+                for _ in 0..<10 {
+                    group.addTask {
+                        // random sleep up to 50 ms
+                        try? await Task.sleep(nanoseconds: UInt64.random(in: 0...50_000_000))
+                        lock.withWriteLock {
+                            _ = usleep(100)
                         }
                     }
                 }
             }
+
+            expectation5.fulfill()
         }
+
+        wait(for: [expectation1, expectation2, expectation3, expectation4, expectation5], timeout: 20.0)
     }
-    // swiftlint:enable function_body_length closure_body_length
 }

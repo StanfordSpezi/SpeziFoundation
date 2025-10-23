@@ -6,28 +6,28 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Foundation
-@testable import SpeziFoundation
-import Testing
+import SpeziFoundation
+import XCTest
 
 
-struct CollectionBuildersTests {
+final class CollectionBuildersTests: XCTestCase {
     private func _imp<C: RangeReplaceableCollection>(
         _: C.Type,
         expected: C,
         @RangeReplaceableCollectionBuilder<C> _ make: () -> C,
-        _ sourceLocation: SourceLocation = #_sourceLocation
+        file: StaticString = #filePath,
+        line: UInt = #line
     ) where C: Equatable {
         let collection = make()
-        #expect(collection == expected, sourceLocation: sourceLocation)
+        XCTAssertEqual(collection, expected, file: file, line: line)
     }
+    
     
     private func mightThrow<T>(_ value: T) throws -> T {
         value
     }
     
     
-    @Test
     func testArrayBuilder() {
         _imp([Int].self, expected: [1, 2, 3, 4, 5, 7, 8, 9, 52, 41]) {
             1
@@ -46,11 +46,9 @@ struct CollectionBuildersTests {
                 41
             }
         }
-        
-        #expect(Array<Int> {} == []) // swiftlint:disable:this syntactic_sugar empty_collection_literal
+        XCTAssertEqual(Array<Int> {}, []) // swiftlint:disable:this syntactic_sugar
     }
     
-    @Test
     func testStringBuilder() {
         let greet = {
             "Hello, \($0 as String) 🚀\n"
@@ -92,10 +90,9 @@ struct CollectionBuildersTests {
         }
     }
     
-    @Test
+    
     func testSetBuilder() {
-        #expect(Set<Int> {} == Set<Int>())
-        
+        XCTAssertEqual(Set<Int> {}, Set<Int>())
         let greet = {
             "Hello, \($0 as String) 🚀"
         }
@@ -141,10 +138,10 @@ struct CollectionBuildersTests {
             "b",
             "c"
         ]
-        #expect(set == expected)
+        XCTAssertEqual(set, expected)
     }
     
-    @Test
+    
     func testArrayBuilderThrowing() throws {
         let array1: [Int] = Array {
             1
@@ -156,7 +153,7 @@ struct CollectionBuildersTests {
             try mightThrow(2)
             3
         }
-        #expect(array1 == [1, 2, 3])
-        #expect(array2 == [1, 2, 3])
+        XCTAssertEqual(array1, [1, 2, 3])
+        XCTAssertEqual(array2, [1, 2, 3])
     }
 }

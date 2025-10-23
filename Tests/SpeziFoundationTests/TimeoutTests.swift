@@ -11,7 +11,7 @@ import Foundation
 @testable import SpeziFoundation
 import Testing
 
-
+@Suite
 struct TimeoutTests {
     @MainActor
     private final class Storage {

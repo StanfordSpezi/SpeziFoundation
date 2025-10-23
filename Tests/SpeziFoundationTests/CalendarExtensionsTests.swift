@@ -5,10 +5,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Foundation
 import RuntimeAssertions
-@testable import SpeziFoundation
-import Testing
+import SpeziFoundation
+import XCTest
 
 private struct RegionConfiguration: Hashable {
     let locale: Locale // swiftlint:disable:this type_contents_order
@@ -40,13 +39,12 @@ private struct RegionConfiguration: Hashable {
 /// - Note: most tests, by  default simply run in the context of the current system locale and time zone.
 ///     For some tests, however, this is manually overwritten (mainly to deal with locale-dependent differences
 ///     such as DST, first weekday, etc).
-@Suite("Calendar Extensions Tests")
-final class CalendarExtensionsTests { // swiftlint:disable:this type_body_length
+final class CalendarExtensionsTests: XCTestCase { // swiftlint:disable:this type_body_length
     private var cal = Calendar.current
     
     private func makeDate(year: Int, month: Int, day: Int, hour: Int, minute: Int = 0, second: Int = 0) throws -> Date {
         let components = DateComponents(year: year, month: month, day: day, hour: hour, minute: minute, second: second)
-        return try #require(cal.date(from: components))
+        return try XCTUnwrap(cal.date(from: components))
     }
     
     
@@ -68,69 +66,69 @@ final class CalendarExtensionsTests { // swiftlint:disable:this type_body_length
     }
     
     
-    @Test
     func testRangeComputations() throws {
         try withRegions(.current, .losAngeles, .berlin) {
-            try #require(
-                try cal.rangeOfHour(for: makeDate(year: 2024, month: 12, day: 27, hour: 14, minute: 12)) ==
-                (makeDate(year: 2024, month: 12, day: 27, hour: 14))..<(makeDate(year: 2024, month: 12, day: 27, hour: 15))
+            XCTAssertEqual(
+                cal.rangeOfHour(for: try makeDate(year: 2024, month: 12, day: 27, hour: 14, minute: 12)),
+                (try makeDate(year: 2024, month: 12, day: 27, hour: 14))..<(try makeDate(year: 2024, month: 12, day: 27, hour: 15))
             )
-            try #require(
-                try cal.rangeOfDay(for: makeDate(year: 2024, month: 12, day: 27, hour: 14, minute: 12)) ==
-                (makeDate(year: 2024, month: 12, day: 27, hour: 00))..<(makeDate(year: 2024, month: 12, day: 28, hour: 0))
+            XCTAssertEqual(
+                cal.rangeOfDay(for: try makeDate(year: 2024, month: 12, day: 27, hour: 14, minute: 12)),
+                (try makeDate(year: 2024, month: 12, day: 27, hour: 00))..<(try makeDate(year: 2024, month: 12, day: 28, hour: 0))
             )
         }
         
         try withRegion(.losAngeles) {
-            try #require(
-                try cal.rangeOfWeek(for: makeDate(year: 2024, month: 12, day: 27, hour: 14, minute: 12)) ==
-                (makeDate(year: 2024, month: 12, day: 22, hour: 00))..<(makeDate(year: 2024, month: 12, day: 29, hour: 0))
+            XCTAssertEqual(
+                cal.rangeOfWeek(for: try makeDate(year: 2024, month: 12, day: 27, hour: 14, minute: 12)),
+                (try makeDate(year: 2024, month: 12, day: 22, hour: 00))..<(try makeDate(year: 2024, month: 12, day: 29, hour: 0))
             )
-            try #require(
-                try cal.rangeOfWeek(for: makeDate(year: 2024, month: 12, day: 31, hour: 14, minute: 12)) ==
-                (makeDate(year: 2024, month: 12, day: 29, hour: 00))..<(makeDate(year: 2025, month: 01, day: 05, hour: 0))
+            XCTAssertEqual(
+                cal.rangeOfWeek(for: try makeDate(year: 2024, month: 12, day: 31, hour: 14, minute: 12)),
+                (try makeDate(year: 2024, month: 12, day: 29, hour: 00))..<(try makeDate(year: 2025, month: 01, day: 05, hour: 0))
             )
         }
         
         try withRegion(.berlin) {
-            try #require(
-                try cal.rangeOfWeek(for: makeDate(year: 2024, month: 12, day: 27, hour: 14, minute: 12)) ==
-                (makeDate(year: 2024, month: 12, day: 23, hour: 00))..<(makeDate(year: 2024, month: 12, day: 30, hour: 0))
+            XCTAssertEqual(
+                cal.rangeOfWeek(for: try makeDate(year: 2024, month: 12, day: 27, hour: 14, minute: 12)),
+                (try makeDate(year: 2024, month: 12, day: 23, hour: 00))..<(try makeDate(year: 2024, month: 12, day: 30, hour: 0))
             )
-            try #require(
-                try cal.rangeOfWeek(for: makeDate(year: 2024, month: 12, day: 31, hour: 14, minute: 12)) ==
-                (makeDate(year: 2024, month: 12, day: 30, hour: 00))..<(makeDate(year: 2025, month: 01, day: 06, hour: 0))
+            XCTAssertEqual(
+                cal.rangeOfWeek(for: try makeDate(year: 2024, month: 12, day: 31, hour: 14, minute: 12)),
+                (try makeDate(year: 2024, month: 12, day: 30, hour: 00))..<(try makeDate(year: 2025, month: 01, day: 06, hour: 0))
             )
         }
         
         try withRegions(.current, .losAngeles, .berlin) {
-            try #require(
-                try cal.rangeOfMonth(for: makeDate(year: 2024, month: 12, day: 31, hour: 14, minute: 12)) ==
-                (makeDate(year: 2024, month: 12, day: 01, hour: 00))..<(makeDate(year: 2025, month: 01, day: 01, hour: 0))
+            XCTAssertEqual(
+                cal.rangeOfMonth(for: try makeDate(year: 2024, month: 12, day: 31, hour: 14, minute: 12)),
+                (try makeDate(year: 2024, month: 12, day: 01, hour: 00))..<(try makeDate(year: 2025, month: 01, day: 01, hour: 0))
             )
-            try #require(
-                try cal.rangeOfYear(for: makeDate(year: 2024, month: 12, day: 31, hour: 14, minute: 12)) ==
-                (makeDate(year: 2024, month: 01, day: 01, hour: 00))..<(makeDate(year: 2025, month: 01, day: 01, hour: 0))
+            XCTAssertEqual(
+                cal.rangeOfYear(for: try makeDate(year: 2024, month: 12, day: 31, hour: 14, minute: 12)),
+                (try makeDate(year: 2024, month: 01, day: 01, hour: 00))..<(try makeDate(year: 2025, month: 01, day: 01, hour: 0))
             )
-            try #require(
-                try cal.rangeOfMonth(for: makeDate(year: 2024, month: 02, day: 29, hour: 14, minute: 12)) ==
-                (makeDate(year: 2024, month: 02, day: 01, hour: 0))..<(makeDate(year: 2024, month: 03, day: 01, hour: 0))
+            XCTAssertEqual(
+                cal.rangeOfMonth(for: try makeDate(year: 2024, month: 02, day: 29, hour: 14, minute: 12)),
+                (try makeDate(year: 2024, month: 02, day: 01, hour: 0))..<(try makeDate(year: 2024, month: 03, day: 01, hour: 0))
             )
         }
     }
     
-    @Test
+    
     func testDistinctDistances() throws { // swiftlint:disable:this function_body_length
         func imp(
             start: Date,
             end: Date,
             fn: (Date, Date) -> Int, // swiftlint:disable:this identifier_name
             expected: Int,
-            sourceLocation: SourceLocation = #_sourceLocation
+            file: StaticString = #filePath,
+            line: UInt = #line
         ) {
             let distance = fn(start, end)
-            #expect(distance == expected, sourceLocation: sourceLocation)
-            #expect(fn(start, end) == fn(end, start), sourceLocation: sourceLocation)
+            XCTAssertEqual(distance, expected, file: file, line: line)
+            XCTAssertEqual(fn(start, end), fn(end, start), file: file, line: line)
         }
         
         func imp(
@@ -138,14 +136,16 @@ final class CalendarExtensionsTests { // swiftlint:disable:this type_body_length
             end: (year: Int, month: Int, day: Int, hour: Int, minute: Int), // swiftlint:disable:this large_tuple
             fn: (Date, Date) -> Int, // swiftlint:disable:this identifier_name
             expected: Int,
-            sourceLocation: SourceLocation = #_sourceLocation
+            file: StaticString = #filePath,
+            line: UInt = #line
         ) throws {
             imp(
                 start: try makeDate(year: start.year, month: start.month, day: start.day, hour: start.hour, minute: start.minute),
                 end: try makeDate(year: end.year, month: end.month, day: end.day, hour: end.hour, minute: end.minute),
                 fn: fn,
                 expected: expected,
-                sourceLocation: sourceLocation,
+                file: file,
+                line: line
             )
         }
         
@@ -171,8 +171,8 @@ final class CalendarExtensionsTests { // swiftlint:disable:this type_body_length
             
             for transition in cal.timeZone.nextDSTTransitions(maxCount: 10) {
                 let range = cal.rangeOfDay(for: transition.date)
-                #expect(
-                    cal.countDistinctHours(from: range.lowerBound, to: range.upperBound.addingTimeInterval(-1)) ==
+                XCTAssertEqual(
+                    cal.countDistinctHours(from: range.lowerBound, to: range.upperBound.addingTimeInterval(-1)),
                     24 - Int(transition.change / 3600)
                 )
             }
@@ -289,70 +289,69 @@ final class CalendarExtensionsTests { // swiftlint:disable:this type_body_length
         }
     }
     
-    @Test
+    
     func testOffsets() throws {
         try withRegions(.current, .losAngeles, .berlin) {
             let now = Date()
-            #expect(cal.offsetInDays(
+            XCTAssertEqual(cal.offsetInDays(
                 from: now,
                 to: now
-            ) == 0)
+            ), 0)
             
-            try #require(try cal.offsetInDays(
-                from: makeDate(year: 2024, month: 01, day: 01, hour: 00),
-                to: makeDate(year: 2024, month: 01, day: 08, hour: 00)
-            ) == 7)
+            XCTAssertEqual(cal.offsetInDays(
+                from: try makeDate(year: 2024, month: 01, day: 01, hour: 00),
+                to: try makeDate(year: 2024, month: 01, day: 08, hour: 00)
+            ), 7)
             
-            try #require(try cal.offsetInDays(
-                from: makeDate(year: 2024, month: 01, day: 08, hour: 00),
-                to: makeDate(year: 2024, month: 01, day: 01, hour: 00)
-            ) == -7)
+            XCTAssertEqual(cal.offsetInDays(
+                from: try makeDate(year: 2024, month: 01, day: 08, hour: 00),
+                to: try makeDate(year: 2024, month: 01, day: 01, hour: 00)
+            ), -7)
             
-            try #require(try cal.offsetInDays(
-                from: makeDate(year: 2025, month: 02, day: 27, hour: 00),
-                to: makeDate(year: 2025, month: 03, day: 02, hour: 00)
-            ) == 3)
-            try #require(try cal.offsetInDays(
-                from: makeDate(year: 2024, month: 02, day: 27, hour: 00),
-                to: makeDate(year: 2024, month: 03, day: 02, hour: 00)
-            ) == 4)
+            XCTAssertEqual(cal.offsetInDays(
+                from: try makeDate(year: 2025, month: 02, day: 27, hour: 00),
+                to: try makeDate(year: 2025, month: 03, day: 02, hour: 00)
+            ), 3)
+            XCTAssertEqual(cal.offsetInDays(
+                from: try makeDate(year: 2024, month: 02, day: 27, hour: 00),
+                to: try makeDate(year: 2024, month: 03, day: 02, hour: 00)
+            ), 4)
         }
     }
     
-    @Test
+    
     func testRelativeOperations() throws {
         try withRegions(.current, .losAngeles, .berlin) {
-            try #require(
-                try cal.startOfPrevDay(for: makeDate(year: 2025, month: 01, day: 11, hour: 19, minute: 07)) ==
-                makeDate(year: 2025, month: 01, day: 10, hour: 00, minute: 00)
+            XCTAssertEqual(
+                cal.startOfPrevDay(for: try makeDate(year: 2025, month: 01, day: 11, hour: 19, minute: 07)),
+                try makeDate(year: 2025, month: 01, day: 10, hour: 00, minute: 00)
             )
             
-            try #require(
-                try cal.startOfNextMonth(for: makeDate(year: 2025, month: 01, day: 11, hour: 19, minute: 07)) ==
-                makeDate(year: 2025, month: 02, day: 01, hour: 00, minute: 00)
+            XCTAssertEqual(
+                cal.startOfNextMonth(for: try makeDate(year: 2025, month: 01, day: 11, hour: 19, minute: 07)),
+                try makeDate(year: 2025, month: 02, day: 01, hour: 00, minute: 00)
             )
-            try #require(
-                try cal.startOfPrevYear(for: makeDate(year: 2025, month: 01, day: 11, hour: 19, minute: 07)) ==
-                makeDate(year: 2024, month: 01, day: 01, hour: 00, minute: 00)
+            XCTAssertEqual(
+                cal.startOfPrevYear(for: try makeDate(year: 2025, month: 01, day: 11, hour: 19, minute: 07)),
+                try makeDate(year: 2024, month: 01, day: 01, hour: 00, minute: 00)
             )
         }
     }
     
-    @Test
+    
     func testNumberOfDaysInMonth() throws {
         try withRegions(.current, .losAngeles, .berlin) {
-            try #require(cal.numberOfDaysInMonth(for: makeDate(year: 2025, month: 1, day: 01, hour: 00)) == 31)
-            try #require(cal.numberOfDaysInMonth(for: makeDate(year: 2024, month: 12, day: 01, hour: 00)) == 31)
-            try #require(cal.numberOfDaysInMonth(for: makeDate(year: 2024, month: 11, day: 01, hour: 00)) == 30)
-            try #require(cal.numberOfDaysInMonth(for: makeDate(year: 2025, month: 02, day: 01, hour: 00)) == 28)
-            try #require(cal.numberOfDaysInMonth(for: makeDate(year: 2024, month: 02, day: 01, hour: 00)) == 29)
+            XCTAssertEqual(cal.numberOfDaysInMonth(for: try makeDate(year: 2025, month: 01, day: 01, hour: 00)), 31)
+            XCTAssertEqual(cal.numberOfDaysInMonth(for: try makeDate(year: 2024, month: 12, day: 01, hour: 00)), 31)
+            XCTAssertEqual(cal.numberOfDaysInMonth(for: try makeDate(year: 2024, month: 11, day: 01, hour: 00)), 30)
+            XCTAssertEqual(cal.numberOfDaysInMonth(for: try makeDate(year: 2025, month: 02, day: 01, hour: 00)), 28)
+            XCTAssertEqual(cal.numberOfDaysInMonth(for: try makeDate(year: 2024, month: 02, day: 01, hour: 00)), 29)
         }
     }
     
-    @Test
     func testTimeZoneConstants() throws {
-        let date = try #require(cal.date(from: .init(year: 2025, month: 07, day: 17)))
-        #expect(TimeZone.losAngeles.secondsFromGMT(for: date) == -(7 * 60 * 60))
-        #expect(TimeZone.berlin.secondsFromGMT(for: date) == 2 * 60 * 60)
+        let date = try XCTUnwrap(cal.date(from: .init(year: 2025, month: 07, day: 17)))
+        XCTAssertEqual(TimeZone.losAngeles.secondsFromGMT(for: date), -(7 * 60 * 60))
+        XCTAssertEqual(TimeZone.berlin.secondsFromGMT(for: date), 2 * 60 * 60)
     }
 }
