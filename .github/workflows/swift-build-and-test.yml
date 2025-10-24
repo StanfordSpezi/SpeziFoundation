@@ -84,7 +84,7 @@ jobs:
       - name: Generate Coverage Report
         if: ${{ (success() || failure()) && inputs.artifactname != '' }}
         run: |
-          RUN COVERAGE_FILE=$(find .build/*/debug/codecov -name "*.profdata" -type f | head -1) && \
+          COVERAGE_FILE=$(find .build/*/debug/codecov -name "*.profdata" -type f | head -1) && \
           XCTEST_FILE=$(find .build/*/debug -name "*.xctest" -type f | head -1) && \
           llvm-cov export \
             "$XCTEST_FILE" \
