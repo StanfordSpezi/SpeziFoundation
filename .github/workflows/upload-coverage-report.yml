@@ -1,0 +1,49 @@
+#
+# This source file is part of the Stanford Spezi open-source project
+#
+# SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
+#
+# SPDX-License-Identifier: MIT
+#
+
+name: Upload coverage report
+
+on:
+  workflow_call:
+    inputs:
+      coveragereport:
+        description: |
+          A string containing the name of the .lcov file that is downloaded from the artifacts of previous jobs.
+        required: true
+        type: string
+      platform:
+        description: 'Platform flag for codecov (e.g., linux)'
+        required: false
+        type: string
+      runsonlabels:
+        description: |
+          JSON-based collection of labels indicating which type of github runner should be chosen.
+        required: false
+        type: string
+        default: '["ubuntu-latest"]'
+    secrets:
+      token:
+        description: 'The CodeCov token used for private repositories'
+        required: false
+
+jobs:
+  create-and-upload-coverage-report:
+    name: Create and upload coverage report
+    runs-on: ${{ fromJson(inputs.runsonlabels) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.coveragereport }}
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          fail_ci_if_error: true
+          files: ${{ inputs.coveragereport }}
+          token: ${{ secrets.token }}
+          flags: ${{ inputs.platform }}
