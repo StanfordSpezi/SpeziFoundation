@@ -67,21 +67,11 @@ jobs:
   buildandtest_linux:
     name: Build and Test Swift Package Linux
     uses: ./.github/workflows/swift-build-and-test.yml
-    with:
-      artifactname: SpeziFoundation-Package-Linux.lcov
   uploadcoveragereport:
     name: Upload Coverage Report
     needs: [package_tests, ui_tests]
     uses: StanfordBDHG/.github/.github/workflows/create-and-upload-coverage-report.yml@v2
     with:
       coveragereports: SpeziFoundation-Package-*.xcresult TestApp-*.xcresult
-    secrets:
-      token: ${{ secrets.CODECOV_TOKEN }}
-  uploadcoveragereport_linux:
-    name: Upload Linux Coverage Report
-    needs: buildandtest_linux
-    uses: ./.github/workflows/upload-coverage-report.yml
-    with:
-      coveragereport: SpeziFoundation-Package-Linux.lcov
     secrets:
       token: ${{ secrets.CODECOV_TOKEN }}
