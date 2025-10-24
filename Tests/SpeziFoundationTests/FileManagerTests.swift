@@ -9,6 +9,7 @@
 import Foundation
 @testable import SpeziFoundation
 import Testing
+#if canImport(UniformTypeIdentifiers)
 import UniformTypeIdentifiers
 
 
@@ -71,3 +72,4 @@ final class FileManagerTests {
         #expect(try fileManager.contents(of: folder2Url).mapIntoSet(\.lastPathComponent) == ["file1.txt", "file2.txt"])
     }
 }
+#endif

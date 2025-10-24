@@ -6,9 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-
+#if canImport(pthread)
 public import pthread
-
+#elseif canImport(Glibc)
+public import Glibc
+#endif
 
 /// Read-Write Lock using `pthread_rwlock`.
 ///

@@ -30,16 +30,25 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.2.0"),
         .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.2.0"),
-        .package(url: "https://github.com/StanfordBDHG/XCTRuntimeAssertions.git", from: "2.2.0")
+        .package(url: "https://github.com/StanfordBDHG/XCTRuntimeAssertions.git", from: "2.2.0"),
+        .package(url: "https://github.com/apple/swift-log", from: "1.6.0")
     ] + swiftLintPackage(),
     targets: [
+        .systemLibrary(
+            name: "CZlib",
+            path: "Sources/CZlib",
+            pkgConfig: "zlib",
+            providers: [.apt(["zlib1g-dev"])]
+        ),
         .target(
             name: "SpeziFoundation",
             dependencies: [
                 .target(name: "SpeziFoundationObjC"),
+                .target(name: "CZlib", condition: .when(platforms: [.linux])),
                 .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "Algorithms", package: "swift-algorithms"),
-                .product(name: "RuntimeAssertions", package: "XCTRuntimeAssertions")
+                .product(name: "RuntimeAssertions", package: "XCTRuntimeAssertions"),
+                .product(name: "Logging", package: "swift-log")
             ],
             resources: [
                 .process("Resources")
@@ -69,8 +78,7 @@ let package = Package(
             name: "SpeziFoundationTests",
             dependencies: [
                 .target(name: "SpeziFoundation"),
-                .product(name: "RuntimeAssertionsTesting", package: "XCTRuntimeAssertions"),
-                .product(name: "XCTRuntimeAssertions", package: "XCTRuntimeAssertions")
+                .product(name: "RuntimeAssertionsTesting", package: "XCTRuntimeAssertions")
             ],
             swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
             plugins: [] + swiftLintPlugin()

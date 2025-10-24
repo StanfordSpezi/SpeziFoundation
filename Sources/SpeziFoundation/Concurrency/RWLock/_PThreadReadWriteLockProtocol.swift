@@ -6,7 +6,13 @@
 // SPDX-License-Identifier: MIT
 //
 
+#if canImport(pthread)
 public import pthread
+#elseif canImport(Glibc)
+public import Glibc
+#else
+#error("Unsupported platform: neither pthread nor Glibc is available")
+#endif
 
 
 @_documentation(visibility: internal)

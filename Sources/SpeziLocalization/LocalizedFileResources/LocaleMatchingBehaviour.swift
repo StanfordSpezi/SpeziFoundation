@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-
 /// How a `Locale` should be matched against a ``LocalizationKey``.
 ///
 /// ## Topics

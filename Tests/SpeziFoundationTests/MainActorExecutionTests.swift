@@ -12,6 +12,7 @@ import SpeziFoundation
 import Testing
 
 
+#if canImport(Darwin)
 /// Internal helper actor to be able to have code run guaranteed off the main actor (by scheduling it onto a background queue)
 @globalActor
 private actor TestActor: GlobalActor {
@@ -50,3 +51,4 @@ struct MainActorExecutionTests {
         }
     }
 }
+#endif

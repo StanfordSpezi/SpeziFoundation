@@ -82,17 +82,21 @@ extension Bundle {
         tables: [LocalizationLookupTable],
         localizations: [Locale.Language]
     ) -> String? {
-        if #available(macOS 15.4, iOS 18.4, tvOS 18.4, watchOS 11.4, visionOS 2.4, *) {
-            let notFound = "NOT_FOUND"
-            return preferredLocalizations(from: localizations).lazy.compactMap { lang in
-                (tables.isEmpty ? [.default] : tables).lazy
-                    .map { self.localizedString(forKey: key, value: notFound, table: $0.stringValue, localizations: [lang]) }
-                    .first { $0 != notFound }
+        #if canImport(Darwin)
+            if #available(macOS 15.4, iOS 18.4, tvOS 18.4, watchOS 11.4, visionOS 2.4, *) {
+                let notFound = "NOT_FOUND"
+                return preferredLocalizations(from: localizations).lazy.compactMap { lang in
+                    (tables.isEmpty ? [.default] : tables).lazy
+                        .map { self.localizedString(forKey: key, value: notFound, table: $0.stringValue, localizations: [lang]) }
+                        .first { $0 != notFound }
+                }
+                .first
+            } else {
+                return localizedStringForKeyFallback(key: key, tables: tables, localizations: localizations)
             }
-            .first
-        } else {
+        #else
             return localizedStringForKeyFallback(key: key, tables: tables, localizations: localizations)
-        }
+        #endif
     }
     
     // ideally this would be directly in the other function, but bc of the #available check we wouldn't be able to test it then.
@@ -132,7 +136,7 @@ extension Bundle {
                     continue
                 }
                 // NOTE: obvious potential for optimization here! there really is no need to re-read this mapping every time!
-                guard let dict = try? NSDictionary(contentsOf: url, error: ()),
+                guard let dict = NSDictionary(contentsOf: url),
                       let entries = dict[language.minimalIdentifier] as? [String: String] else {
                     continue
                 }

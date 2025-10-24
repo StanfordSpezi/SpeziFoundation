@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-
 import Atomics
 public import Foundation
 
@@ -17,7 +16,7 @@ public import Foundation
 public final class RecursiveRWLock: _PThreadReadWriteLockProtocol, @unchecked Sendable {
     public let _rwLock: UnsafeMutablePointer<pthread_rwlock_t> // swiftlint:disable:this identifier_name
 
-    private let writerThread = ManagedAtomic<pthread_t?>(nil)
+    private let writerThread = AtomicPThread(nil)
     private var writerCount = 0
     private var readerCount = 0
 
