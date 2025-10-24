@@ -33,7 +33,7 @@ on:
 
 jobs:
   create-and-upload-coverage-report:
-    name: Create and upload coverage report
+    name: Upload coverage report
     runs-on: ${{ fromJson(inputs.runsonlabels) }}
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +43,6 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           files: ${{ inputs.coveragereport }}
           token: ${{ secrets.token }}
-          flags: ${{ inputs.platform }}
