@@ -47,18 +47,17 @@ on:
         required: false
         type: boolean
         default: false
-    secrets:
-      CHECKOUT_TOKEN:
-        description: |
-          The Personal access token (PAT) to use with the checkout action.
-        required: false
-    artifactname:
+      artifactname:
         description: |
           The name & path of the artifact that should be uploaded at the end of the build.
         required: false
         type: string
         default: ''
-
+    secrets:
+      CHECKOUT_TOKEN:
+        description: |
+          The Personal access token (PAT) to use with the checkout action.
+        required: false
 jobs:
   swift_build_and_test:
     name: Build and Test Swift on Linux
