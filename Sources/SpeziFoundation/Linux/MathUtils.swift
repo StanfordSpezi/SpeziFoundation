@@ -1,29 +1,37 @@
 //
 //  MathUtils.swift
-//  SpeziFoundation
+//  Example Swift file for testing code coverage
 //
-//  Created by Philipp Nagy on 25.10.25.
+//  SPDX-License-Identifier: MIT
 //
 
+import Foundation
 
-public struct MathUtils {
+/// Utility type for performing simple math operations.
+public enum MathUtils {
     /// Adds two integers.
-    public static func add(_ a: Int, _ b: Int) -> Int {
-        return a + b
+    public static func add(_ lhs: Int, _ rhs: Int) -> Int {
+        lhs + rhs
     }
 
     /// Returns the factorial of a number.
-    public static func factorial(_ n: Int) -> Int {
-        guard n >= 0 else { return 0 } // negative numbers not allowed
-        if n == 0 { return 1 }
-        return (1...n).reduce(1, *)
+    public static func factorial(of number: Int) -> Int {
+        guard number >= 0 else {
+            return 0
+        }
+        if number == 0 {
+            return 1
+        }
+        return (1...number).reduce(1, *)
     }
 
     /// Determines if a number is prime.
-    public static func isPrime(_ n: Int) -> Bool {
-        guard n > 1 else { return false }
-        for i in 2..<n {
-            if n % i == 0 { return false }
+    public static func isPrime(_ number: Int) -> Bool {
+        guard number > 1 else {
+            return false
+        }
+        for divisor in 2..<number where number.isMultiple(of: divisor) {
+            return false
         }
         return true
     }

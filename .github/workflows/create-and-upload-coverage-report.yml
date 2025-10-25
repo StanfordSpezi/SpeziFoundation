@@ -65,10 +65,16 @@ jobs:
             else
               mv ${{ inputs.coveragereports }} CodeCoverage.xcresult
             fi
-      - uses: stanfordbdhg/xccov2lcov@v1
+      - name: Convert xcresult to lcov
         if: ${{ inputs.coveragereports != '' }}
-        with:
-          xcresult: CodeCoverage.xcresult
+        shell: bash
+        run: |
+          set -e
+          URL="https://github.com/StanfordBDHG/xccov2lcov/releases/latest/download/xccov2lcov-macos.tar.gz"
+          curl -f -sL "${URL}" -o xccov2lcov.tar.gz
+          tar -xzf xccov2lcov.tar.gz
+          chmod +x xccov2lcov
+          xcrun xccov view --report --json CodeCoverage.xcresult | ./xccov2lcov --trim-path=/Users/githubaction/runner/_work/ > info.lcov
       - name: Combine with lcov files
         if: ${{ inputs.coveragereport_lcov != '' && inputs.coveragereports != '' }}
         run: |

@@ -6,8 +6,8 @@
 //
 
 
-import Testing
 import SpeziFoundation
+import Testing
 
 @Suite
 struct MathUtilsTests {
