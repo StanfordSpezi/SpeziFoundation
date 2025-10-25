@@ -67,8 +67,6 @@ jobs:
   buildandtest_linux:
     name: Build and Test Swift Package Linux
     uses: ./.github/workflows/swift-build-and-test.yml
-    with:
-      artifactname: SpeziFoundation-Package-Linux.lcov
   uploadcoveragereport:
     name: Upload Coverage Report
     needs: [package_tests, ui_tests, buildandtest_linux]

@@ -90,6 +90,7 @@ jobs:
             --instr-profile="$COVERAGE_FILE" \
             --format=lcov > tmp.lcov
       - name: Convert LCOV format
+        if: ${{ (success() || failure()) && inputs.artifactname != '' }}
         shell: bash
         run: |
           python3 -c "
@@ -98,9 +99,6 @@ jobs:
           # Read input
           with open('tmp.lcov', 'r') as f:
               content = f.read()
-          
-          # Remove .build/ records
-          content = re.sub(r'^SF:.*\.build/.*?^end_of_record$', '', content, flags=re.MULTILINE | re.DOTALL)
           
           # Process records
           records = re.split(r'(?=^SF:)', content, flags=re.MULTILINE)
