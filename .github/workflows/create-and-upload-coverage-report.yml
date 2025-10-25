@@ -75,14 +75,14 @@ jobs:
           if [ -n "${{ inputs.coveragereport_lcov }}" ]; then
             lcov -a info.lcov -a ${{ inputs.coveragereport_lcov }}/${{ inputs.coveragereport_lcov }} -o coverage_combined.lcov
             mv coverage_combined.lcov info.lcov
-            rm ${{ inputs.coveragereport_lcov }}
           fi
       - name: Prepare LCOV for upload
         if: ${{ inputs.coveragereport_lcov != '' && inputs.coveragereports == '' }}
         run: |
-          mv ${{ inputs.coveragereport_lcov }} info.lcov
+          mv ${{ inputs.coveragereport_lcov }}/${{ inputs.coveragereport_lcov }} info.lcov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           fail_ci_if_error: true
+          files: info.lcov
           token: ${{ secrets.token }}
