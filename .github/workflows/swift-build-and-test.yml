@@ -88,8 +88,53 @@ jobs:
           llvm-cov export \
             "$XCTEST_FILE" \
             --instr-profile="$COVERAGE_FILE" \
-            --path-equivalence="/home/runner/work/","" \
-            --format=lcov > "${{ inputs.artifactname }}"
+            --format=lcov > tmp.lcov
+      - name: Convert LCOV format
+        shell: bash
+        run: |
+          python3 -c "
+          import re, sys
+          
+          # Read input
+          with open('linux.lcov', 'r') as f:
+              content = f.read()
+          
+          # Remove .build/ records
+          content = re.sub(r'^SF:.*\.build/.*?^end_of_record$', '', content, flags=re.MULTILINE | re.DOTALL)
+          
+          # Process records
+          records = re.split(r'(?=^SF:)', content, flags=re.MULTILINE)
+          result = []
+          
+          for record in records:
+              if not record.strip() or not record.startswith('SF:'):
+                  continue
+                  
+              lines = record.strip().split('\n')
+              sf_line = lines[0]
+              fn_map = {}
+              fnda_map = {}
+              
+              for line in lines[1:]:
+                  if line.startswith('FN:'):
+                      parts = line[3:].split(',', 1)
+                      if len(parts) == 2:
+                          fn_map[parts[1]] = parts[0]
+                  elif line.startswith('FNDA:'):
+                      parts = line[5:].split(',', 1)
+                      if len(parts) == 2:
+                          fnda_map[parts[1]] = parts[0]
+              
+              result.append(sf_line)
+              for func_id, line_num in fn_map.items():
+                  if func_id in fnda_map:
+                      result.append(f'DA:{line_num},{fnda_map[func_id]}')
+              result.append('end_of_record')
+          
+          # Write output
+          with open('${{ inputs.path }}/${{ inputs.artifactname }}', 'w') as f:
+              f.write('\n'.join(result))
+          "
       - name: Upload artifact
         if: ${{ (success() || failure()) && inputs.artifactname != '' }}
         uses: actions/upload-artifact@v4
