@@ -71,7 +71,7 @@ jobs:
       artifactname: SpeziFoundation-Package-Linux.lcov
   uploadcoveragereport:
     name: Upload Coverage Report
-    needs: [package_tests, ui_tests]
+    needs: [package_tests, ui_tests, buildandtest_linux]
     uses: ./.github/workflows/create-and-upload-coverage-report.yml
     with:
       coveragereports: SpeziFoundation-Package-*.xcresult TestApp-*.xcresult

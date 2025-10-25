@@ -73,7 +73,7 @@ jobs:
         if: ${{ inputs.coveragereport_lcov != '' && inputs.coveragereports != '' }}
         run: |
           if [ -n "${{ inputs.coveragereport_lcov }}" ]; then
-            lcov -a info.lcov -a ${{ inputs.coveragereport_lcov }} -o coverage_combined.lcov
+            lcov -a info.lcov -a ${{ inputs.coveragereport_lcov }}/${{ inputs.coveragereport_lcov }} -o coverage_combined.lcov
             mv coverage_combined.lcov info.lcov
             rm ${{ inputs.coveragereport_lcov }}
           fi
