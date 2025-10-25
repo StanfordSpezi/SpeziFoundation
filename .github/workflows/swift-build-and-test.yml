@@ -89,7 +89,6 @@ jobs:
             "$XCTEST_FILE" \
             --instr-profile="$COVERAGE_FILE" \
             --path-equivalence="/home/runner/work/","" \
-            --ignore-filename-regex='/\.build/' \
             --format=lcov > "${{ inputs.artifactname }}"
       - name: Upload artifact
         if: ${{ (success() || failure()) && inputs.artifactname != '' }}
