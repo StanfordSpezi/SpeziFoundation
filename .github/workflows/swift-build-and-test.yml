@@ -96,7 +96,7 @@ jobs:
           import re, sys
           
           # Read input
-          with open('linux.lcov', 'r') as f:
+          with open('tmp.lcov', 'r') as f:
               content = f.read()
           
           # Remove .build/ records
