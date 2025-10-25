@@ -47,6 +47,11 @@ on:
         required: false
         type: boolean
         default: false
+      artifactname:
+        description: |
+          The name of the artifact that should be uploaded at the end of the build.
+        required: false
+        type: string
     secrets:
       CHECKOUT_TOKEN:
         description: |
@@ -74,5 +79,20 @@ jobs:
       - name: Build Package
         run: swift build -v
       - name: Run Tests
-        run: swift test -v
+        run: swift test -v --enable-code-coverage
+      - name: Generate Coverage Report
+        if: ${{ (success() || failure()) && inputs.artifactname != '' }}
+        run: |
+          COVERAGE_FILE=$(find .build/*/debug/codecov -name "*.profdata" -type f | head -1) && \
+          XCTEST_FILE=$(find .build/*/debug -name "*.xctest" -type f | head -1) && \
+          llvm-cov export \
+            "$XCTEST_FILE" \
+            --instr-profile="$COVERAGE_FILE" \
+            --format=lcov > "${{ inputs.artifactname }}"
+      - name: Upload artifact
+        if: ${{ (success() || failure()) && inputs.artifactname != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifactname }}
+          path: ${{ inputs.path }}/${{ inputs.artifactname }}
 
