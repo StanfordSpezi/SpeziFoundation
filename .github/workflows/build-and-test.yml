@@ -75,6 +75,6 @@ jobs:
     uses: ./.github/workflows/create-and-upload-coverage-report.yml
     with:
       coveragereports: SpeziFoundation-Package-*.xcresult TestApp-*.xcresult
-      coveragereport_lcov: SpeziFoundation-Package-Linux.lcov
+      coveragereports_lcov: SpeziFoundation-Package-Linux.lcov
     secrets:
       token: ${{ secrets.CODECOV_TOKEN }}
