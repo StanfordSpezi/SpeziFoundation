@@ -33,12 +33,6 @@ jobs:
     name: Create and upload coverage report
     runs-on: macos-26
     steps:
-      - name: Check coverage inputs
-        run: |
-          if [ -z "${{ inputs.coveragereports }}" ] && [ -z "${{ inputs.coveragereports_lcov }}" ]; then
-            echo "Error: Either coveragereports or coveragereports_lcov must be provided"
-            exit 1
-          fi
       - uses: actions/checkout@v4
       - uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -48,14 +42,18 @@ jobs:
             xcodebuild -version
             swift --version
       - uses: actions/download-artifact@v4
-      - name: Ensure lcov is installed
+      - name: Install lcov
         if: ${{ inputs.coveragereports_lcov != '' }}
         run: |
           if ! command -v lcov &> /dev/null; then
             echo "Installing lcov..."
             brew install lcov
           fi
-      - name: Merge coverage reports
+      - name: Merge lcov coverage reports
+        if: ${{ inputs.coveragereports_lcov != '' && inputs.coveragereports == '' }}
+        run: |
+          lcov $(printf -- '-a %s ' ${{ inputs.coveragereports_lcov }}/${{ inputs.coveragereports_lcov }}) -o info.lcov
+      - name: Merge xcresult coverage reports
         if: ${{ inputs.coveragereports != '' }}
         run: |
             FILES=( ${{ inputs.coveragereports }} )
@@ -66,6 +64,10 @@ jobs:
             else
               mv ${{ inputs.coveragereports }} CodeCoverage.xcresult
             fi
+      - uses: stanfordbdhg/xccov2lcov@v1
+        if: ${{ inputs.coveragereports != '' }}
+        with:
+          xcresult: CodeCoverage.xcresult
       - name: Convert xcresult to lcov
         if: ${{ inputs.coveragereports != '' }}
         shell: bash
@@ -76,17 +78,13 @@ jobs:
           tar -xzf xccov2lcov.tar.gz
           chmod +x xccov2lcov
           xcrun xccov view --report --json CodeCoverage.xcresult | ./xccov2lcov --trim-path=/Users/githubaction/runner/_work/ > info.lcov
-      - name: Combine with lcov files
+      - name: Merge xcresult & lcov
         if: ${{ inputs.coveragereports_lcov != '' && inputs.coveragereports != '' }}
         run: |
           if [ -n "${{ inputs.coveragereports_lcov }}" ]; then
             lcov -a info.lcov $(printf -- '-a %s ' ${{ inputs.coveragereports_lcov }}/${{ inputs.coveragereports_lcov }}) -o coverage_combined.lcov
             mv coverage_combined.lcov info.lcov
           fi
-      - name: Prepare lcov for upload
-        if: ${{ inputs.coveragereports_lcov != '' && inputs.coveragereports == '' }}
-        run: |
-          lcov $(printf -- '-a %s ' ${{ inputs.coveragereports_lcov }}/${{ inputs.coveragereports_lcov }}) -o info.lcov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
