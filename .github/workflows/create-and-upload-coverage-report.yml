@@ -17,9 +17,10 @@ on:
           Multiple values are separated by a space character.
         required: false
         type: string
-      coveragereport_lcov:
+      coveragereports_lcov:
         description: |
-          A string with the path to an lcov file that are downloaded from the artifacts of previous jobs.
+          A string containing all names of the .lcov files that are downloaded from the artifacts of previous jobs.
+          Multiple values are separated by a space character.
         required: false
         type: string
     secrets:
@@ -34,8 +35,8 @@ jobs:
     steps:
       - name: Check coverage inputs
         run: |
-          if [ -z "${{ inputs.coveragereports }}" ] && [ -z "${{ inputs.coveragereport_lcov }}" ]; then
-            echo "Error: Either coveragereports or coveragereport_lcov must be provided"
+          if [ -z "${{ inputs.coveragereports }}" ] && [ -z "${{ inputs.coveragereports_lcov }}" ]; then
+            echo "Error: Either coveragereports or coveragereports_lcov must be provided"
             exit 1
           fi
       - uses: actions/checkout@v4
@@ -48,7 +49,7 @@ jobs:
             swift --version
       - uses: actions/download-artifact@v4
       - name: Ensure lcov is installed
-        if: ${{ inputs.coveragereport_lcov != '' }}
+        if: ${{ inputs.coveragereports_lcov != '' }}
         run: |
           if ! command -v lcov &> /dev/null; then
             echo "Installing lcov..."
@@ -76,16 +77,16 @@ jobs:
           chmod +x xccov2lcov
           xcrun xccov view --report --json CodeCoverage.xcresult | ./xccov2lcov --trim-path=/Users/githubaction/runner/_work/ > info.lcov
       - name: Combine with lcov files
-        if: ${{ inputs.coveragereport_lcov != '' && inputs.coveragereports != '' }}
+        if: ${{ inputs.coveragereports_lcov != '' && inputs.coveragereports != '' }}
         run: |
-          if [ -n "${{ inputs.coveragereport_lcov }}" ]; then
-            lcov -a info.lcov -a ${{ inputs.coveragereport_lcov }}/${{ inputs.coveragereport_lcov }} -o coverage_combined.lcov
+          if [ -n "${{ inputs.coveragereports_lcov }}" ]; then
+            lcov -a info.lcov $(printf -- '-a %s ' ${{ inputs.coveragereports_lcov }}/${{ inputs.coveragereports_lcov }}) -o coverage_combined.lcov
             mv coverage_combined.lcov info.lcov
           fi
-      - name: Prepare LCOV for upload
-        if: ${{ inputs.coveragereport_lcov != '' && inputs.coveragereports == '' }}
+      - name: Prepare lcov for upload
+        if: ${{ inputs.coveragereports_lcov != '' && inputs.coveragereports == '' }}
         run: |
-          mv ${{ inputs.coveragereport_lcov }}/${{ inputs.coveragereport_lcov }} info.lcov
+          lcov $(printf -- '-a %s ' ${{ inputs.coveragereports_lcov }}/${{ inputs.coveragereports_lcov }}) -o info.lcov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
