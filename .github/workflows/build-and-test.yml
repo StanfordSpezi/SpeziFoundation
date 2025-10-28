@@ -66,13 +66,13 @@ jobs:
       artifactname: ${{ format('TestApp-{0}-{1}.xcresult', matrix.platform.name, matrix.config) }}
   buildandtest_linux:
     name: Build and Test Swift Package Linux
-    uses: ./.github/workflows/swift-build-and-test.yml
+    uses: StanfordBDHG/.github/.github/workflows/swift-build-and-test.yml@linux-build-test-codecov
     with:
       artifactname: SpeziFoundation-Package-Linux.lcov
   uploadcoveragereport:
     name: Upload Coverage Report
     needs: [package_tests, ui_tests, buildandtest_linux]
-    uses: ./.github/workflows/create-and-upload-coverage-report.yml
+    uses: StanfordBDHG/.github/.github/workflows/create-and-upload-coverage-report.yml@linux-build-test-codecov
     with:
       coveragereports: SpeziFoundation-Package-*.xcresult TestApp-*.xcresult
       coveragereports_lcov: SpeziFoundation-Package-Linux.lcov
