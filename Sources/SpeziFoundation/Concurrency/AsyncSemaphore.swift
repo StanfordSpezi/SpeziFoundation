@@ -72,8 +72,8 @@ public final class AsyncSemaphore: Sendable {
     }
 
     
-    private nonisolated(unsafe) var value: Int
-    private nonisolated(unsafe) var suspendedTasks: [SuspendedTask] = []
+    nonisolated(unsafe) private var value: Int
+    nonisolated(unsafe) private var suspendedTasks: [SuspendedTask] = []
     private let nsLock = NSLock() // protects both of the non-isolated unsafe properties above
 
     
