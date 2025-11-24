@@ -638,7 +638,7 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
                 name: "custom",
                 attributes: [],
                 content: [
-                    .text("<strong>L2</strong>"),
+                    .text("<strong>L2</strong>")
                 ],
                 raw: input
             ))
@@ -739,7 +739,7 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
                 name: "select",
                 attributes: [
                     .init(name: "id", value: "short-term-physical-activity-trial"),
-                    .init(name: "expected-value", value: "*"),
+                    .init(name: "expected-value", value: "*")
                 ],
                 content: [
                     .text("Would you like to join the short term physical activity promoting trial?"),
