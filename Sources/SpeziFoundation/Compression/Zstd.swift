@@ -62,12 +62,12 @@ public enum Zstd: CompressionAlgorithm {
             }
             assert(inputBuffer.count == inputCount)
             switch ZSTD_getFrameContentSize(inputBufferPtr, inputCount) {
-            case ZSTD_CONTENTSIZE_UNKNOWN:
-                // TODO
-                fatalError()
             case ZSTD_CONTENTSIZE_ERROR:
-                // TODO
-                fatalError()
+                // likely not compressed by Zstd
+                return .failure(.invalidInput)
+            case ZSTD_CONTENTSIZE_UNKNOWN:
+                // could try to use streaming decompression for this at some point in the future
+                return .failure(.invalidInput)
             case let contentSize:
                 let contentSize = Int(contentSize)
                 let outputBuffer: UnsafeMutablePointer<UInt8> = .allocate(capacity: contentSize)
@@ -75,7 +75,12 @@ public enum Zstd: CompressionAlgorithm {
                 if ZSTD_isError(result) == 0 {
                     return .success(Data(bytesNoCopy: outputBuffer, count: contentSize, deallocator: .free))
                 } else {
-                    fatalError()
+                    switch ZSTD_getErrorCode(result) {
+                    case ZSTD_error_memory_allocation:
+                        return .failure(.notEnoughMemory)
+                    case let errorCode:
+                        return .failure(.other(errorCode))
+                    }
                 }
             }
         }
@@ -90,20 +95,20 @@ public enum Zstd: CompressionAlgorithm {
 
 extension Zstd {
     private final class ZstdContext: @unchecked Sendable {
-        let _ctx: OpaquePointer
+        let _ctx: OpaquePointer // swiftlint:disable:this identifier_name
         private let free: @Sendable (OpaquePointer) -> Int
         
-        private init(_ctx: OpaquePointer, free: @escaping @Sendable (OpaquePointer) -> Int) {
-            self._ctx = _ctx
+        private init(ctx: OpaquePointer, free: @escaping @Sendable (OpaquePointer) -> Int) {
+            self._ctx = ctx
             self.free = free
         }
         
         static func cctx() -> ZstdContext {
-            ZstdContext(_ctx: ZSTD_createCCtx(), free: ZSTD_freeCCtx)
+            ZstdContext(ctx: ZSTD_createCCtx(), free: ZSTD_freeCCtx)
         }
         
         static func dctx() -> ZstdContext {
-            ZstdContext(_ctx: ZSTD_createDCtx(), free: ZSTD_freeDCtx)
+            ZstdContext(ctx: ZSTD_createDCtx(), free: ZSTD_freeDCtx)
         }
         
         deinit {
