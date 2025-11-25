@@ -581,4 +581,189 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
             .customElement(.init(name: "elem", attributes: [.init(name: "id", value: "👨‍🌾")], content: [], raw: #"<elem id="👨‍🌾" />"#))
         ]))
     }
+    
+    @Test
+    func textInCustomElement() throws {
+        let input = """
+            <custom>
+            abc
+            def
+            
+            ghi
+            
+            jkl
+            mno
+            </custom>
+            """
+        let document = try MarkdownDocument(processing: input, customElementNames: ["custom"])
+        #expect(document == MarkdownDocument(metadata: [:], blocks: [
+            .customElement(.init(
+                name: "custom",
+                attributes: [],
+                content: [
+                    .text("""
+                        abc
+                        def
+                        
+                        ghi
+                        
+                        jkl
+                        mno
+                        """)
+                ],
+                raw: input
+            ))
+        ]))
+    }
+    
+    @Test
+    func unexpectedHTML0() throws {
+        let input = "<strong>Hello there</strong>"
+        let document = try MarkdownDocument(processing: input)
+        #expect(document == MarkdownDocument(metadata: [:], blocks: [
+            .markdown(id: nil, rawContents: input)
+        ]))
+    }
+    
+    @Test
+    func unexpectedHTML1() throws {
+        let input = """
+            <custom>
+            <strong>L2</strong>
+            </custom>
+            """
+        let document = try MarkdownDocument(processing: input, customElementNames: ["custom"])
+        #expect(document == MarkdownDocument(metadata: [:], blocks: [
+            .customElement(.init(
+                name: "custom",
+                attributes: [],
+                content: [
+                    .text("<strong>L2</strong>")
+                ],
+                raw: input
+            ))
+        ]))
+    }
+    
+    @Test
+    func unexpectedHTML2() throws {
+        let input = """
+            <custom>
+            L1
+            <strong>L2</strong>
+            L3
+            </custom>
+            """
+        let document = try MarkdownDocument(processing: input, customElementNames: ["custom"])
+        #expect(document == MarkdownDocument(metadata: [:], blocks: [
+            .customElement(.init(
+                name: "custom",
+                attributes: [],
+                content: [
+                    .text("L1"),
+                    .text("<strong>L2</strong>"),
+                    .text("L3")
+                ],
+                raw: input
+            ))
+        ]))
+    }
+    
+    @Test
+    func unexpectedHTML2a() throws {
+        let input = """
+            <custom>
+            L1<strong>L2</strong>L3
+            </custom>
+            """
+        let document = try MarkdownDocument(processing: input, customElementNames: ["custom"])
+        #expect(document == MarkdownDocument(metadata: [:], blocks: [
+            .customElement(.init(
+                name: "custom",
+                attributes: [],
+                content: [
+                    .text("L1"),
+                    .text("<strong>L2</strong>"),
+                    .text("L3")
+                ],
+                raw: input
+            ))
+        ]))
+    }
+    
+    // test parsing of an unexpected HTML element containing a nested element that is expected.
+    @Test
+    func unexpectedHtmlNestingExpectedHtml() throws {
+        let input = """
+            <a>
+            <b>
+            <c>abc</c>
+            </b>
+            </a>
+            """
+        let document = try MarkdownDocument(processing: input, customElementNames: ["a", "c"])
+        #expect(document == MarkdownDocument(metadata: [:], blocks: [
+            .customElement(.init(
+                name: "a",
+                attributes: [],
+                content: [
+                    .text("""
+                        <b>
+                        <c>abc</c>
+                        </b>
+                        """)
+                ],
+                raw: input
+            ))
+        ]))
+    }
+    
+    @Test
+    func unexpectedHTML3() throws {
+        let input = """
+            <select id=short-term-physical-activity-trial expected-value="*">
+            Would you like to join the short term physical activity promoting trial?
+            
+            <strong>
+            If you select yes, you will go straight from the baseline monitoring week into the randomized crossover trial.
+            </strong>
+
+            If you select no, you will still be able to use the base My Heart Counts application.
+            <option id=short-term-physical-activity-trial-yes>Yes</option>
+            <option id=short-term-physical-activity-trial-no>No</option>
+            </select>
+            """
+        let document = try MarkdownDocument(processing: input, customElementNames: ["select", "option"])
+        #expect(document == MarkdownDocument(metadata: [:], blocks: [
+            .customElement(.init(
+                name: "select",
+                attributes: [
+                    .init(name: "id", value: "short-term-physical-activity-trial"),
+                    .init(name: "expected-value", value: "*")
+                ],
+                content: [
+                    .text("Would you like to join the short term physical activity promoting trial?"),
+                    .text("""
+                        <strong>
+                        If you select yes, you will go straight from the baseline monitoring week into the randomized crossover trial.
+                        </strong>
+                        """),
+                    .text("If you select no, you will still be able to use the base My Heart Counts application."),
+                    .element(.init(
+                        name: "option",
+                        attributes: [.init(name: "id", value: "short-term-physical-activity-trial-yes")],
+                        content: [.text("Yes")],
+                        raw: "<option id=short-term-physical-activity-trial-yes>Yes</option>"
+                    )),
+                    .element(.init(
+                        name: "option",
+                        attributes: [.init(name: "id", value: "short-term-physical-activity-trial-no")],
+                        content: [.text("No")],
+                        raw: "<option id=short-term-physical-activity-trial-no>No</option>"
+                    ))
+                ],
+                raw: input
+            ))
+        ]))
+    }
 }

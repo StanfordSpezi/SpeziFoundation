@@ -250,6 +250,7 @@ extension MarkdownDocument.Parser {
         let name = try parseIdentifier()
         var parsedElement = CustomElement(name: name, raw: "")
         var elementIsClosed = false
+        // parse the opening tag of the custom element
         loop: while true {
             switch currentChar {
             case .none:
@@ -288,7 +289,11 @@ extension MarkdownDocument.Parser {
         } else {
             while true {
                 if let element = try parseCustomElement() {
-                    parsedElement.content.append(.element(element))
+                    if customElementNames.contains(element.name) {
+                        parsedElement.content.append(.element(element))
+                    } else {
+                        parsedElement.content.append(.text(element.raw))
+                    }
                 } else {
                     let text = parseElementTextContents().trimmingWhitespace()
                     if !text.isEmpty {
