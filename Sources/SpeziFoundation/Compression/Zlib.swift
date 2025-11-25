@@ -28,7 +28,7 @@ public enum Zlib: CompressionAlgorithm {
     public static func compress(_ input: borrowing some Collection<UInt8>) throws(CompressionError) -> Data {
         let inputCount = input.count
         let result: Result<Data, CompressionError>? = input.withContiguousStorageIfAvailable { inputBuffer in
-            precondition(inputBuffer.count == inputCount)
+            assert(inputBuffer.count == inputCount)
             guard let inputBufferPtr = inputBuffer.baseAddress else {
                 return .failure(.invalidInput)
             }
@@ -69,7 +69,7 @@ public enum Zlib: CompressionAlgorithm {
     private static func decompress(_ input: borrowing some Collection<UInt8>, expectedOutputLength: Int) throws(DecompressionError) -> Data {
         let inputCount = input.count
         let result: Result<Data, CompressionError>? = input.withContiguousStorageIfAvailable { inputBuffer in
-            precondition(inputBuffer.count == inputCount)
+            assert(inputBuffer.count == inputCount)
             guard let inputBufferPtr = inputBuffer.baseAddress else {
                 return .failure(.invalidInput)
             }
