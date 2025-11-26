@@ -9,10 +9,8 @@
 
 /// A Managed Task Queue
 ///
-/// Similar to a `TaskGroup`, but with a limit w.r.t. the maximum number of tasks that are allowed to run at the same time.
-///
-/// - Important: Do not retain references to `ManagedTaskQueue`s. A task queue is only valid within ``withManagedTaskQueue(limit:_:)``'s `body` closure.
-public final class ManagedTaskQueue: Sendable {
+/// Your code does not use this type directly; instead it is used by ``withManagedTaskQueue(limit:_:)`` and allows you to add child tasks.
+public struct ManagedTaskQueue: ~Copyable {
     fileprivate typealias Operation = @Sendable () async -> Void
     
     private let continuation: AsyncStream<Operation>.Continuation
@@ -52,7 +50,7 @@ public final class ManagedTaskQueue: Sendable {
 /// ## Topics
 /// ### Classes
 /// - ``ManagedTaskQueue``
-public func withManagedTaskQueue(limit: Int, _ body: sending @escaping (_ taskQueue: ManagedTaskQueue) async -> Void) async {
+public func withManagedTaskQueue(limit: Int, _ body: sending @escaping (_ taskQueue: borrowing ManagedTaskQueue) async -> Void) async {
     /// Used to differentiate between the 2 kinds of tasks we schedule with the underlying `TaskGroup`:
     /// - the initial "scheduler" task, which calls `body` to schedule the individual operations with the ``ManagedTaskQueue``
     /// - the worker tasks, which run the operations scheduled on the ``ManagedTaskQueue``.
@@ -61,13 +59,12 @@ public func withManagedTaskQueue(limit: Int, _ body: sending @escaping (_ taskQu
         case worker
     }
     let (stream, continuation) = AsyncStream.makeStream(of: ManagedTaskQueue.Operation.self)
-    let queue = ManagedTaskQueue(continuation: continuation)
     // we need to wrap this as a workaround to be able to mark the `body` parameter as `sending` instead of having to make it `@Sendable`
     let boxedBody = { body }
     await withTaskGroup(of: TaskType.self) { group in
         let body = (consume boxedBody)()
         group.addTask {
-            await body(queue)
+            await body(ManagedTaskQueue(continuation: continuation))
             continuation.finish()
             return .scheduler
         }
