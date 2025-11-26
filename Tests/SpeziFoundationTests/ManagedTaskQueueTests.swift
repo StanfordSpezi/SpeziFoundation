@@ -50,7 +50,7 @@ struct ManagedTaskQueueTests {
     
     
     @Test(arguments: Array(1...17))
-    func managedTaskQueue4(concurrencyLimit: Int) async {
+    func managedTaskQueue(concurrencyLimit: Int) async {
         let numTasks = concurrencyLimit * 3
         let tracker = OperationsTracker(expectedLimit: concurrencyLimit)
         await withManagedTaskQueue(limit: concurrencyLimit) { taskQueue in
@@ -65,7 +65,6 @@ struct ManagedTaskQueueTests {
         #expect(await tracker.active.isEmpty)
         #expect(await tracker.completed == Set(0..<numTasks))
         #expect(await tracker.maxObservedConcurrency <= concurrencyLimit)
-        await print("max observed concurrency for limit=\(concurrencyLimit): \(tracker.maxObservedConcurrency)")
     }
 }
 
