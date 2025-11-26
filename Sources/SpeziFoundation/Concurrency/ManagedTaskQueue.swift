@@ -28,7 +28,7 @@ public final class ManagedTaskQueue: Sendable {
 }
 
 
-/// Starts a new `ManagedTaskQueue` that runs a dynamic number of child tasks in parallel.
+/// Runs a dynamic number of child tasks, with a maximum concurrency limit.
 ///
 /// The function will return once all child tasks scheduled via ``ManagedTaskQueue/addTask(_:)`` have completed.
 ///
