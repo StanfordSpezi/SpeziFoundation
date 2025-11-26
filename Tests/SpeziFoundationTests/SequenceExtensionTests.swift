@@ -96,6 +96,29 @@ struct SequenceExtensions {
         #expect(input[unsafe: 1] == 1)
         #expect(input[unsafe: 2] == 2)
     }
+    
+    
+    @Test
+    func multiComparatorSorting() {
+        struct Cat: Equatable {
+            let name: String
+            let age: Int
+        }
+        let cats = [
+            Cat(name: "Terrace", age: 7),
+            Cat(name: "Pixel", age: 5),
+            Cat(name: "Pixel", age: 4)
+        ]
+        let sorted = cats.sorted(using: [
+            KeyPathComparator(\.name),
+            KeyPathComparator(\.age)
+        ])
+        #expect(sorted == [
+            Cat(name: "Pixel", age: 4),
+            Cat(name: "Pixel", age: 5),
+            Cat(name: "Terrace", age: 7)
+        ])
+    }
 }
 
 
