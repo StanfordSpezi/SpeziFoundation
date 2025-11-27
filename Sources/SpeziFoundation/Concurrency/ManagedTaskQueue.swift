@@ -10,11 +10,6 @@
 /// A Managed Task Queue
 ///
 /// Your code does not use this type directly; instead it is used by ``withManagedTaskQueue(limit:_:)`` and allows you to add child tasks.
-///
-/// ## Topics
-/// ### Instance Methods
-/// - ``addTask(_:)``
-/// - ``addTask(name:_:)``
 public struct ManagedTaskQueue: ~Copyable {
     @usableFromInline typealias Operation = @Sendable () async -> Void
     
