@@ -62,7 +62,7 @@ public func withManagedTaskQueue(limit: Int, _ body: sending @escaping (_ taskQu
     let (stream, continuation) = AsyncStream.makeStream(of: ManagedTaskQueue.Operation.self)
     // we need to wrap this as a workaround to be able to mark the `body` parameter as `sending` instead of having to make it `@Sendable`
     let boxedBody = { body }
-    await withTaskGroup(of: TaskType.self) { group in // swiftlint:disable:this closure_body_length
+    await withTaskGroup(of: TaskType.self) { group in
         let body = (consume boxedBody)()
         group.addTask {
             await body(ManagedTaskQueue(continuation: continuation))
