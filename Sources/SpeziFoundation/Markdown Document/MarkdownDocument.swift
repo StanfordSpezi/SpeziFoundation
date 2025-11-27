@@ -16,7 +16,7 @@ public import Foundation
 ///
 /// ### Metadata
 ///
-/// When using any of the `processing:` initializers to create a ``MarkdownDocument`` (e.g.: ``init(processing:customElementNames:)-(String,_)``),
+/// When using any of the `processing:` initializers to create a ``MarkdownDocument`` (e.g.: ``init(processing:customElementNames:baseUrl:)-(String,_,_)``),
 /// any frontmatter-style metadata entries at the very beginning of the input will be parsed into a ``Metadata-swift.struct`` object.
 ///
 /// The frontmatter-style metadata takes the following format:
@@ -93,10 +93,10 @@ public import Foundation
 /// ## Topics
 ///
 /// ### Initializers
-/// - ``init(metadata:blocks:)``
-/// - ``init(processing:customElementNames:)-(String,Set<String>)``
-/// - ``init(processing:customElementNames:)-(Data,Set<String>)``
-/// - ``init(processingContentsOf:customElementNames:)``
+/// - ``init(metadata:blocks:baseUrl:)``
+/// - ``init(processing:customElementNames:baseUrl:)-(String,_,_)``
+/// - ``init(processing:customElementNames:baseUrl:)-(Data,_,_)``
+/// - ``init(contentsOf:customElementNames:baseUrl:)``
 /// - ``ParseError``
 ///
 /// ### Instance Properties
@@ -178,6 +178,7 @@ public struct MarkdownDocument: Hashable, Sendable {
     /// - parameter customElementNames: A `Set` of HTML tag names which should be processed into custom elements.
     ///     Any HTML tags encountered that aren't specified in the set will be treated as if they were part of the normal markdown text.
     /// - parameter baseUrl: The document's base url. If `nil`, `url` will be used instead, with the last path component (the file itself) omitted
+    @_documentation(visibility: internal)
     @available(*, deprecated, renamed: "init(contentsOf:customElementNames:baseUrl:)")
     public init(processingContentsOf url: URL, customElementNames: Set<String> = [], baseUrl: URL? = nil) throws {
         try self.init(contentsOf: url, customElementNames: customElementNames, baseUrl: baseUrl)

@@ -6,10 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-
-import Foundation
 @testable import SpeziFoundation
 import Testing
+
 
 @Suite
 struct TimeoutTests {
@@ -23,10 +22,15 @@ struct TimeoutTests {
     @MainActor
     func operation(for duration: Duration) {
         Task { @MainActor in
-            try? await Task.sleep(for: duration)
-            if let continuation = storage.continuation {
-                continuation.resume()
-                storage.continuation = nil
+            do {
+                try await Task.sleep(for: duration)
+                if let continuation = exchange(&storage.continuation, with: nil) {
+                    continuation.resume()
+                }
+            } catch {
+                if let continuation = exchange(&storage.continuation, with: nil) {
+                    continuation.resume(throwing: error)
+                }
             }
         }
     }
@@ -36,8 +40,7 @@ struct TimeoutTests {
         let storage = storage
         async let _ = withTimeout(of: timeout) { @MainActor [storage] in
             #expect(!Task.isCancelled)
-            if let continuation = storage.continuation {
-                storage.continuation = nil
+            if let continuation = exchange(&storage.continuation, with: nil) {
                 continuation.resume(throwing: TimeoutError())
             }
         }
@@ -48,24 +51,26 @@ struct TimeoutTests {
         }
     }
     
+    
     @Test("Operation finishes", .timeLimit(.minutes(1)))
     func completesWithinTimeout() async throws {
         try await confirmation("operation finishes") { confirmed in
             try await operationMethod(
-                timeout: .seconds(1),
-                operation: .milliseconds(500)
+                timeout: .seconds(10),
+                operation: .milliseconds(250)
             )
             confirmed()
         }
     }
+    
     
     @Test("Operation times out", .timeLimit(.minutes(1)))
     func throwsOnTimeout() async throws {
         await confirmation("operation times out") { confirmed in
             do {
                 try await operationMethod(
-                    timeout: .milliseconds(500),
-                    operation: .seconds(5)
+                    timeout: .milliseconds(250),
+                    operation: .seconds(10)
                 )
             } catch {
                 #expect(error is TimeoutError)

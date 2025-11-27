@@ -126,8 +126,6 @@ extension Collection {
 extension Array {
     /// Unsafely accesses the element at the specified index, without performing any bounds checking.
     ///
-    /// If `position` is not a valid index, the program will continue running as if 
-    ///
     /// - Warning: This function trades safety for performance.
     ///     Use ``subscript(unsafe:)`` only in situations where your program can guarantee that `position` is valid for indexing into the array,
     ///     and only if the default bounds checking performed by the runtime has proven to be a significant performance problem.
@@ -137,7 +135,7 @@ extension Array {
     public subscript(unsafe position: Int) -> Element {
         @_transparent
         get {
-            withUnsafeBufferPointer { $0[position] }
+            withUnsafeBufferPointer { $0.baseAddress.unsafelyUnwrapped.advanced(by: position).pointee }
         }
     }
 }
