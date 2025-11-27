@@ -104,16 +104,16 @@ struct SequenceExtensions {
             let name: String
             let age: Int
         }
-        let cats = [
+        var cats = [
             Cat(name: "Terrace", age: 7),
             Cat(name: "Pixel", age: 5),
             Cat(name: "Pixel", age: 4)
         ]
-        let sorted = cats.sorted(using: [
-            KeyPathComparator(\.name),
-            KeyPathComparator(\.age)
-        ])
-        #expect(sorted == [
+        cats.sort(using: [
+            KeyPathComparator<Cat>(\.name),
+            KeyPathComparator<Cat>(\.age)
+        ] as [any SortComparator<Cat>])
+        #expect(cats == [
             Cat(name: "Pixel", age: 4),
             Cat(name: "Pixel", age: 5),
             Cat(name: "Terrace", age: 7)

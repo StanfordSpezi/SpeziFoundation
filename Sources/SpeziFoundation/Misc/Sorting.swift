@@ -10,8 +10,9 @@ public import Foundation
 
 
 extension Sequence {
-    /// Returns the elements of the sequence, sorted using the given array of
-    /// `SortComparator`s to compare elements.
+    /// Returns the elements of the sequence, sorted using the given array of existential `SortComparator`s to compare elements.
+    ///
+    /// - Note: This function exists as an alternative to Foundation's `sorted(using:)` implementation, for the case where the comparators are of heterogeneous types.
     ///
     /// - parameter comparators: a sequence of comparators used to compare elements.
     ///     The first comparator specifies the primary comparator to be used in
@@ -29,8 +30,9 @@ extension Sequence {
 
 
 extension MutableCollection where Self: RandomAccessCollection {
-    /// Sorts the collection using the given array of `SortComparator`s to
-    /// compare elements.
+    /// Sorts the collection using the given array of existential `SortComparator`s to compare elements.
+    ///
+    /// - Note: This function exists as an alternative to Foundation's `sort(using:)` implementation, for the case where the comparators are of heterogeneous types.
     ///
     /// - parameter comparators: a sequence of comparators used to compare elements.
     ///     The first comparator specifies the primary comparator to be used in
@@ -39,28 +41,29 @@ extension MutableCollection where Self: RandomAccessCollection {
     @_disfavoredOverload
     @inlinable
     public mutating func sort(using comparators: some Sequence<any SortComparator<Element>>) {
-        guard let primaryComparator = comparators.first(where: { _ in true }) else {
-            return
-        }
         self.sort { lhs, rhs in
-            switch primaryComparator.compare(lhs, rhs) {
-            case ComparisonResult.orderedAscending:
-                return true
-            case ComparisonResult.orderedDescending:
-                return false
-            case ComparisonResult.orderedSame:
-                for comparator in comparators.dropFirst() {
-                    switch comparator.compare(lhs, rhs) {
-                    case .orderedAscending:
-                        return true
-                    case .orderedDescending:
-                        return false
-                    case .orderedSame:
-                        continue
-                    }
-                }
-                return false
+            comparators.compare(lhs, rhs) == .orderedAscending
+        }
+    }
+}
+
+
+extension Sequence {
+    @inlinable
+    func compare<Compared>(
+        _ lhs: Compared,
+        _ rhs: Compared
+    ) -> ComparisonResult where Element == any SortComparator<Compared> {
+        for comparator in self {
+            let result = comparator.compare(lhs, rhs)
+            switch result {
+            case .orderedAscending, .orderedDescending:
+                return result
+            case .orderedSame:
+                continue
             }
         }
+        // all compared equal
+        return .orderedSame
     }
 }
