@@ -10,7 +10,7 @@
 import Testing
 
 
-@Suite(.serialized)
+@Suite
 struct TimeoutTests {
     @MainActor
     private final class Storage {
