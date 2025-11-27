@@ -27,7 +27,8 @@ public import Foundation
 /// - ``description``
 ///
 /// ### Instance Methods
-/// - ``score(against:using:)``
+/// - ``score(against:using:)-(Locale,_)``
+/// - ``score(against:using:)-(Locale.Language,_)``
 public struct LocalizationKey: Sendable {
     /// The `en-US` localization key
     public static let enUS = Self(language: .init(identifier: "en"), region: .unitedStates)

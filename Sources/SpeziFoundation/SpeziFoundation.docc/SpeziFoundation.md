@@ -27,6 +27,7 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 ### Concurrency
 - ``RWLock``
 - ``RecursiveRWLock``
+- ``withManagedTaskQueue(limit:_:)``
 - ``AsyncSemaphore``
 - ``ManagedAsynchronousAccess``
 - ``runOrScheduleOnMainActor(_:)``
