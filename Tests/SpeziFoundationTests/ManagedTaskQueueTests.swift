@@ -57,7 +57,7 @@ struct ManagedTaskQueueTests {
             for idx in 0..<numTasks {
                 taskQueue.addTask {
                     try! await tracker.trackBegin(of: idx)
-                    sleep(for: .seconds(0.25))
+                    try! await Task.sleep(for: .seconds(0.25))
                     try! await tracker.trackEnd(of: idx)
                 }
             }
@@ -66,9 +66,4 @@ struct ManagedTaskQueueTests {
         #expect(await tracker.completed == Set(0..<numTasks))
         #expect(await tracker.maxObservedConcurrency <= concurrencyLimit)
     }
-}
-
-
-func sleep(for duration: Duration) {
-    usleep(UInt32(duration.timeInterval * 1000000))
 }

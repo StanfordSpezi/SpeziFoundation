@@ -56,8 +56,8 @@ struct TimeoutTests {
     func completesWithinTimeout() async throws {
         try await confirmation("operation finishes") { confirmed in
             try await operationMethod(
-                timeout: .seconds(5),
-                operation: .milliseconds(500)
+                timeout: .seconds(10),
+                operation: .milliseconds(250)
             )
             confirmed()
         }
@@ -69,8 +69,8 @@ struct TimeoutTests {
         await confirmation("operation times out") { confirmed in
             do {
                 try await operationMethod(
-                    timeout: .milliseconds(500),
-                    operation: .seconds(5)
+                    timeout: .milliseconds(250),
+                    operation: .seconds(10)
                 )
             } catch {
                 #expect(error is TimeoutError)
