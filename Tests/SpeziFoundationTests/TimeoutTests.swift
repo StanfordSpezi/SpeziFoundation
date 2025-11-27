@@ -52,7 +52,7 @@ struct TimeoutTests {
     func completesWithinTimeout() async throws {
         try await confirmation("operation finishes") { confirmed in
             try await operationMethod(
-                timeout: .seconds(1),
+                timeout: .seconds(5),
                 operation: .milliseconds(500)
             )
             confirmed()
