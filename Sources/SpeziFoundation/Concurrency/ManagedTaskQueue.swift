@@ -7,22 +7,46 @@
 //
 
 
+private import struct Foundation.UUID
+private import OSLog
+
 /// A Managed Task Queue
 ///
 /// Your code does not use this type directly; instead it is used by ``withManagedTaskQueue(limit:_:)`` and allows you to add child tasks.
+///
+/// ## Topics
+/// ### Instance Methods
+/// - ``addTask(_:)``
+/// - ``addTask(name:_:)``
 public struct ManagedTaskQueue: ~Copyable {
-    @usableFromInline typealias Operation = @Sendable () async -> Void
+    @usableFromInline
+    struct Job: Sendable {
+        @usableFromInline let name: String?
+        @usableFromInline let operation: @Sendable () async -> Void
+        
+        @inlinable
+        init(name: String?, operation: @Sendable @escaping () async -> Void) {
+            self.name = name
+            self.operation = operation
+        }
+    }
     
-    @usableFromInline let continuation: AsyncStream<Operation>.Continuation
+    @usableFromInline let continuation: AsyncStream<Job>.Continuation
     
-    fileprivate init(continuation: AsyncStream<Operation>.Continuation) {
+    fileprivate init(continuation: AsyncStream<Job>.Continuation) {
         self.continuation = continuation
     }
     
     /// Submits an operation to be executed by the Managed Task Queue.
     @inlinable
     public func addTask(_ operation: @escaping @Sendable () async -> Void) {
-        continuation.yield(operation)
+        addTask(name: nil, operation)
+    }
+    
+    /// Submits an operation to be executed by the Managed Task Queue.
+    @inlinable
+    public func addTask(name: String?, _ operation: @escaping @Sendable () async -> Void) {
+        continuation.yield(.init(name: name, operation: operation))
     }
 }
 
@@ -59,10 +83,11 @@ public func withManagedTaskQueue(limit: Int, _ body: sending @escaping (_ taskQu
         case scheduler
         case worker
     }
-    let (stream, continuation) = AsyncStream.makeStream(of: ManagedTaskQueue.Operation.self)
+    let (stream, continuation) = AsyncStream.makeStream(of: ManagedTaskQueue.Job.self)
     // we need to wrap this as a workaround to be able to mark the `body` parameter as `sending` instead of having to make it `@Sendable`
     let boxedBody = { body }
-    await withTaskGroup(of: TaskType.self) { group in
+    await withTaskGroup(of: TaskType.self) { group in // swiftlint:disable:this closure_body_length
+        let signposter = OSSignposter()
         let body = (consume boxedBody)()
         group.addTask {
             await body(ManagedTaskQueue(continuation: continuation))
@@ -72,23 +97,31 @@ public func withManagedTaskQueue(limit: Int, _ body: sending @escaping (_ taskQu
         var activeWorkers = 0 {
             didSet { assert(activeWorkers <= limit) }
         }
-        for await operation in stream {
+        for await job in stream {
             if activeWorkers >= limit {
                 // we're at the limit, and need to wait for a slot to become available.
                 // we can't simply call `group.next()` and ignore the result,
                 // since the first task will be the initial one that calls `body`.
-                while let taskType = await group.next() {
+                loop: while let taskType = await group.next() {
                     switch taskType {
                     case .scheduler:
                         continue
                     case .worker:
-                        break
+                        break loop
                     }
                 }
                 activeWorkers -= 1
             }
             group.addTask {
-                await operation()
+                #if DEBUG
+                let signpostId = signposter.makeSignpostID()
+                let name = job.name ?? UUID().uuidString
+                let state = signposter.beginInterval("run task", id: signpostId, "\(name)")
+                defer {
+                    signposter.endInterval("run task", state)
+                }
+                #endif
+                await job.operation()
                 return .worker
             }
             activeWorkers += 1
