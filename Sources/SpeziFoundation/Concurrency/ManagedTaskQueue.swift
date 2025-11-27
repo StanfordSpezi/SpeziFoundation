@@ -15,7 +15,7 @@ public struct ManagedTaskQueue: ~Copyable {
     
     @usableFromInline let continuation: AsyncStream<Operation>.Continuation
     
-    fileprivate init(continuation: AsyncStream<Operation>.Continuation) {
+    fileprivate init(_ continuation: AsyncStream<Operation>.Continuation) {
         self.continuation = continuation
     }
     
@@ -65,7 +65,7 @@ public func withManagedTaskQueue(limit: Int, _ body: sending @escaping (_ taskQu
     await withTaskGroup(of: TaskType.self) { group in
         let body = (consume boxedBody)()
         group.addTask {
-            await body(ManagedTaskQueue(continuation: continuation))
+            await body(ManagedTaskQueue(continuation))
             continuation.finish()
             return .scheduler
         }
