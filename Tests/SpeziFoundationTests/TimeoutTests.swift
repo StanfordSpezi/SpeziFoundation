@@ -22,9 +22,15 @@ struct TimeoutTests {
     @MainActor
     func operation(for duration: Duration) {
         Task { @MainActor in
-            try? await Task.sleep(for: duration)
-            if let continuation = exchange(&storage.continuation, with: nil) {
-                continuation.resume()
+            do {
+                try await Task.sleep(for: duration)
+                if let continuation = exchange(&storage.continuation, with: nil) {
+                    continuation.resume()
+                }
+            } catch {
+                if let continuation = exchange(&storage.continuation, with: nil) {
+                    continuation.resume(throwing: error)
+                }
             }
         }
     }
