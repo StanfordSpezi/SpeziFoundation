@@ -11,11 +11,9 @@
 ///
 /// Your code does not use this type directly; instead it is used by ``withManagedTaskQueue(limit:_:)`` and allows you to add child tasks.
 public struct ManagedTaskQueue: ~Copyable {
-    @usableFromInline
-    typealias Operation = @Sendable () async -> Void
+    @usableFromInline typealias Operation = @Sendable () async -> Void
     
-    @usableFromInline
-    let continuation: AsyncStream<Operation>.Continuation
+    @usableFromInline let continuation: AsyncStream<Operation>.Continuation
     
     fileprivate init(continuation: AsyncStream<Operation>.Continuation) {
         self.continuation = continuation
