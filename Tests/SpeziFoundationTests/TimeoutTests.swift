@@ -6,12 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-
-import Foundation
 @testable import SpeziFoundation
 import Testing
 
-@Suite
+
+@Suite(.serialized)
 struct TimeoutTests {
     @MainActor
     private final class Storage {
@@ -48,6 +47,7 @@ struct TimeoutTests {
         }
     }
     
+    
     @Test("Operation finishes", .timeLimit(.minutes(1)))
     func completesWithinTimeout() async throws {
         try await confirmation("operation finishes") { confirmed in
@@ -58,6 +58,7 @@ struct TimeoutTests {
             confirmed()
         }
     }
+    
     
     @Test("Operation times out", .timeLimit(.minutes(1)))
     func throwsOnTimeout() async throws {
