@@ -23,9 +23,8 @@ struct TimeoutTests {
     func operation(for duration: Duration) {
         Task { @MainActor in
             try? await Task.sleep(for: duration)
-            if let continuation = storage.continuation {
+            if let continuation = exchange(&storage.continuation, with: nil) {
                 continuation.resume()
-                storage.continuation = nil
             }
         }
     }
@@ -35,8 +34,7 @@ struct TimeoutTests {
         let storage = storage
         async let _ = withTimeout(of: timeout) { @MainActor [storage] in
             #expect(!Task.isCancelled)
-            if let continuation = storage.continuation {
-                storage.continuation = nil
+            if let continuation = exchange(&storage.continuation, with: nil) {
                 continuation.resume(throwing: TimeoutError())
             }
         }
