@@ -106,12 +106,16 @@ struct ManagedTaskQueueTests {
             }
         }
         let end = Date.now
+        let operations = await tracker.completed.sorted(using: [
+            KeyPathComparator(\.startDate),
+            KeyPathComparator(\.id)
+        ])
         for timestamp in stride(from: start.addingTimeInterval(0.25), through: end.addingTimeInterval(-2.5), by: 0.5) {
-            let numActiveTasks = await tracker.completed.count { $0.timeRange.contains(timestamp) }
+            let numActiveTasks = operations.count { $0.timeRange.contains(timestamp) }
             let expectedRange = (limit - 1)...limit
             #expect(
                 expectedRange.contains(numActiveTasks),
-                "[\(timestamp.timeIntervalSince(start))]Expected \(expectedRange) active tasks; got \(numActiveTasks)"
+                "[\(timestamp.timeIntervalSince(start))]Expected \(expectedRange) active tasks; got \(numActiveTasks) (all task logging: \(operations))"
             )
         }
     }
