@@ -13,6 +13,7 @@ import Foundation
 import Testing
 
 
+@Suite
 struct VersionTests {
     @Test
     func parsing() throws {
@@ -98,5 +99,3 @@ struct VersionTests {
         }
     }
 }
-
-// swiftlint:enable identical_operands

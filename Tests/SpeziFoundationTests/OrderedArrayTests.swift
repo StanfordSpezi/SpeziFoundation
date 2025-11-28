@@ -11,15 +11,8 @@ import SpeziFoundation
 import Testing
 
 
+@Suite
 struct OrderedArrayTests {
-    private static let isReleaseBuild: Bool = {
-        #if DEBUG
-        false
-        #else
-        true
-        #endif
-    }()
-    
     @Test
     func orderedArray() {
         var array = OrderedArray<Int> { $0 < $1 }
