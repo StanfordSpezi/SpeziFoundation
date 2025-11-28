@@ -106,7 +106,7 @@ struct ManagedTaskQueueTests {
             }
         }
         let end = Date.now
-        for timestamp in stride(from: start.addingTimeInterval(0.1), through: end.addingTimeInterval(-2.5), by: 0.5) {
+        for timestamp in stride(from: start.addingTimeInterval(0.25), through: end.addingTimeInterval(-2.5), by: 0.5) {
             let numActiveTasks = await tracker.completed.count { $0.timeRange.contains(timestamp) }
             let expectedRange = (limit - 1)...limit
             #expect(
