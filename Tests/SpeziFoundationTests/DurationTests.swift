@@ -11,6 +11,7 @@ import Foundation
 import Testing
 
 
+@Suite
 struct DurationTests {
     @Test
     func factoryMethodsAndTimeInterval() throws {
