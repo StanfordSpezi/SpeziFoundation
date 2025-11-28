@@ -92,7 +92,7 @@ struct ManagedTaskQueueTests {
     }
     
     
-    @Test(arguments: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+    @Test(arguments: Array(1...20))
     func ordering(limit: Int) async throws {
         let start = Date.now
         let tracker = OperationsTracker(expectedLimit: limit)
