@@ -100,7 +100,7 @@ extension LocalizedFileResolution {
             }
             if let equallyBestRanked = candidates.lazy.chunked(by: { $0.score == $1.score }).first, !equallyBestRanked.isEmpty { // always true
                 guard equallyBestRanked.count == 1 else {
-                    var errorMsg = "Error: Found multiple candidates for \(resource.name) @ \(language.minimalIdentifier), all of which are equally ranked!"
+                    var errorMsg = "Found multiple candidates for \(resource.name) @ \(language.minimalIdentifier), all of which are equally ranked!"
                     for candidate in candidates {
                         errorMsg.append("\n- \(candidate.score) @ \(candidate.fileResource.fullFilenameIncludingLocalization)")
                     }

@@ -89,6 +89,9 @@ let package = Package(
                 .target(name: "SpeziLocalization"),
                 .target(name: "SpeziFoundation")
             ],
+            resources: [
+                .process("Resources")
+            ],
             swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
             plugins: [] + swiftLintPlugin()
         )

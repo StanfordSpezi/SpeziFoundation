@@ -15,7 +15,7 @@ public struct ManagedTaskQueue: ~Copyable {
     
     @usableFromInline let continuation: AsyncStream<Operation>.Continuation
     
-    fileprivate init(continuation: AsyncStream<Operation>.Continuation) {
+    fileprivate init(_ continuation: AsyncStream<Operation>.Continuation) {
         self.continuation = continuation
     }
     
@@ -65,7 +65,7 @@ public func withManagedTaskQueue(limit: Int, _ body: sending @escaping (_ taskQu
     await withTaskGroup(of: TaskType.self) { group in
         let body = (consume boxedBody)()
         group.addTask {
-            await body(ManagedTaskQueue(continuation: continuation))
+            await body(ManagedTaskQueue(continuation))
             continuation.finish()
             return .scheduler
         }
@@ -77,12 +77,12 @@ public func withManagedTaskQueue(limit: Int, _ body: sending @escaping (_ taskQu
                 // we're at the limit, and need to wait for a slot to become available.
                 // we can't simply call `group.next()` and ignore the result,
                 // since the first task will be the initial one that calls `body`.
-                while let taskType = await group.next() {
+                loop: while let taskType = await group.next() {
                     switch taskType {
                     case .scheduler:
                         continue
                     case .worker:
-                        break
+                        break loop
                     }
                 }
                 activeWorkers -= 1
