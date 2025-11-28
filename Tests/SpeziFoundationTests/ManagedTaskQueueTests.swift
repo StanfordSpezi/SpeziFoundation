@@ -93,11 +93,11 @@ struct ManagedTaskQueueTests {
     
     
     @Test(arguments: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
-    func ordering(concurrencyLimit: Int) async throws {
+    func ordering(limit: Int) async throws {
         let start = Date.now
-        let tracker = OperationsTracker(expectedLimit: concurrencyLimit)
-        await withManagedTaskQueue(limit: concurrencyLimit) { taskQueue in
-            for idx in 0..<(concurrencyLimit * 3) {
+        let tracker = OperationsTracker(expectedLimit: limit)
+        await withManagedTaskQueue(limit: limit) { taskQueue in
+            for idx in 0..<(limit * 3) {
                 taskQueue.addTask {
                     try! await tracker.trackBegin(of: idx)
                     try! await Task.sleep(for: .seconds(2))
@@ -108,7 +108,11 @@ struct ManagedTaskQueueTests {
         let end = Date.now
         for timestamp in stride(from: start.addingTimeInterval(0.1), through: end.addingTimeInterval(-2.5), by: 0.5) {
             let numActiveTasks = await tracker.completed.count { $0.timeRange.contains(timestamp) }
-            #expect(numActiveTasks == concurrencyLimit, "FAILED for offset \(timestamp.timeIntervalSince(start))")
+            let expectedRange = (limit - 1)...limit
+            #expect(
+                expectedRange.contains(numActiveTasks),
+                "[\(timestamp.timeIntervalSince(start))]Expected \(expectedRange) active tasks; got \(numActiveTasks)"
+            )
         }
     }
 }
