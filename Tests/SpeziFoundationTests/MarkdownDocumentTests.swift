@@ -91,7 +91,6 @@ struct MarkdownDocumentTests { // swiftlint:disable:this type_body_length
     }
     
     @Test
-    @MainActor
     func frontmatterParsing() throws {
         let input = """
             ---

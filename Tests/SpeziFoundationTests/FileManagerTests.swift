@@ -13,8 +13,7 @@ import Testing
 import UniformTypeIdentifiers
 
 
-@Suite
-@MainActor
+@Suite(.serialized)
 final class FileManagerTests {
     private let fileManager = FileManager.default
     private let testRoot = URL.temporaryDirectory.appending(path: "SpeziFoundationFileManagerTests", directoryHint: .isDirectory)
