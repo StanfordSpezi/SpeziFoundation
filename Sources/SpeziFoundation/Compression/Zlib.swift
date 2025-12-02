@@ -8,14 +8,26 @@
 
 public import Foundation
 #if canImport(zlib)
-import zlib
+public import zlib
 #elseif canImport(CZlib)
 import CZlib
 #else
 #error("No zlib module found. On Linux ensure that you have zlib1g-dev installed.")
 #endif
 
-/// A wrapper around the `zlib` compression library
+/// A wrapper around the [`zlib`](https://zlib.net/) compression library.
+///
+/// ## Topics
+///
+/// ### Operations
+/// - ``compress(_:)``
+/// - ``compress(_:options:)``
+/// - ``decompress(_:)``
+///
+/// ### Supporting Types
+/// - ``CompressionOptions``
+/// - ``CompressionError``
+/// - ``DecompressionError``
 public enum Zlib: CompressionAlgorithm {
     public typealias DecompressionError = CompressionError
     
@@ -25,17 +37,79 @@ public enum Zlib: CompressionAlgorithm {
         case other(Int32)
     }
     
-    public static func compress(_ input: borrowing some Collection<UInt8>) throws(CompressionError) -> Data {
-        let inputCount = input.count
-        let result: Result<Data, CompressionError>? = input.withContiguousStorageIfAvailable { inputBuffer in
-            assert(inputBuffer.count == inputCount)
+    
+    public struct CompressionOptions: CompressionOptionsProtocol {
+        /// The compression level.
+        ///
+        /// ## Topics
+        ///
+        /// ### Predefined Compression Levels
+        /// - ``default``
+        /// - ``bestSpeed``
+        /// - ``bestCompression``
+        /// - ``none``
+        ///
+        /// ### Initializers
+        /// - ``init(rawValue:)``
+        ///
+        /// ### Instance Properties
+        /// - ``rawValue``
+        public struct CompressionLevel: RawRepresentable, Sendable {
+            /// A level that completely disables compression.
+            @inlinable public static var none: Self {
+                Self(rawValue: Z_NO_COMPRESSION)
+            }
+            /// A level that maximises speed, at the cost of compression.
+            @inlinable public static var bestSpeed: Self {
+                Self(rawValue: Z_BEST_SPEED)
+            }
+            /// A level that maximises compression, at the cost of speed.
+            @inlinable public static var bestCompression: Self {
+                Self(rawValue: Z_BEST_COMPRESSION)
+            }
+            /// The default level, which aims to be a sensible compromise of speed and compression.
+            @inlinable public static var `default`: Self {
+                Self(rawValue: Z_DEFAULT_COMPRESSION)
+            }
+            
+            /// The compression level's underlying raw value.
+            public let rawValue: Int32
+            
+            /// Creates a new compression level from its underlying raw value.
+            @inlinable
+            public init(rawValue: Int32) {
+                precondition((0...9).contains(rawValue) || rawValue == Z_DEFAULT_COMPRESSION, "invalid compression level \(rawValue)")
+                self.rawValue = rawValue
+            }
+        }
+        
+        /// The compression level.
+        public let level: CompressionLevel
+        
+        @inlinable
+        public init() {
+            self.init(level: .default)
+        }
+        
+        /// Creates new compression options.
+        @inlinable
+        public init(level: CompressionLevel) {
+            self.level = level
+        }
+    }
+    
+    
+    public static func compress(_ bytes: borrowing some Collection<UInt8>, options: CompressionOptions) throws(CompressionError) -> Data {
+        let inputLen = bytes.count
+        let result: Result<Data, CompressionError>? = bytes.withContiguousStorageIfAvailable { inputBuffer in
+            assert(inputBuffer.count == inputLen)
             guard let inputBufferPtr = inputBuffer.baseAddress else {
                 return .failure(.invalidInput)
             }
             let outputBufferSize = compressBound(UInt(inputBuffer.count))
             let outputBuffer: UnsafeMutablePointer<UInt8> = .allocate(capacity: Int(outputBufferSize))
             var compressedSize: UInt = outputBufferSize
-            let status = compress2(outputBuffer, &compressedSize, inputBufferPtr, UInt(inputBuffer.count), 9)
+            let status = compress2(outputBuffer, &compressedSize, inputBufferPtr, UInt(inputBuffer.count), options.level.rawValue)
             switch status {
             case Z_OK:
                 return .success(Data(bytesNoCopy: outputBuffer, count: Int(compressedSize), deallocator: .free))
@@ -62,14 +136,14 @@ public enum Zlib: CompressionAlgorithm {
     }
     
     
-    public static func decompress(_ input: borrowing some Collection<UInt8>) throws(DecompressionError) -> Data {
-        try decompress(input, expectedOutputLength: input.count)
+    public static func decompress(_ bytes: borrowing some Collection<UInt8>) throws(DecompressionError) -> Data {
+        try decompress(bytes, expectedOutputLength: bytes.count)
     }
     
-    private static func decompress(_ input: borrowing some Collection<UInt8>, expectedOutputLength: Int) throws(DecompressionError) -> Data {
-        let inputCount = input.count
-        let result: Result<Data, CompressionError>? = input.withContiguousStorageIfAvailable { inputBuffer in
-            assert(inputBuffer.count == inputCount)
+    private static func decompress(_ bytes: borrowing some Collection<UInt8>, expectedOutputLength: Int) throws(DecompressionError) -> Data {
+        let inputLen = bytes.count
+        let result: Result<Data, CompressionError>? = bytes.withContiguousStorageIfAvailable { inputBuffer in
+            assert(inputBuffer.count == inputLen)
             guard let inputBufferPtr = inputBuffer.baseAddress else {
                 return .failure(.invalidInput)
             }
@@ -101,7 +175,7 @@ public enum Zlib: CompressionAlgorithm {
         do {
             return try result.get()
         } catch DecompressionError.other(Z_BUF_ERROR) {
-            return try Self.decompress(input, expectedOutputLength: expectedOutputLength + (expectedOutputLength / 2))
+            return try Self.decompress(bytes, expectedOutputLength: expectedOutputLength + (expectedOutputLength / 2))
         } catch {
             throw error
         }

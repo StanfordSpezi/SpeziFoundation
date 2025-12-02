@@ -8,8 +8,21 @@
 
 public import Foundation
 public import libzstd
+import ThreadLocal
 
-/// A wrapper around the `Zstd` compression library
+/// A wrapper around the [`Zstd`](https://github.com/facebook/zstd) compression library.
+///
+/// ## Topics
+///
+/// ### Operations
+/// - ``compress(_:)``
+/// - ``compress(_:options:)``
+/// - ``decompress(_:)``
+///
+/// ### Supporting Types
+/// - ``CompressionOptions``
+/// - ``CompressionError``
+/// - ``DecompressionError``
 public enum Zstd: CompressionAlgorithm {
     public typealias DecompressionError = CompressionError
     
@@ -20,21 +33,86 @@ public enum Zstd: CompressionAlgorithm {
         case other(ZSTD_ErrorCode)
     }
     
-    /// The compression context
-    @TaskLocal private static var cCtx: ZstdContext = .cctx()
-    /// The decompression context
-    @TaskLocal private static var dCtx: ZstdContext = .dctx()
+    public struct CompressionOptions: CompressionOptionsProtocol {
+        /// The compression level.
+        ///
+        /// ## Topics
+        ///
+        /// ### Predefined Compression Levels
+        /// - ``default``
+        /// - ``minRegular``
+        /// - ``maxRegular``
+        ///
+        /// ### Initializers
+        /// - ``init(rawValue:)``
+        ///
+        /// ### Instance Properties
+        /// - ``rawValue``
+        public struct Level: RawRepresentable, Sendable {
+            /// The minimum regular compression level.
+            ///
+            /// This level maximises speed, at the cost of compression.
+            @inlinable public static var minRegular: Self {
+                Self(rawValue: 0)
+            }
+            /// The maximum regular compression level.
+            ///
+            /// This level maximises compression, at the cost of speed.
+            @inlinable public static var maxRegular: Self {
+                Self(rawValue: 20)
+            }
+            
+            /// The default compression level
+            @inlinable public static var `default`: Self {
+                Self(rawValue: ZSTD_CLEVEL_DEFAULT)
+            }
+            
+            /// The compression level's underlying raw value.
+            public let rawValue: Int32
+            
+            /// Creates a compression level from a raw value.
+            ///
+            /// - Note: This initializer performs no validation of the value. The caller must ensure that it is valid.
+            @inlinable
+            public init(rawValue: Int32) {
+                self.rawValue = rawValue
+            }
+        }
+        
+        /// The compression level.
+        public let level: Level
+        
+        @inlinable
+        public init() {
+            self.init(level: .default)
+        }
+        
+        /// Creates compression options.
+        @inlinable
+        public init(level: Level) {
+            self.level = level
+        }
+    }
     
-    public static func compress(_ input: borrowing some Collection<UInt8>) throws(CompressionError) -> Data {
-        let inputCount = input.count
-        let result: Result<Data, CompressionError>? = input.withContiguousStorageIfAvailable { inputBuffer in
-            assert(inputBuffer.count == inputCount)
+    /// The compression context
+    @ThreadLocal(deallocator: .custom(ZSTD_freeCCtx))
+    private static var cCtx: OpaquePointer = ZSTD_createCCtx()
+    
+    /// The decompression context
+    @ThreadLocal(deallocator: .custom(ZSTD_freeDCtx))
+    private static var dCtx: OpaquePointer = ZSTD_createDCtx()
+    
+    public static func compress(_ bytes: borrowing some Collection<UInt8>, options: CompressionOptions) throws(CompressionError) -> Data {
+        let inputLen = bytes.count
+        let result: Result<Data, CompressionError>? = bytes.withContiguousStorageIfAvailable { inputBuffer in
+            assert(inputBuffer.count == inputLen)
             guard let inputBufferPtr = inputBuffer.baseAddress else {
                 return .failure(.invalidInput)
             }
             let outputBufferSize = ZSTD_compressBound(inputBuffer.count)
             let outputBuffer: UnsafeMutablePointer<UInt8> = .allocate(capacity: outputBufferSize)
-            let result = ZSTD_compressCCtx(Self.cCtx._ctx, outputBuffer, outputBufferSize, inputBufferPtr, inputCount, ZSTD_defaultCLevel())
+            
+            let result = ZSTD_compressCCtx(Self.cCtx, outputBuffer, outputBufferSize, inputBufferPtr, inputLen, options.level.rawValue)
             if ZSTD_isError(result) == 0 {
                 return .success(Data(bytesNoCopy: outputBuffer, count: result, deallocator: .free))
             } else {
@@ -54,14 +132,14 @@ public enum Zstd: CompressionAlgorithm {
     }
     
     
-    public static func decompress(_ input: borrowing some Collection<UInt8>) throws(DecompressionError) -> Data {
-        let inputCount = input.count
-        let result: Result<Data, DecompressionError>? = input.withContiguousStorageIfAvailable { inputBuffer in
+    public static func decompress(_ bytes: borrowing some Collection<UInt8>) throws(DecompressionError) -> Data {
+        let inputLen = bytes.count
+        let result: Result<Data, DecompressionError>? = bytes.withContiguousStorageIfAvailable { inputBuffer in
             guard let inputBufferPtr = inputBuffer.baseAddress else {
                 return .failure(.invalidInput)
             }
-            assert(inputBuffer.count == inputCount)
-            switch ZSTD_getFrameContentSize(inputBufferPtr, inputCount) {
+            assert(inputBuffer.count == inputLen)
+            switch ZSTD_getFrameContentSize(inputBufferPtr, inputLen) {
             case ZSTD_CONTENTSIZE_ERROR:
                 // likely not compressed by Zstd
                 return .failure(.invalidInput)
@@ -71,7 +149,7 @@ public enum Zstd: CompressionAlgorithm {
             case let contentSize:
                 let contentSize = Int(contentSize)
                 let outputBuffer: UnsafeMutablePointer<UInt8> = .allocate(capacity: contentSize)
-                let result = ZSTD_decompressDCtx(Self.dCtx._ctx, outputBuffer, contentSize, inputBufferPtr, inputBuffer.count)
+                let result = ZSTD_decompressDCtx(Self.dCtx, outputBuffer, contentSize, inputBufferPtr, inputBuffer.count)
                 if ZSTD_isError(result) == 0 {
                     return .success(Data(bytesNoCopy: outputBuffer, count: contentSize, deallocator: .free))
                 } else {
@@ -89,30 +167,5 @@ public enum Zstd: CompressionAlgorithm {
             throw .invalidInput
         }
         return try result.get()
-    }
-}
-
-
-extension Zstd {
-    private final class ZstdContext: @unchecked Sendable {
-        let _ctx: OpaquePointer // swiftlint:disable:this identifier_name
-        private let free: @Sendable (OpaquePointer) -> Int
-        
-        private init(ctx: OpaquePointer, free: @escaping @Sendable (OpaquePointer) -> Int) {
-            self._ctx = ctx
-            self.free = free
-        }
-        
-        static func cctx() -> ZstdContext {
-            ZstdContext(ctx: ZSTD_createCCtx(), free: ZSTD_freeCCtx)
-        }
-        
-        static func dctx() -> ZstdContext {
-            ZstdContext(ctx: ZSTD_createDCtx(), free: ZSTD_freeDCtx)
-        }
-        
-        deinit {
-            _ = free(_ctx)
-        }
     }
 }

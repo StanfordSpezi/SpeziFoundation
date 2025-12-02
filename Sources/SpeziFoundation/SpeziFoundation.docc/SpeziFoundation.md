@@ -52,6 +52,13 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 ### Data
 - ``DataDescriptor``
 
+### Compression
+- ``CompressionAlgorithm``
+- ``Zstd``
+- ``Zlib``
+- ``Swift/Collection/compressed(using:options:)``
+- ``Swift/Collection/decompressed(using:)``
+
 ### Timeout
 - ``TimeoutError``
 - ``withTimeout(of:perform:)``

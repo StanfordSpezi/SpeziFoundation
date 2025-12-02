@@ -32,7 +32,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.2.0"),
         .package(url: "https://github.com/StanfordBDHG/XCTRuntimeAssertions.git", from: "2.2.0"),
         .package(url: "https://github.com/apple/swift-log", from: "1.6.0"),
-        .package(url: "https://github.com/lukaskollmer/zstd.git", branch: "lukas/fix-swift-build")
+        .package(url: "https://github.com/lukaskollmer/zstd.git", branch: "lukas/fix-swift-build"),
+        .package(url: "https://github.com/lukaskollmer/ThreadLocal.git", revision: "9b0f88c2d4459232a7621d64495bafa0e052cb31")
     ] + swiftLintPackage(),
     targets: [
         .systemLibrary(
@@ -50,7 +51,8 @@ let package = Package(
                 .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "Algorithms", package: "swift-algorithms"),
                 .product(name: "RuntimeAssertions", package: "XCTRuntimeAssertions"),
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "ThreadLocal", package: "ThreadLocal")
             ],
             resources: [
                 .process("Resources")
