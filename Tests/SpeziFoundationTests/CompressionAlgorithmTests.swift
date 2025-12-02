@@ -27,7 +27,7 @@ struct CompressionAlgorithmTests {
     func zlib() throws {
         let input = try #require(String(repeating: "Hello Spezi :)", count: 1000).data(using: .utf8))
         #expect(input.count == 14_000)
-        let compressed = try input.compressed(using: Zlib.self)
+        let compressed = try input.compressed(using: Zlib.self, options: .init(level: .bestCompression))
         #expect(compressed.count == 70)
         #expect(compressed == Data([
             120, 218, 237, 199, 49, 13, 0, 32, 12, 0, 48, 43, 188, 88, 64, 193, 126, 52, 236,
@@ -41,7 +41,7 @@ struct CompressionAlgorithmTests {
     
     @Test
     func zlibHmmm() throws {
-        let input = longInput // try Data(contentsOf: #require(Bundle.module.url(forResource: "bible", withExtension: "txt")))
+        let input = longInput
         let compressed1 = try input.compressed(using: Zlib.self, options: .init(level: .bestSpeed))
         let compressed2 = try input.compressed(using: Zlib.self, options: .init(level: .bestCompression))
         print(input.count, compressed1.count, compressed2.count)
@@ -51,7 +51,7 @@ struct CompressionAlgorithmTests {
     
     @Test
     func zlibCompressionOptions() throws {
-        let input = longInput // try Data(contentsOf: #require(Bundle.module.url(forResource: "bible", withExtension: "txt")))
+        let input = longInput
         let compressed1 = try input.compressed(using: Zlib.self, options: .init(level: .bestSpeed))
         let compressed2 = try input.compressed(using: Zlib.self, options: .init(level: .bestCompression))
         #expect(compressed1.count > compressed2.count)
@@ -78,7 +78,7 @@ struct CompressionAlgorithmTests {
     
     @Test
     func zstdCompressionOptions() throws {
-        let input = longInput // try Data(contentsOf: #require(Bundle.module.url(forResource: "bible", withExtension: "txt")))
+        let input = longInput
         let compressed1 = try input.compressed(using: Zstd.self, options: .init(level: .minRegular))
         let compressed2 = try input.compressed(using: Zstd.self, options: .init(level: .maxRegular))
         #expect(compressed1.count > compressed2.count)
