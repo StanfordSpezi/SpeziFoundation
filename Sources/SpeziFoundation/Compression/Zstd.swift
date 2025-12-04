@@ -94,6 +94,7 @@ public enum Zstd: CompressionAlgorithm {
         }
     }
     
+    
     /// The compression context
     @ThreadLocal(deallocator: .custom(ZSTD_freeCCtx))
     private static var cCtx: OpaquePointer = ZSTD_createCCtx()
@@ -101,6 +102,7 @@ public enum Zstd: CompressionAlgorithm {
     /// The decompression context
     @ThreadLocal(deallocator: .custom(ZSTD_freeDCtx))
     private static var dCtx: OpaquePointer = ZSTD_createDCtx()
+    
     
     public static func compress(_ bytes: borrowing some Collection<UInt8>, options: CompressionOptions) throws(CompressionError) -> Data {
         let inputLen = bytes.count
@@ -111,7 +113,6 @@ public enum Zstd: CompressionAlgorithm {
             }
             let outputBufferSize = ZSTD_compressBound(inputBuffer.count)
             let outputBuffer: UnsafeMutablePointer<UInt8> = .allocate(capacity: outputBufferSize)
-            
             let result = ZSTD_compressCCtx(Self.cCtx, outputBuffer, outputBufferSize, inputBufferPtr, inputLen, options.level.rawValue)
             if ZSTD_isError(result) == 0 {
                 return .success(Data(bytesNoCopy: outputBuffer, count: result, deallocator: .free))

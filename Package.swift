@@ -32,8 +32,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.2.0"),
         .package(url: "https://github.com/StanfordBDHG/XCTRuntimeAssertions.git", from: "2.2.0"),
         .package(url: "https://github.com/apple/swift-log", from: "1.6.0"),
-        .package(url: "https://github.com/lukaskollmer/zstd.git", branch: "lukas/fix-swift-build"),
-        .package(url: "https://github.com/lukaskollmer/ThreadLocal.git", revision: "36198fefafd3cfcbd2a0a56f76ef098c20738419")
+        .package(url: "https://github.com/facebook/zstd.git", revision: "88ff5c27694bdb89169383ac9fd14a6cddacc7ef"),
+        .package(url: "https://github.com/StanfordBDHG/ThreadLocal.git", from: "0.1.0")
     ] + swiftLintPackage(),
     targets: [
         .systemLibrary(
