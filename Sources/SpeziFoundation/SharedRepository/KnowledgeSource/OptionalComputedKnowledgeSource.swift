@@ -9,7 +9,7 @@
 
 /// A ``KnowledgeSource`` that allows to compose it's values from it's surrounding knowledge environment
 /// but may deliver a optional value.
-public protocol OptionalComputedKnowledgeSource<Anchor, Repository>: SomeComputedKnowledgeSource {
+public protocol OptionalComputedKnowledgeSource<Anchor, Repository>: SomeComputedKnowledgeSource, SendableMetatype {
     associatedtype Repository
 
     /// Computes the value of the ``KnowledgeSource``.
