@@ -8,7 +8,7 @@
 
 
 /// A ``KnowledgeSource`` that allows to compose it's values from it's surrounding knowledge environment.
-public protocol ComputedKnowledgeSource<Anchor, Repository>: SomeComputedKnowledgeSource {
+public protocol ComputedKnowledgeSource<Anchor, Repository>: SomeComputedKnowledgeSource, SendableMetatype {
     associatedtype Repository
 
     /// Computes the value of the ``KnowledgeSource``.
