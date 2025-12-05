@@ -11,6 +11,7 @@ import SpeziFoundation
 import Testing
 
 
+@Suite
 struct OrderedArrayTests {
     @Test
     func orderedArray() {

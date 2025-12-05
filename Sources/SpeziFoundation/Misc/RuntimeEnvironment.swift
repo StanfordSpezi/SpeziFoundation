@@ -6,9 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Foundation
+public import Foundation
 #if os(macOS) || targetEnvironment(macCatalyst)
-import Security
+private import Security
 #endif
 
 
@@ -50,6 +50,9 @@ extension ProcessInfo {
     ///
     /// - Note: This value does **not** indicate whether the application is currently being tested; for example, it will be `false` for an app currently being UI-tested,
     /// since in that case the app itself will be running in a separate process from the actual test target (for which this value would be `true`).
+    #if os(Linux)
+    @available(*, unavailable, message: "isRunningInXCTest is not available on Linux")
+    #endif
     public static var isRunningInXCTest: Bool {
         NSClassFromString("XCTestCase") != nil
     }

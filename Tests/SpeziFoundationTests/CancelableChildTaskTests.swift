@@ -9,40 +9,38 @@
 import SpeziFoundation
 import Testing
 
-@Suite("Cancelable Child Task")
+
+@Suite
 struct CancelableChildTaskTests {
-    @Test("Normal Completion")
-    func testNormalCompletion() async {
+    @Test(.timeLimit(.minutes(1)))
+    func normalCompletion() async {
         await withDiscardingTaskGroup { group in
             await confirmation { confirmation in
                 let handle = group.addCancelableTask {
-                    try? await Task.sleep(for: .milliseconds(10), tolerance: .nanoseconds(0))
+                    try? await Task.sleep(for: .milliseconds(250), tolerance: .nanoseconds(0))
                     confirmation()
                 }
-
-                try? await Task.sleep(for: .milliseconds(100), tolerance: .nanoseconds(0))
+                try? await Task.sleep(for: .milliseconds(1000), tolerance: .nanoseconds(0))
                 handle.cancel()
             }
         }
     }
-
-    @Test("Cancelation")
-    func testCancelation() async {
+    
+    @Test(.timeLimit(.minutes(1)))
+    func cancelation() async {
         await withDiscardingTaskGroup { group in
             await confirmation { confirmation in
                 let handle = group.addCancelableTask {
                     do {
-                        try await Task.sleep(for: .milliseconds(30), tolerance: .nanoseconds(0))
+                        try await Task.sleep(for: .milliseconds(300), tolerance: .nanoseconds(0))
                         Issue.record("Task was not cancelled!")
                     } catch {
                         confirmation()
                     }
                 }
-
-                try? await Task.sleep(for: .milliseconds(5), tolerance: .nanoseconds(0))
-                handle.cancel()
-
                 try? await Task.sleep(for: .milliseconds(50), tolerance: .nanoseconds(0))
+                handle.cancel()
+                try? await Task.sleep(for: .milliseconds(500), tolerance: .nanoseconds(0))
             }
         }
     }

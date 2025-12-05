@@ -18,6 +18,9 @@ authors:
 - family-names: "Zagar"
   given-names: "Philipp"
   orcid: "https://orcid.org/0009-0001-5934-2078"
+- family-names: "Kollmer"
+  given-names: "Lukas"
+  orcid: "https://orcid.org/0000-0002-1065-1320"
 title: "SpeziFoundation"
 doi: 10.5281/zenodo.10077558
 url: "https://github.com/StanfordSpezi/SpeziFoundation"

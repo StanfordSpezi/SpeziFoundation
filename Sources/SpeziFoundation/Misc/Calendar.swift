@@ -6,11 +6,12 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Foundation
+public import Foundation
 import RuntimeAssertions
 
 
-private func tryUnwrap<T>(_ value: T?, _ message: String) -> T {
+@usableFromInline
+func tryUnwrap<T>(_ value: T?, _ message: String) -> T {
     if let value {
         return value
     } else {
@@ -48,6 +49,7 @@ extension Calendar {
 
     
     /// Returns a `Date` which represents the start of the next day, relative to `date`.
+    @inlinable
     public func startOfNextDay(for date: Date) -> Date {
         tryUnwrap(
             self.date(byAdding: .day, value: 1, to: startOfDay(for: date)),
@@ -56,6 +58,7 @@ extension Calendar {
     }
     
     /// Returns a `Date` which represents the start of the previous day, relative to `date`.
+    @inlinable
     public func startOfPrevDay(for date: Date) -> Date {
         tryUnwrap(
             self.date(byAdding: .day, value: -1, to: startOfDay(for: date)),
@@ -91,6 +94,7 @@ extension Calendar {
     }
     
     /// Returns a `Date` which represents the start of the next week, relative to `date`.
+    @inlinable
     public func startOfNextWeek(for date: Date) -> Date {
         tryUnwrap(
             self.date(byAdding: .weekOfYear, value: 1, to: startOfWeek(for: date)),
@@ -125,6 +129,7 @@ extension Calendar {
     }
     
     /// Returns a `Date` which represents the start of the next month, relative to `date`.
+    @inlinable
     public func startOfNextMonth(for date: Date) -> Date {
         tryUnwrap(
             self.date(byAdding: .month, value: 1, to: startOfMonth(for: date)),
@@ -161,6 +166,7 @@ extension Calendar {
     
     
     /// Returns a `Date` which represents the start of the previous year, relative to `date`.
+    @inlinable
     public func startOfPrevYear(for date: Date) -> Date {
         tryUnwrap(
             self.date(byAdding: .year, value: -1, to: startOfYear(for: date)),
@@ -169,6 +175,7 @@ extension Calendar {
     }
     
     /// Returns a `Date` which represents the start of the next year, relative to `date`.
+    @inlinable
     public func startOfNextYear(for date: Date) -> Date {
         tryUnwrap(
             self.date(byAdding: .year, value: 1, to: startOfYear(for: date)),

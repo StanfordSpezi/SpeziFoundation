@@ -1,265 +1,269 @@
 //
 // This source file is part of the Stanford Spezi open-source project
 //
-// SPDX-FileCopyrightText: 2024 Stanford University and the project authors (see CONTRIBUTORS.md)
+// SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
 //
 // SPDX-License-Identifier: MIT
 //
 
-import SpeziFoundation
-import XCTest
+@testable import SpeziFoundation
+import Testing
 
-
-final class ManagedAsynchronousAccessTests: XCTestCase {
-    @MainActor
-    func testResumeWithSuccess() async throws {
+@MainActor
+@Suite
+struct ManagedAsynchronousAccessTests {
+    @Test
+    func resumeWithSuccess() async throws {
         let access = ManagedAsynchronousAccess<String, any Error>()
         let expectedValue = "Success"
 
-        let expectation = XCTestExpectation(description: "task")
-
-        Task {
-            do {
-                let value = try await access.perform {
-                    // this is were you would trigger your operation
+        try await confirmation("perform() returns with success") { confirm in
+            let task = Task {
+                do {
+                    let value = try await access.perform {
+                        // this is were you would trigger your operation
+                    }
+                    #expect(value == expectedValue)
+                } catch {
+                    Issue.record("Unexpected error: \(error)")
                 }
-                XCTAssertEqual(value, expectedValue)
-            } catch {
-                XCTFail("Unexpected error: \(error)")
+                confirm()
             }
-            expectation.fulfill()
+            
+            try await Task.sleep(for: .milliseconds(100))
+            #expect(access.ongoingAccess)
+            let didResume = access.resume(returning: expectedValue)
+
+            #expect(!didResume)
+            #expect(!access.ongoingAccess)
+            
+            await task.value
         }
-
-        try await Task.sleep(for: .milliseconds(100))
-
-        XCTAssertTrue(access.ongoingAccess)
-
-        let didResume = access.resume(returning: expectedValue)
-
-        XCTAssertFalse(didResume)
-        XCTAssertFalse(access.ongoingAccess)
-
-        await fulfillment(of: [expectation])
     }
-
-    @MainActor
-    func testResumeWithError() async throws {
+    
+    @Test
+    func resumeWithError() async throws {
         let access = ManagedAsynchronousAccess<String, any Error>()
 
-        let expectation = XCTestExpectation(description: "task")
-        Task {
-            do {
-                _ = try await access.perform {}
-                XCTFail("Expected error, but got success.")
-            } catch {
-                XCTAssertTrue(error is TimeoutError)
+        try await confirmation("perform() returns with error") { confirm in
+            let task = Task {
+                do {
+                    _ = try await access.perform { }
+                    Issue.record("Expected error, but got success.")
+                } catch {
+                    #expect(error is TimeoutError)
+                }
+                confirm()
             }
-            expectation.fulfill()
+            
+            try await Task.sleep(for: .milliseconds(100))
+            #expect(access.ongoingAccess)
+            let didResume = access.resume(throwing: TimeoutError())
+
+            #expect(!didResume)
+            #expect(!access.ongoingAccess)
+            
+            await task.value
         }
-
-        try await Task.sleep(for: .milliseconds(100))
-
-        XCTAssertTrue(access.ongoingAccess)
-
-        // throw some error
-        let didResume = access.resume(throwing: TimeoutError())
-
-        XCTAssertFalse(didResume)
-        XCTAssertFalse(access.ongoingAccess)
-
-        await fulfillment(of: [expectation], timeout: 2.0)
     }
-
-    @MainActor
-    func testCancelAll() async throws {
+    
+    @Test
+    func cancelAll() async throws {
         let access = ManagedAsynchronousAccess<Void, any Error>()
 
-        let expectation = XCTestExpectation(description: "task")
-        let handle = Task {
-            do {
-                _ = try await access.perform {}
-                XCTFail("Expected cancellation error.")
-            } catch {
-                XCTAssertTrue(error is CancellationError)
+        try await confirmation("perform() returns with cancellation error") { confirm in
+            let task = Task {
+                do {
+                    _ = try await access.perform {}
+                    Issue.record("Expected cancellation error.")
+                } catch {
+                    #expect(error is CancellationError)
+                }
+                confirm()
             }
-            expectation.fulfill()
+            
+            try await Task.sleep(for: .milliseconds(100))
+            #expect(access.ongoingAccess)
+            #expect(!task.isCancelled)
+            
+            access.cancelAll()
+
+            #expect(!access.ongoingAccess)
+            
+            await task.value
+            
+            #expect(task.isCancelled, "Task should be marked as cancelled.")
         }
-
-        try await Task.sleep(for: .milliseconds(100))
-
-        XCTAssertTrue(access.ongoingAccess)
-        XCTAssertFalse(handle.isCancelled)
-
-        access.cancelAll()
-
-        XCTAssertFalse(access.ongoingAccess)
-        await fulfillment(of: [expectation])
-
-        XCTAssert(handle.isCancelled, "Task was not marked as cancelled.")
     }
-
-    @MainActor
-    func testCancelAllNeverError() async throws {
+    
+    @Test
+    func cancelAllNeverError() async throws {
         let access = ManagedAsynchronousAccess<Void, Never>()
 
-        let expectation = XCTestExpectation(description: "task")
-        let handle = Task {
-            do {
-                try await access.perform {}
-                XCTFail("Expected cancellation to turn into a cancellation error")
-            } catch {
-                XCTAssertTrue(error is CancellationError)
+        try await confirmation("perform() returns with cancellation error") { confirm in
+            let task = Task {
+                do {
+                    try await access.perform {}
+                    Issue.record("Expected cancellation to turn into a cancellation error")
+                } catch {
+                    #expect(error is CancellationError)
+                }
+                confirm()
             }
-            expectation.fulfill()
+            
+            try await Task.sleep(for: .milliseconds(100))
+            
+            #expect(access.ongoingAccess)
+            #expect(!task.isCancelled)
+            
+            access.cancelAll()
+            
+            #expect(!access.ongoingAccess)
+            
+            await task.value
+            
+            #expect(task.isCancelled, "Task should be marked as cancelled.")
         }
-
-        try await Task.sleep(for: .milliseconds(100))
-
-        XCTAssertTrue(access.ongoingAccess)
-        XCTAssertFalse(handle.isCancelled)
-
-        access.cancelAll()
-
-        XCTAssertFalse(access.ongoingAccess)
-        await fulfillment(of: [expectation])
-        XCTAssert(handle.isCancelled, "Task was not marked as cancelled.")
     }
-
-    func testResumeWithoutOngoingAccess() {
+    
+    @Test
+    func resumeWithoutOngoingAccess() {
         let access = ManagedAsynchronousAccess<String, any Error>()
 
         let didResume = access.resume(returning: "No Access")
 
-        XCTAssertFalse(didResume)
+        #expect(!didResume)
     }
-
-    @MainActor
-    func testResumeWithVoidValue() async throws {
+    
+    @Test
+    func resumeWithVoidValue() async throws {
         let access = ManagedAsynchronousAccess<Void, Never>()
 
-        let expectation = XCTestExpectation(description: "task")
-        Task {
-            try await access.perform {}
-            expectation.fulfill()
+        try await confirmation("perform() returns with cancellation error") { confirm in
+            let task = Task {
+                try await access.perform {}
+                confirm()
+            }
+            
+            try await Task.sleep(for: .milliseconds(100))
+            
+            #expect(access.ongoingAccess)
+            
+            let didResume = access.resume()
+            
+            #expect(!didResume)
+            #expect(!access.ongoingAccess)
+            
+            try await task.value
         }
-
-        try await Task.sleep(for: .milliseconds(100))
-
-        XCTAssertTrue(access.ongoingAccess)
-
-        let didResume = access.resume()
-
-        XCTAssertFalse(didResume)
-        XCTAssertFalse(access.ongoingAccess)
-        await fulfillment(of: [expectation])
     }
 
-
-    @MainActor
-    func testExclusiveAccess() async throws {
+    @Test
+    func exclusiveAccess() async throws {
         let access = ManagedAsynchronousAccess<String, any Error>()
         let expectedValue0 = "Success0"
         let expectedValue1 = "Success1"
 
-        let expectation0 = XCTestExpectation(description: "task0")
-        let expectation1 = XCTestExpectation(description: "task1")
+        try await confirmation("expectation of task0") { expectation0 in
+            try await confirmation("expectation of task1") { expectation1 in
+                let task0 = Task {
+                    do {
+                        let value = try await access.perform {}
+                        #expect(value == expectedValue0)
+                    } catch {
+                        Issue.record("Unexpected error: \(error)")
+                    }
+                    expectation0()
+                }
+                
+                try await Task.sleep(for: .milliseconds(100))
+                
+                let task1 = Task {
+                    do {
+                        let value = try await access.perform {}
+                        #expect(value == expectedValue1)
+                    } catch {
+                        Issue.record("Unexpected error: \(error)")
+                    }
+                    expectation1()
+                }
+                
+                try await Task.sleep(for: .milliseconds(100))
+                
+                #expect(access.ongoingAccess)
+                
+                let didResume0 = access.resume(returning: expectedValue0)
+                
+                #expect(didResume0)
+                #expect(!access.ongoingAccess)
+                
+                await task0.value
+                
+                try await Task.sleep(for: .milliseconds(100))
+                
+                #expect(access.ongoingAccess)
+                
+                let didResume1 = access.resume(returning: expectedValue1)
+                
+                #expect(!didResume1)
+                #expect(!access.ongoingAccess)
 
-        Task {
-            do {
-                let value = try await access.perform {}
-                XCTAssertEqual(value, expectedValue0)
-            } catch {
-                XCTFail("Unexpected error: \(error)")
+                await task1.value
             }
-            expectation0.fulfill()
         }
-
-        try await Task.sleep(for: .milliseconds(100))
-
-        Task {
-            do {
-                let value = try await access.perform {}
-                XCTAssertEqual(value, expectedValue1)
-            } catch {
-                XCTFail("Unexpected error: \(error)")
-            }
-            expectation1.fulfill()
-        }
-
-        try await Task.sleep(for: .milliseconds(100))
-
-        XCTAssertTrue(access.ongoingAccess)
-
-        let didResume0 = access.resume(returning: expectedValue0)
-
-        XCTAssertTrue(didResume0)
-        XCTAssertFalse(access.ongoingAccess)
-
-        await fulfillment(of: [expectation0])
-
-        try await Task.sleep(for: .milliseconds(100))
-
-        XCTAssertTrue(access.ongoingAccess)
-
-        let didResume1 = access.resume(returning: expectedValue1)
-
-        XCTAssertFalse(didResume1)
-        XCTAssertFalse(access.ongoingAccess)
-
-        await fulfillment(of: [expectation1])
     }
-
-    @MainActor
-    func testExclusiveAccessNeverError() async throws {
+    
+    @Test
+    func exclusiveAccessNeverError() async throws {
         let access = ManagedAsynchronousAccess<String, Never>()
         let expectedValue0 = "Success0"
         let expectedValue1 = "Success1"
-
-        let expectation0 = XCTestExpectation(description: "task0")
-        let expectation1 = XCTestExpectation(description: "task1")
-
-        Task {
-            do {
-                let value = try await access.perform {}
-                XCTAssertEqual(value, expectedValue0)
-            } catch is CancellationError {
-                XCTFail("Unexpected error cancellation")
+        try await confirmation("expectation of task0") { expectation0 in
+            try await confirmation("expectation of task1") { expectation1 in
+                let task0 = Task {
+                    do {
+                        let value = try await access.perform {}
+                        #expect(value == expectedValue0)
+                    } catch is CancellationError {
+                        Issue.record("Unexpected error cancellation")
+                    }
+                    expectation0()
+                }
+                
+                try await Task.sleep(for: .milliseconds(100))
+                
+                let task1 = Task {
+                    do {
+                        let value = try await access.perform {}
+                        #expect(value == expectedValue1)
+                    } catch is CancellationError {
+                        Issue.record("Unexpected error cancellation")
+                    }
+                    expectation1()
+                }
+                
+                try await Task.sleep(for: .milliseconds(100))
+                
+                #expect(access.ongoingAccess)
+                
+                let didResume0 = access.resume(returning: expectedValue0)
+                
+                #expect(didResume0)
+                #expect(!access.ongoingAccess)
+                
+                try await task0.value
+                
+                try await Task.sleep(for: .milliseconds(100))
+                
+                #expect(access.ongoingAccess)
+                
+                let didResume1 = access.resume(returning: expectedValue1)
+                
+                #expect(!didResume1)
+                #expect(!access.ongoingAccess)
+                
+                try await task1.value
             }
-            expectation0.fulfill()
         }
-
-        try await Task.sleep(for: .milliseconds(100))
-
-        Task {
-            do {
-                let value = try await access.perform {}
-                XCTAssertEqual(value, expectedValue1)
-            } catch is CancellationError {
-                XCTFail("Unexpected error cancellation")
-            }
-            expectation1.fulfill()
-        }
-
-        try await Task.sleep(for: .milliseconds(100))
-
-        XCTAssertTrue(access.ongoingAccess)
-
-        let didResume0 = access.resume(returning: expectedValue0)
-
-        XCTAssertTrue(didResume0)
-        XCTAssertFalse(access.ongoingAccess)
-
-        await fulfillment(of: [expectation0])
-
-        try await Task.sleep(for: .milliseconds(100))
-
-        XCTAssertTrue(access.ongoingAccess)
-
-        let didResume1 = access.resume(returning: expectedValue1)
-
-        XCTAssertFalse(didResume1)
-        XCTAssertFalse(access.ongoingAccess)
-
-        await fulfillment(of: [expectation1])
     }
 }

@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-import os
 @_spi(APISupport) @testable import SpeziFoundation
 import XCTest
 
@@ -60,7 +59,7 @@ struct ComputedTestStruct<Policy: ComputedKnowledgeSourceStoragePolicy, Reposito
 
     static func compute(from repository: Repository) -> Int {
         MainActor.assumeIsolated {
-            computedValue
+            SharedRepositoryTests.computedValue
         }
     }
 }
@@ -77,7 +76,7 @@ struct ComputedDefaultTestStruct<Policy: ComputedKnowledgeSourceStoragePolicy, R
 
     static func compute(from repository: Repository) -> Int {
         MainActor.assumeIsolated {
-            computedValue
+            SharedRepositoryTests.computedValue
         }
     }
 }
@@ -90,18 +89,17 @@ struct OptionalComputedTestStruct<Policy: ComputedKnowledgeSourceStoragePolicy, 
 
     static func compute(from repository: Repository) -> Int? {
         MainActor.assumeIsolated {
-            optionalComputedValue
+            SharedRepositoryTests.optionalComputedValue
         }
     }
 }
 
 
-@MainActor var computedValue: Int = 3
-@MainActor var optionalComputedValue: Int?
-
-
 final class SharedRepositoryTests: XCTestCase {
     typealias Repository = ValueRepository<TestAnchor>
+    
+    @MainActor static var computedValue: Int = 3
+    @MainActor static var optionalComputedValue: Int?
 
     private var repository = Repository()
 
@@ -112,8 +110,8 @@ final class SharedRepositoryTests: XCTestCase {
     @MainActor
     override func setUp() async throws {
         self.repository = .init()
-        computedValue = 3
-        optionalComputedValue = nil
+        Self.computedValue = 3
+        Self.optionalComputedValue = nil
     }
 
     func testIteration() {
@@ -210,18 +208,18 @@ final class SharedRepositoryTests: XCTestCase {
         let value = repository[ComputedTestStruct<_AlwaysComputePolicy, Repository>.self]
         let optionalValue = repository[OptionalComputedTestStruct<_AlwaysComputePolicy, Repository>.self]
 
-        XCTAssertEqual(value, computedValue)
-        XCTAssertEqual(optionalValue, optionalComputedValue)
+        XCTAssertEqual(value, Self.computedValue)
+        XCTAssertEqual(optionalValue, Self.optionalComputedValue)
 
         // make sure computed knowledge sources with `AlwaysCompute` policy are re-computed
-        computedValue = 5
-        optionalComputedValue = 4
+        Self.computedValue = 5
+        Self.optionalComputedValue = 4
 
         let newValue = repository[ComputedTestStruct<_AlwaysComputePolicy, Repository>.self]
         let newOptionalValue = repository[OptionalComputedTestStruct<_AlwaysComputePolicy, Repository>.self]
 
-        XCTAssertEqual(newValue, computedValue)
-        XCTAssertEqual(newOptionalValue, optionalComputedValue)
+        XCTAssertEqual(newValue, Self.computedValue)
+        XCTAssertEqual(newOptionalValue, Self.optionalComputedValue)
     }
 
     @MainActor
@@ -231,18 +229,18 @@ final class SharedRepositoryTests: XCTestCase {
         let value = repository[ComputedTestStruct<_AlwaysComputePolicy, Repository>.self]
         let optionalValue = repository[OptionalComputedTestStruct<_AlwaysComputePolicy, Repository>.self]
 
-        XCTAssertEqual(value, computedValue)
-        XCTAssertEqual(optionalValue, optionalComputedValue)
+        XCTAssertEqual(value, Self.computedValue)
+        XCTAssertEqual(optionalValue, Self.optionalComputedValue)
 
         // make sure computed knowledge sources with `AlwaysCompute` policy are re-computed
-        computedValue = 5
-        optionalComputedValue = 4
+        Self.computedValue = 5
+        Self.optionalComputedValue = 4
 
         let newValue = repository[ComputedTestStruct<_AlwaysComputePolicy, Repository>.self]
         let newOptionalValue = repository[OptionalComputedTestStruct<_AlwaysComputePolicy, Repository>.self]
 
-        XCTAssertEqual(newValue, computedValue)
-        XCTAssertEqual(newOptionalValue, optionalComputedValue)
+        XCTAssertEqual(newValue, Self.computedValue)
+        XCTAssertEqual(newOptionalValue, Self.optionalComputedValue)
     }
 
     @MainActor
@@ -250,38 +248,38 @@ final class SharedRepositoryTests: XCTestCase {
         let value = repository[ComputedTestStruct<_StoreComputePolicy, Repository>.self]
         let optionalValue = repository[OptionalComputedTestStruct<_StoreComputePolicy, Repository>.self]
 
-        XCTAssertEqual(value, computedValue)
-        XCTAssertEqual(optionalValue, optionalComputedValue)
+        XCTAssertEqual(value, Self.computedValue)
+        XCTAssertEqual(optionalValue, Self.optionalComputedValue)
 
         // get call bypasses the compute call, so tests if it's really stored
         let getValue = repository.get(ComputedTestStruct<_StoreComputePolicy, Repository>.self)
         let getOptionalValue = repository.get(OptionalComputedTestStruct<_StoreComputePolicy, Repository>.self)
 
-        XCTAssertEqual(getValue, computedValue)
-        XCTAssertEqual(getOptionalValue, optionalComputedValue) // this is nil
+        XCTAssertEqual(getValue, Self.computedValue)
+        XCTAssertEqual(getOptionalValue, Self.optionalComputedValue) // this is nil
 
         // make sure computed knowledge sources with `Store` policy are not re-computed
-        computedValue = 5
-        optionalComputedValue = 4
+        Self.computedValue = 5
+        Self.optionalComputedValue = 4
 
         let newValue = repository[ComputedTestStruct<_StoreComputePolicy, Repository>.self]
         let newOptionalValue = repository[OptionalComputedTestStruct<_StoreComputePolicy, Repository>.self]
 
         XCTAssertEqual(newValue, value)
-        XCTAssertEqual(newOptionalValue, optionalComputedValue) // never stored as it was nil
+        XCTAssertEqual(newOptionalValue, Self.optionalComputedValue) // never stored as it was nil
 
         // last check if its really written now
         let writtenOptionalValue = repository.get(OptionalComputedTestStruct<_StoreComputePolicy, Repository>.self)
-        XCTAssertEqual(writtenOptionalValue, optionalComputedValue)
+        XCTAssertEqual(writtenOptionalValue, Self.optionalComputedValue)
 
         // check again that it doesn't change
-        optionalComputedValue = nil
+        Self.optionalComputedValue = nil
         XCTAssertEqual(repository[OptionalComputedTestStruct<_StoreComputePolicy, Repository>.self], 4)
     }
 
     @MainActor
     func testComputedKnowledgeSourcePreferred() {
         let value = repository[ComputedDefaultTestStruct<_StoreComputePolicy, Repository>.self]
-        XCTAssertEqual(value, computedValue)
+        XCTAssertEqual(value, Self.computedValue)
     }
 }

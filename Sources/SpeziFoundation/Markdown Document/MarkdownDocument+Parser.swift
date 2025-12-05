@@ -79,7 +79,7 @@ extension MarkdownDocument {
 
 
 extension MarkdownDocument.Parser {
-    consuming func parse() throws(ParseError) -> MarkdownDocument { // swiftlint:disable:this function_body_length cyclomatic_complexity
+    consuming func parse(baseUrl: URL?) throws(ParseError) -> MarkdownDocument { // swiftlint:disable:this function_body_length cyclomatic_complexity
         typealias Block = MarkdownDocument.Block
         let frontmatter = try parseFrontmatter()
         var blocks: [Block] = []
@@ -135,7 +135,7 @@ extension MarkdownDocument.Parser {
                 return block
             }
         }
-        return .init(metadata: .init(frontmatter), blocks: blocks)
+        return MarkdownDocument(metadata: .init(frontmatter), blocks: blocks, baseUrl: baseUrl)
     }
     
     
@@ -250,6 +250,7 @@ extension MarkdownDocument.Parser {
         let name = try parseIdentifier()
         var parsedElement = CustomElement(name: name, raw: "")
         var elementIsClosed = false
+        // parse the opening tag of the custom element
         loop: while true {
             switch currentChar {
             case .none:
@@ -288,7 +289,11 @@ extension MarkdownDocument.Parser {
         } else {
             while true {
                 if let element = try parseCustomElement() {
-                    parsedElement.content.append(.element(element))
+                    if customElementNames.contains(element.name) {
+                        parsedElement.content.append(.element(element))
+                    } else {
+                        parsedElement.content.append(.text(element.raw))
+                    }
                 } else {
                     let text = parseElementTextContents().trimmingWhitespace()
                     if !text.isEmpty {
@@ -396,7 +401,7 @@ extension MarkdownDocument.Parser {
     }
     
     private mutating func consume(_ count: Int = 1) {
-        guard count > 0 else { // swiftlint:disable:this empty_count
+        guard count > 0 else {
             return
         }
         let newIndex = input.index(position, offsetBy: count)

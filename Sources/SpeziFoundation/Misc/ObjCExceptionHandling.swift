@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Foundation
+#if canImport(ObjectiveC)
+public import class Foundation.NSException
 import SpeziFoundationObjC
 
 
@@ -51,3 +52,4 @@ public func catchingNSException<T>(_ block: () throws -> T) throws -> T {
         )
     }
 }
+#endif

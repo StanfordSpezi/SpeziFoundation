@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Foundation
+public import Foundation
 
 
 /// A Markdown document.
@@ -16,7 +16,7 @@ import Foundation
 ///
 /// ### Metadata
 ///
-/// When using any of the `processing:` initializers to create a ``MarkdownDocument`` (e.g.: ``init(processing:customElementNames:)-(String,_)``),
+/// When using any of the `processing:` initializers to create a ``MarkdownDocument`` (e.g.: ``init(processing:customElementNames:baseUrl:)-(String,_,_)``),
 /// any frontmatter-style metadata entries at the very beginning of the input will be parsed into a ``Metadata-swift.struct`` object.
 ///
 /// The frontmatter-style metadata takes the following format:
@@ -93,15 +93,16 @@ import Foundation
 /// ## Topics
 ///
 /// ### Initializers
-/// - ``init(metadata:blocks:)``
-/// - ``init(processing:customElementNames:)-(String,Set<String>)``
-/// - ``init(processing:customElementNames:)-(Data,Set<String>)``
-/// - ``init(processingContentsOf:customElementNames:)``
+/// - ``init(metadata:blocks:baseUrl:)``
+/// - ``init(processing:customElementNames:baseUrl:)-(String,_,_)``
+/// - ``init(processing:customElementNames:baseUrl:)-(Data,_,_)``
+/// - ``init(contentsOf:customElementNames:baseUrl:)``
 /// - ``ParseError``
 ///
 /// ### Instance Properties
 /// - ``metadata``
 /// - ``blocks``
+/// - ``baseUrl``
 ///
 /// ### Supporting Types
 /// - ``Metadata``
@@ -111,11 +112,14 @@ public struct MarkdownDocument: Hashable, Sendable {
     public var metadata: Metadata
     /// The document's content blocks.
     public var blocks: [Block]
+    /// The `URL` that should be used when resolving relative links and references in the Markdown content.
+    public var baseUrl: URL?
     
     /// Creates a new Markdown document.
-    public init(metadata: Metadata, blocks: [Block]) {
+    public init(metadata: Metadata, blocks: [Block], baseUrl: URL? = nil) {
         self.metadata = metadata
         self.blocks = blocks
+        self.baseUrl = baseUrl
     }
     
     /// Creates a new Markdown document by processing a `String`.
@@ -126,9 +130,10 @@ public struct MarkdownDocument: Hashable, Sendable {
     /// - parameter text: The Markdown string to process.
     /// - parameter customElementNames: A `Set` of HTML tag names which should be processed into custom elements.
     ///     Any HTML tags encountered that aren't specified in the set will be treated as if they were part of the normal markdown text.
-    public init(processing text: String, customElementNames: Set<String> = []) throws(ParseError) {
+    /// - parameter baseUrl: The document's base url.
+    public init(processing text: String, customElementNames: Set<String> = [], baseUrl: URL? = nil) throws(ParseError) {
         let parser = Parser(input: text, customElementNames: customElementNames)
-        self = try parser.parse()
+        self = try parser.parse(baseUrl: baseUrl)
     }
     
     /// Creates a new Markdown document by processing a `Data` object.
@@ -139,11 +144,12 @@ public struct MarkdownDocument: Hashable, Sendable {
     /// - parameter data: The Markdown data to process.
     /// - parameter customElementNames: A `Set` of HTML tag names which should be processed into custom elements.
     ///     Any HTML tags encountered that aren't specified in the set will be treated as if they were part of the normal markdown text.
-    public init(processing data: Data, customElementNames: Set<String> = []) throws(ParseError) {
+    /// - parameter baseUrl: The document's base url.
+    public init(processing data: Data, customElementNames: Set<String> = [], baseUrl: URL? = nil) throws(ParseError) {
         guard let text = String(data: data, encoding: .utf8) else {
             throw ParseError(kind: .nonUTF8Input, sourceLoc: .zero)
         }
-        try self.init(processing: text, customElementNames: customElementNames)
+        try self.init(processing: text, customElementNames: customElementNames, baseUrl: baseUrl)
     }
     
     /// Creates a new Markdown document by processing the contents of a file.
@@ -154,10 +160,27 @@ public struct MarkdownDocument: Hashable, Sendable {
     /// - parameter url: The URL of the markdown file to process.
     /// - parameter customElementNames: A `Set` of HTML tag names which should be processed into custom elements.
     ///     Any HTML tags encountered that aren't specified in the set will be treated as if they were part of the normal markdown text.
-    public init(processingContentsOf url: URL, customElementNames: Set<String> = []) throws {
+    /// - parameter baseUrl: The document's base url. If `nil`, `url` will be used instead, with the last path component (the file itself) omitted.
+    public init(contentsOf url: URL, customElementNames: Set<String> = [], baseUrl: URL? = nil) throws {
         try self.init(
             processing: Data(contentsOf: url),
-            customElementNames: customElementNames
+            customElementNames: customElementNames,
+            baseUrl: baseUrl ?? url.deletingLastPathComponent()
         )
+    }
+    
+    /// Creates a new Markdown document by processing the contents of a file.
+    ///
+    /// Note that thie doesn't perform any Markdown parsing on its own; rather, it splits up a markdown file into a sequence of blocks,
+    /// each of which is either markdown content or a custom HTML element.
+    ///
+    /// - parameter url: The URL of the markdown file to process.
+    /// - parameter customElementNames: A `Set` of HTML tag names which should be processed into custom elements.
+    ///     Any HTML tags encountered that aren't specified in the set will be treated as if they were part of the normal markdown text.
+    /// - parameter baseUrl: The document's base url. If `nil`, `url` will be used instead, with the last path component (the file itself) omitted
+    @_documentation(visibility: internal)
+    @available(*, deprecated, renamed: "init(contentsOf:customElementNames:baseUrl:)")
+    public init(processingContentsOf url: URL, customElementNames: Set<String> = [], baseUrl: URL? = nil) throws {
+        try self.init(contentsOf: url, customElementNames: customElementNames, baseUrl: baseUrl)
     }
 }

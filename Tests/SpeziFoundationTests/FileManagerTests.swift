@@ -9,11 +9,11 @@
 import Foundation
 @testable import SpeziFoundation
 import Testing
+#if canImport(UniformTypeIdentifiers)
 import UniformTypeIdentifiers
 
 
-@Suite
-@MainActor
+@Suite(.serialized)
 final class FileManagerTests {
     private let fileManager = FileManager.default
     private let testRoot = URL.temporaryDirectory.appending(path: "SpeziFoundationFileManagerTests", directoryHint: .isDirectory)
@@ -71,3 +71,4 @@ final class FileManagerTests {
         #expect(try fileManager.contents(of: folder2Url).mapIntoSet(\.lastPathComponent) == ["file1.txt", "file2.txt"])
     }
 }
+#endif

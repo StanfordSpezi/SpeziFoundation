@@ -19,6 +19,18 @@ SPDX-License-Identifier: MIT
 Spezi Foundation provides a base layer of functionality useful in many applications, including fundamental types, algorithms, extensions, and data structures.
 
 
+## Components
+
+The SpeziFoundation package consists of 2 targets:
+- [SpeziFoundation](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation):
+    - Extensions related to concurrency, collection, etc;
+    - Data structures;
+    - Markdown processing
+    - See [the docs](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation) for an exhaustive list. 
+- [SpeziLocalization](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezilocalization):
+    - Localization-related utilities, for working with both string and file-level localization 
+
+
 ## Installation
 
 The project can be added to your Xcode project or Swift Package using the [Swift Package Manager](https://github.com/apple/swift-package-manager).
@@ -31,6 +43,16 @@ The project can be added to your Xcode project or Swift Package using the [Swift
 ## Contributing
 
 Contributions to this project are welcome. Please make sure to read the [contribution guidelines](https://github.com/StanfordSpezi/.github/blob/main/CONTRIBUTING.md) and the [contributor covenant code of conduct](https://github.com/StanfordSpezi/.github/blob/main/CODE_OF_CONDUCT.md) first.
+
+## Testing on Linux
+
+You can test SpeziFoundation on Linux using Docker. To do this, run the following command:
+
+```bash
+docker build -t spezi-foundation .
+```
+
+This will build the container and run the tests.
 
 
 ## License

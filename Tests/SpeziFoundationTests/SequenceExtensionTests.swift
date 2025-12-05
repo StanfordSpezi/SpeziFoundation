@@ -50,7 +50,7 @@ struct SequenceExtensions {
     @Test
     func asyncReduce() async throws {
         let names = ["Paul", "Lukas"]
-        let reduced = try await names.reduce(0) { acc, name in
+        let reduced = try await names.reduceAsync(0) { acc, name in
             try await Task.sleep(for: .seconds(0.2)) // best i could think of to get some trivial async-ness in here...
             return acc + name.count
         }
@@ -60,7 +60,7 @@ struct SequenceExtensions {
     @Test
     func asyncReduceInto() async throws {
         let names = ["Paul", "Lukas"]
-        let reduced = try await names.reduce(into: 0) { acc, name in
+        let reduced = try await names.reduceAsync(into: 0) { acc, name in
             try await Task.sleep(for: .seconds(0.2)) // best i could think of to get some trivial async-ness in here...
             acc += name.count
         }
@@ -95,6 +95,29 @@ struct SequenceExtensions {
         #expect(input[unsafe: 0] == 0)
         #expect(input[unsafe: 1] == 1)
         #expect(input[unsafe: 2] == 2)
+    }
+    
+    
+    @Test
+    func multiComparatorSorting() {
+        struct Cat: Equatable {
+            let name: String
+            let age: Int
+        }
+        var cats = [
+            Cat(name: "Terrace", age: 7),
+            Cat(name: "Pixel", age: 5),
+            Cat(name: "Pixel", age: 4)
+        ]
+        cats.sort(using: [
+            KeyPathComparator<Cat>(\.name),
+            KeyPathComparator<Cat>(\.age)
+        ] as [any SortComparator<Cat>])
+        #expect(cats == [
+            Cat(name: "Pixel", age: 4),
+            Cat(name: "Pixel", age: 5),
+            Cat(name: "Terrace", age: 7)
+        ])
     }
 }
 
