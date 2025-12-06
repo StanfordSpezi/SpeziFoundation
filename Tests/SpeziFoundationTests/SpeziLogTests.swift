@@ -1,8 +1,9 @@
 //
-//  SpeziLogTests.swift
-//  SpeziFoundation
+// This source file is part of the Stanford Spezi open-source project
 //
-//  Created by Philipp Nagy on 06.12.25.
+// SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
+//
+// SPDX-License-Identifier: MIT
 //
 
 import SpeziFoundation
