@@ -24,6 +24,9 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 ### Sequence and Collection utilities
 - <doc:CollectionAlgorithms>
 
+### Platform-Independent Logging
+- <doc:Logger>
+
 ### Concurrency
 - ``RWLock``
 - ``RecursiveRWLock``

@@ -14,11 +14,11 @@ import OSLog
 import Logging
 #endif
 
-@Suite()
-struct SpeziLogTests {
+@Suite
+struct LoggerTests {
     @Test
-    func speziLoggerUnderlyingType() async throws {
-        let logger = SpeziLogger(subsystem: "test", category: "unit")
+    func loggerUnderlyingType() async throws {
+        let logger = Logger(subsystem: "test", category: "unit")
         #if canImport(os)
         #expect(type(of: logger) == os.Logger.self, "Should use os.Logger on Apple platforms")
         #else
