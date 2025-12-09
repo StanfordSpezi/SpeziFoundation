@@ -8,11 +8,7 @@
 
 import SpeziFoundation
 import Testing
-#if canImport(OSLog)
-import OSLog
-#else
-import Logging
-#endif
+
 
 @Suite
 struct LoggerTests {
