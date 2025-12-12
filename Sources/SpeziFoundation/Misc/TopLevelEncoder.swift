@@ -10,7 +10,7 @@ public import Foundation
 
 
 /// A type that supports encoding.
-public protocol TopLevelEncoder {
+public protocol TopLevelEncoder<Output> {
     /// The output type.
     associatedtype Output
 
