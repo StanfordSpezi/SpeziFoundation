@@ -313,7 +313,7 @@ extension LocalPreferenceKey {
         @inlinable
         public init(verbatim key: String, in namespace: LocalPreferenceKeys.Namespace = .app) {
             value = namespace.format(keyName: key)
-            isKVOCompatible = !value.contains(".")
+            isKVOCompatible = !value.contains { $0 == "." || $0 == "@" }
         }
         
         /// Creates a key from a `String` literal.
