@@ -21,6 +21,9 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 ### Calendar and Time Zone handling
 - <doc:Calendar>
 
+### Local Preferences (UserDefaults)
+- <doc:LocalPreferences>
+
 ### Sequence and Collection utilities
 - <doc:CollectionAlgorithms>
 
