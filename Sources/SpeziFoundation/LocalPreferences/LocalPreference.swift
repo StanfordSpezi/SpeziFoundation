@@ -229,15 +229,4 @@ private final class UserDefaultsKeyObserver<T: SendableMetatype>: NSObject, Send
     }
 }
 
-
-extension Equatable {
-    func isEqual(to other: Any) -> Bool {
-        if let other = other as? Self {
-            self == other
-        } else {
-            false
-        }
-    }
-}
-
 #endif
