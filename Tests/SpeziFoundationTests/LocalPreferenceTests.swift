@@ -15,7 +15,7 @@ import Testing
 
 @Suite(.serialized)
 final class LocalPreferenceTests {
-    let suiteName = "edu.stanford.SpeziViews.unitTests"
+    let suiteName = "edu.stanford.SpeziFoundation.unitTests"
     let suite: UserDefaults
     let store: LocalPreferencesStore
     
@@ -31,14 +31,14 @@ final class LocalPreferenceTests {
     
     @Test
     func simpleTypes() throws {
-        #expect(LocalPreferenceKeys.string.key.value == "edu_stanford_SpeziViews_unitTests:string")
-        #expect(LocalPreferenceKeys.stringOpt.key.value == "edu_stanford_SpeziViews_unitTests:stringOpt")
+        #expect(LocalPreferenceKeys.string.key.value == "edu_stanford_SpeziFoundation_unitTests:string")
+        #expect(LocalPreferenceKeys.stringOpt.key.value == "edu_stanford_SpeziFoundation_unitTests:stringOpt")
         #expect(store[.string] == "")
         #expect(store[.stringOpt] == nil)
-        #expect(suite.string(forKey: "edu_stanford_SpeziViews_unitTests:string") == nil)
+        #expect(suite.string(forKey: "edu_stanford_SpeziFoundation_unitTests:string") == nil)
         store[.string] = "abc"
         #expect(store[.string] == "abc")
-        #expect(try #require(suite.string(forKey: "edu_stanford_SpeziViews_unitTests:string")) == "abc")
+        #expect(try #require(suite.string(forKey: "edu_stanford_SpeziFoundation_unitTests:string")) == "abc")
     }
     
     
@@ -350,7 +350,7 @@ final class LocalPreferenceTests {
     private func withTemporarySuiteForMigration(
         _ test: (_ store: LocalPreferencesStore) throws -> Void
     ) throws {
-        let suiteName = "edu.stanford.SpeziViews.unitTests.migrationTesting.\(UUID().uuidString)"
+        let suiteName = "edu.stanford.SpeziFoundation.unitTests.migrationTesting.\(UUID().uuidString)"
         defer {
             UserDefaults.standard.removePersistentDomain(forName: suiteName)
         }
@@ -455,11 +455,11 @@ final class LocalPreferenceTests {
 
 extension LocalPreferenceKeys {
     fileprivate static let string = LocalPreferenceKey<String>(
-        .init("string", in: .custom("edu.stanford.SpeziViews.unitTests")),
+        .init("string", in: .custom("edu.stanford.SpeziFoundation.unitTests")),
         default: ""
     )
     fileprivate static let stringOpt = LocalPreferenceKey<String?>(
-        .init("stringOpt", in: .custom("edu.stanford.SpeziViews.unitTests")),
+        .init("stringOpt", in: .custom("edu.stanford.SpeziFoundation.unitTests")),
         default: nil
     )
 }
