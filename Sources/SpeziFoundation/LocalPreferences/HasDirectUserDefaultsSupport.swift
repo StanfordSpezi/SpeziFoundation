@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-#if !os(Linux)
+#if true || !os(Linux)
 
 // swiftlint:disable identifier_name syntactic_sugar
 
@@ -15,7 +15,7 @@ public import Foundation
 
 /// Types which can be directly placed into a `UserDefaults` store.
 ///
-/// - Note: This type is public, but no additional conformances should be added to it (beyond what is defined by SpeziViews)
+/// - Note: This type is public, but no additional conformances should be added to it (beyond what is defined in SpeziFoundation)
 public protocol HasDirectUserDefaultsSupport: Sendable, SendableMetatype {
     /// Constructs an instance of the type by loading it from a `UserDefaults` store.
     @inlinable

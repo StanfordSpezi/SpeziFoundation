@@ -30,8 +30,7 @@ struct LocalPreferencesTests: View {
 
 
 private struct BasicUsageTest: View {
-    @LocalPreference(.counter)
-    private var counter
+    @LocalPreference(.counter) private var counter
     
     var body: some View {
         Form {
