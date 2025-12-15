@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-#if !os(Linux)
+#if true || !os(Linux)
 
 // swiftlint:disable file_types_order
 
