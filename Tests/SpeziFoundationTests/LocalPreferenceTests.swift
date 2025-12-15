@@ -410,14 +410,14 @@ final class LocalPreferenceTests {
             #expect(store[newKey].value == "two")
             #expect(oldKey.read(in: store.defaults).error != nil)
             
-            // also test that we can run the migration as many times as we want and we'll always get the same result (ie the opertaion is idempotent)
+            // also test that we can run the migration as many times as we want and we'll always get the same result (ie the operation is idempotent)
             for idx in 0..<20 {
                 let valueA = oldKey.read(in: store.defaults)
                 let valueB = newKey.read(in: store.defaults)
                 #expect(valueA.error != nil)
                 #expect(valueB == .value(.init(value: "two")))
                 try store.runMigrations(migration)
-                #expect(oldKey.read(in: store.defaults) == valueA, "\(idx)")
+                #expect(String(reflecting: oldKey.read(in: store.defaults)) == String(reflecting: valueA), "\(idx)")
                 #expect(newKey.read(in: store.defaults) == valueB, "\(idx)")
             }
         }
