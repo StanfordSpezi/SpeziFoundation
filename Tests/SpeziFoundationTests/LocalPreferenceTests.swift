@@ -90,7 +90,7 @@ final class LocalPreferenceTests {
         #expect(!suite.bool(forKey: rawKey))
         #expect(!store[key])
         
-        suite.set("123", forKey: rawKey)
+        suite.set("987", forKey: rawKey)
         #expect(!suite.bool(forKey: rawKey))
         #expect(!store[key])
         
