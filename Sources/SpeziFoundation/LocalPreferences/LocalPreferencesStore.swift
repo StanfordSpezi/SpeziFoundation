@@ -8,7 +8,7 @@
 
 #if true || !os(Linux)
 
-import Foundation
+public import Foundation
 
 
 /// A type-safe wrapper around `UserDefaults`.
