@@ -6,8 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-#if true || !os(Linux)
-
 // swiftlint:disable syntactic_sugar
 
 public import Foundation
@@ -371,10 +369,12 @@ extension LocalPreferenceKeys.Namespace {
     }
     
     /// Creates a namespace that scopes keys based on a bundle id.
+    ///
+    /// - Note: If, for whatever reason, the bundle does not have an identifier, this function will return ``none``.
     @inlinable
     public static func bundle(_ bundle: Bundle) -> Self {
         guard let bundleId = bundle.bundleIdentifier else {
-            preconditionFailure("Unable to construct '\(Self.self)': missing bundle id")
+            return .none
         }
         return Self(value: bundleId)
     }
@@ -385,5 +385,3 @@ extension LocalPreferenceKeys.Namespace {
         Self(value: value)
     }
 }
-
-#endif

@@ -6,8 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-#if true || !os(Linux)
-
 import Foundation
 
 
@@ -121,5 +119,3 @@ extension LocalPreferencesStore {
         }
     }
 }
-
-#endif

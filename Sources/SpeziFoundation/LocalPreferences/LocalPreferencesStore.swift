@@ -6,8 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-#if true || !os(Linux)
-
 public import Foundation
 
 
@@ -106,5 +104,3 @@ extension UserDefaults {
         object(forKey: key) != nil
     }
 }
-
-#endif

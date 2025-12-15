@@ -6,8 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-#if true || !os(Linux)
-
 // swiftlint:disable identifier_name syntactic_sugar
 
 public import Foundation
@@ -133,5 +131,3 @@ extension Dictionary: HasDirectUserDefaultsSupport where Key == String, Value: H
         defaults.set(self, forKey: key)
     }
 }
-
-#endif
