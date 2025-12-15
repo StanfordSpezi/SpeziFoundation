@@ -10,7 +10,7 @@
 
 // swiftlint:disable syntactic_sugar
 
-import Foundation
+public import Foundation
 
 
 /// Container type for ``LocalPreferenceKey`` definitions.
