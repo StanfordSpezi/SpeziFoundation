@@ -243,6 +243,7 @@ extension LocalPreferenceKey {
         }
     }
     
+    // utility initializer for unifying the handling of non-optional and optional Codable `Value` keys.
     private convenience init<C: Codable & SendableMetatype>(
         codable _: C.Type,
         key: Key,
