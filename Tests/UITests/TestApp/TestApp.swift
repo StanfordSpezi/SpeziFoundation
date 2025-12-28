@@ -16,28 +16,15 @@ struct UITestsApp: App {
         WindowGroup {
             NavigationStack {
                 Form {
-                    content
+                    NavigationLink("Sandbox Detection") {
+                        SandboxDetectionTests()
+                    }
+                    NavigationLink("Local Preferences") {
+                        LocalPreferencesTests()
+                    }
                 }
                 .formStyle(.grouped)
             }
         }
-    }
-    
-    @ViewBuilder private var content: some View {
-        Section {
-            makeRow("Is running in Sandbox", value: ProcessInfo.isRunningInSandbox)
-            makeRow("Is running in XCTest", value: ProcessInfo.isRunningInXCTest)
-        }
-    }
-    
-    func makeRow(_ title: String, value: some CustomStringConvertible) -> some View {
-        HStack {
-            Text(title)
-            Spacer()
-            Text(value.description)
-                .foregroundStyle(.secondary)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityValue("\(title), \(value.description)")
     }
 }

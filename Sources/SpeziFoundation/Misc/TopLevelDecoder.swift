@@ -10,7 +10,7 @@ public import Foundation
 
 
 /// A type that supports decoding.
-public protocol TopLevelDecoder {
+public protocol TopLevelDecoder<Input> {
     /// The input type.
     associatedtype Input
 
