@@ -31,7 +31,9 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.2.0"),
         .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.2.0"),
         .package(url: "https://github.com/StanfordBDHG/XCTRuntimeAssertions.git", from: "2.2.0"),
-        .package(url: "https://github.com/apple/swift-log", from: "1.6.0")
+        .package(url: "https://github.com/apple/swift-log", from: "1.6.0"),
+        .package(url: "https://github.com/facebook/zstd.git", revision: "ae9f20ca2716f2605822ca375995b7d876389b64"),
+        .package(url: "https://github.com/StanfordBDHG/ThreadLocal.git", from: "0.1.0")
     ] + swiftLintPackage(),
     targets: [
         .systemLibrary(
@@ -45,10 +47,12 @@ let package = Package(
             dependencies: [
                 .target(name: "SpeziFoundationObjC"),
                 .target(name: "CZlib", condition: .when(platforms: [.linux])),
+                .product(name: "libzstd", package: "zstd"),
                 .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "Algorithms", package: "swift-algorithms"),
                 .product(name: "RuntimeAssertions", package: "XCTRuntimeAssertions"),
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "ThreadLocal", package: "ThreadLocal")
             ],
             resources: [
                 .process("Resources")
