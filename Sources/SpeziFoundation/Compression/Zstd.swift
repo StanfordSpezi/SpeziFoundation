@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+// swiftlint:disable attributes
+
 public import Foundation
 public import libzstd
 import ThreadLocal

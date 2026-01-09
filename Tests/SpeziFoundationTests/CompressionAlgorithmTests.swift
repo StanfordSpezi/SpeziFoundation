@@ -89,6 +89,8 @@ struct CompressionAlgorithmTests {
 }
 
 
+// swiftlint:disable line_length
+
 extension CompressionAlgorithmTests {
     private static let textSnippets: [String] = [
         """
