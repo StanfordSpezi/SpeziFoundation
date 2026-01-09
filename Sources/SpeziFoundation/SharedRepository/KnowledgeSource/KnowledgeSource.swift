@@ -11,7 +11,7 @@
 ///
 /// A ``KnowledgeSource`` is anchored to a given ``RepositoryAnchor`` and defines a ``Value`` type which by default
 /// is set to `Self`.
-public protocol KnowledgeSource<Anchor> {
+public protocol KnowledgeSource<Anchor>: SendableMetatype {
     /// The type of a value this `KnowledgeSource` represents.
     associatedtype Value = Self
     /// The ``RepositoryAnchor`` to which this `KnowledgeSource` is anchored to.
