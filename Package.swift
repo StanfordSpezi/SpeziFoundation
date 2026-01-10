@@ -32,7 +32,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-algorithms.git", from: "1.2.0"),
         .package(url: "https://github.com/StanfordBDHG/XCTRuntimeAssertions.git", from: "2.2.0"),
         .package(url: "https://github.com/apple/swift-log", from: "1.6.0"),
-        .package(url: "https://github.com/StanfordBDHG/zstd.git", branch: "dev"),
+        .package(url: "https://github.com/StanfordBDHG/zstd.git", revision: "ae9f20ca2716f2605822ca375995b7d876389b64"),
         .package(url: "https://github.com/StanfordBDHG/ThreadLocal.git", from: "0.1.0")
     ] + swiftLintPackage(),
     targets: [
