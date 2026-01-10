@@ -10,7 +10,7 @@
 
 // swiftlint:disable file_types_order
 
-public import Foundation
+import Foundation
 public import SwiftUI
 
 
