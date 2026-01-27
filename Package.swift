@@ -44,16 +44,21 @@ let package = Package(
         ),
         .target(
             name: "SpeziFoundation",
-            dependencies: [
-                .target(name: "SpeziFoundationObjC"),
-                .target(name: "CZlib", condition: .when(platforms: [.linux])),
-                .product(name: "libzstd", package: "zstd"),
-                .product(name: "Atomics", package: "swift-atomics"),
-                .product(name: "Algorithms", package: "swift-algorithms"),
-                .product(name: "RuntimeAssertions", package: "XCTRuntimeAssertions"),
-                .product(name: "Logging", package: "swift-log"),
-                .product(name: "ThreadLocal", package: "ThreadLocal")
-            ],
+            dependencies: { () -> [Target.Dependency] in
+                var dependencies: [Target.Dependency] = [
+                    .target(name: "SpeziFoundationObjC"),
+                    .product(name: "libzstd", package: "zstd"),
+                    .product(name: "Atomics", package: "swift-atomics"),
+                    .product(name: "Algorithms", package: "swift-algorithms"),
+                    .product(name: "RuntimeAssertions", package: "XCTRuntimeAssertions"),
+                    .product(name: "Logging", package: "swift-log"),
+                    .product(name: "ThreadLocal", package: "ThreadLocal")
+                ]
+                #if os(Linux)
+                dependencies.append(.target(name: "CZlib", condition: .when(platforms: [.linux])))
+                #endif
+                return dependencies
+            }(),
             resources: [
                 .process("Resources")
             ],
