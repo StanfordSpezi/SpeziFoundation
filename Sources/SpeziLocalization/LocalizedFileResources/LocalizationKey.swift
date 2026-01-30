@@ -132,3 +132,47 @@ extension LocalizationKey: LosslessStringConvertible {
         self.init(locale: .init(identifier: description))
     }
 }
+
+
+extension LocalizationKey: Codable {
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let string = try container.decode(String.self)
+        guard let key = LocalizationKey(string) else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid localization key: \(string)")
+        }
+        self = key
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(description)
+    }
+}
+
+
+extension LocalizationKey: CodingKeyRepresentable {
+    public var codingKey: any CodingKey {
+        AnyCodingKey(stringValue: description)
+    }
+
+    public init?<T: CodingKey>(codingKey: T) {
+        self.init(codingKey.stringValue)
+    }
+}
+
+
+private struct AnyCodingKey: CodingKey {
+    var stringValue: String
+    var intValue: Int?
+
+    init(stringValue: String) {
+        self.stringValue = stringValue
+        self.intValue = nil
+    }
+
+    init?(intValue: Int) {
+        self.stringValue = "\(intValue)"
+        self.intValue = intValue
+    }
+}
