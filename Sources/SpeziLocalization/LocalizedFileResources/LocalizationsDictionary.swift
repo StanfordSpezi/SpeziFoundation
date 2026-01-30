@@ -148,6 +148,7 @@ extension LocalizationsDictionary where Value == String {
 
 extension LocalizationsDictionary: Equatable where Value: Equatable {}
 extension LocalizationsDictionary: Hashable where Value: Hashable {}
+extension LocalizationsDictionary: Sendable where Value: Sendable {}
 
 extension LocalizationsDictionary: Encodable where Value: Encodable {
     public func encode(to encoder: any Encoder) throws {
