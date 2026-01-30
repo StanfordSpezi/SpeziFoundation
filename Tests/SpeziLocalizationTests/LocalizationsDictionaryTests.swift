@@ -17,7 +17,6 @@ struct LocalizedContent: Hashable, Codable {
 
 @Suite
 struct LocalizationsDictionaryTests {
-
     @Test
     func emptyInit() {
         let dict = LocalizationsDictionary<String>()
@@ -119,7 +118,7 @@ struct LocalizationsDictionaryTests {
         let original = LocalizationsDictionary<String>([
             .enUS: "Hello World!",
             .deDE: "Hallo Welt!",
-            LocalizationKey("es-ES")!: "Hola Mundo!"
+            .esES: "Hola Mundo!"
         ])
         let data = try JSONEncoder().encode(original)
         let decoded = try JSONDecoder().decode(LocalizationsDictionary<String>.self, from: data)

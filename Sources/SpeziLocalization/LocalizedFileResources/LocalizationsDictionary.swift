@@ -68,30 +68,6 @@ public struct LocalizationsDictionary<Value> {
         self.storage = entries
     }
 
-    /// Access a value by its ``LocalizationKey``.
-    public subscript(_ key: LocalizationKey) -> Value? {
-        get { storage[key] }
-        set { storage[key] = newValue }
-    }
-
-    /// Access a value by a string identifier (e.g. `"en-US"`).
-    ///
-    /// Returns `nil` if the string cannot be parsed into a ``LocalizationKey``.
-    public subscript(_ key: String) -> Value? {
-        get {
-            guard let locKey = LocalizationKey(key) else {
-                return nil
-            }
-            return storage[locKey]
-        }
-        set {
-            guard let locKey = LocalizationKey(key) else {
-                return
-            }
-            storage[locKey] = newValue
-        }
-    }
-
     /// Resolves the best value for the given locale.
     ///
     /// Iterates all entries in the dictionary, scores each ``LocalizationKey`` against the target `locale`
@@ -124,6 +100,30 @@ public struct LocalizationsDictionary<Value> {
             return storage[fallback]
         }
         return nil
+    }
+
+    /// Access a value by its ``LocalizationKey``.
+    public subscript(_ key: LocalizationKey) -> Value? {
+        get { storage[key] }
+        set { storage[key] = newValue }
+    }
+
+    /// Access a value by a string identifier (e.g. `"en-US"`).
+    ///
+    /// Returns `nil` if the string cannot be parsed into a ``LocalizationKey``.
+    public subscript(_ key: String) -> Value? {
+        get {
+            guard let locKey = LocalizationKey(key) else {
+                return nil
+            }
+            return storage[locKey]
+        }
+        set {
+            guard let locKey = LocalizationKey(key) else {
+                return
+            }
+            storage[locKey] = newValue
+        }
     }
 }
 
@@ -174,11 +174,11 @@ extension LocalizationsDictionary: Collection {
         storage.endIndex
     }
 
-    public subscript(position: Index) -> Element {
-        storage[position]
-    }
-
     public func index(after index: Index) -> Index {
         storage.index(after: index)
+    }
+
+    public subscript(position: Index) -> Element {
+        storage[position]
     }
 }
