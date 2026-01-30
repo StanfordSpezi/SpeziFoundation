@@ -23,14 +23,14 @@ public import Foundation
 ///     .deDE: "Hallo",
 ///     .enES: "Hola"
 /// ])
-/// let greeting = translations.localizedString(for: Locale(identifier: "de-DE"))
+/// let greeting = translations.localizedString(for: .deDE)
 /// // greeting == "Hallo"
 /// ```
 ///
 /// You can also store structured content per locale:
 ///
 /// ```swift
-/// struct Article: Sendable, Hashable, Codable {
+/// struct Article: Hashable, Codable {
 ///     let title: String
 ///     let content: String
 /// }
@@ -49,13 +49,13 @@ public import Foundation
 /// - ``init(_:)``
 ///
 /// ### Subscripts
-/// - ``subscript(key:)-LocalizationKey``
-/// - ``subscript(key:)-String``
+/// - ``subscript(_:)
+/// - ``subscript(_:)
 ///
 /// ### Resolving Values
 /// - ``localizedValue(for:using:fallback:)``
 /// - ``localizedString(for:using:fallback:)``
-public struct LocalizationsDictionary<Value: Sendable>: Sendable {
+public struct LocalizationsDictionary<Value> {
     private var storage: [LocalizationKey: Value]
 
     /// Creates an empty localizations dictionary.
@@ -99,7 +99,7 @@ public struct LocalizationsDictionary<Value: Sendable>: Sendable {
     /// (provided it exceeds `0`). If no match is found and a `fallback` key is specified, the fallback entry is returned.
     ///
     /// - Parameters:
-    ///   - locale: The locale to resolve a value for. Defaults to ``Locale/autoupdatingCurrent``.
+    ///   - locale: The locale to resolve a value for. Defaults to `/Locale/autoupdatingCurrent`.
     ///   - localeMatchingBehaviour: The matching behaviour to use. Defaults to ``LocaleMatchingBehaviour/default``.
     ///   - fallback: An optional fallback ``LocalizationKey`` to use if no match is found. Defaults to ``LocalizationKey/enUS``.
     /// - Returns: The best matching value, or `nil` if no match and no fallback exists.
@@ -133,7 +133,7 @@ extension LocalizationsDictionary where Value == String {
     /// This is a convenience method equivalent to ``localizedValue(for:using:fallback:)`` for string dictionaries.
     ///
     /// - Parameters:
-    ///   - locale: The locale to resolve a translation for. Defaults to ``Locale/autoupdatingCurrent``.
+    ///   - locale: The locale to resolve a translation for. Defaults to `Locale/autoupdatingCurrent`.
     ///   - localeMatchingBehaviour: The matching behaviour to use. Defaults to ``LocaleMatchingBehaviour/default``.
     ///   - fallback: An optional fallback ``LocalizationKey`` to use if no match is found. Defaults to ``LocalizationKey/enUS``.
     /// - Returns: The best matching translation, or `nil` if no match and no fallback exists.
