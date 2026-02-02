@@ -11,14 +11,14 @@ public import Foundation
 
 /// A dictionary of localized values keyed by locale.
 ///
-/// Use `LocalizationsDictionary` to store values for multiple locales in a single value,
+/// Use `LocalizedDictionary` to store values for multiple locales in a single value,
 /// and resolve the best match for a given `Locale` using `LocaleMatchingBehaviour` scoring.
 ///
 /// The type parameter `Value` determines what is stored per locale. For simple string translations,
-/// use `LocalizationsDictionary<String>`:
+/// use `LocalizedDictionary<String>`:
 ///
 /// ```swift
-/// let translations = LocalizationsDictionary<String>([
+/// let translations = LocalizedDictionary<String>([
 ///     .enUS: "Hello",
 ///     .deDE: "Hallo",
 ///     .enES: "Hola"
@@ -34,7 +34,7 @@ public import Foundation
 ///     let title: String
 ///     let content: String
 /// }
-/// let articles = LocalizationsDictionary<Article>([
+/// let articles = LocalizedDictionary<Article>([
 ///     .enUS: Article(title: "Welcome", content: "Hello there"),
 ///     .deDE Article(title: "Willkommen", content: "Hallo")
 /// ])
@@ -55,7 +55,7 @@ public import Foundation
 /// ### Resolving Values
 /// - ``localizedValue(for:using:fallback:)``
 /// - ``localizedString(for:using:fallback:)``
-public struct LocalizationsDictionary<Value> {
+public struct LocalizedDictionary<Value> {
     private var storage: [LocalizationKey: Value]
 
     /// Creates an empty localizations dictionary.
@@ -127,7 +127,7 @@ public struct LocalizationsDictionary<Value> {
     }
 }
 
-extension LocalizationsDictionary where Value == String {
+extension LocalizedDictionary where Value == String {
     /// Resolves the best translation for the given locale.
     ///
     /// This is a convenience method equivalent to ``localizedValue(for:using:fallback:)`` for string dictionaries.
@@ -146,23 +146,23 @@ extension LocalizationsDictionary where Value == String {
     }
 }
 
-extension LocalizationsDictionary: Equatable where Value: Equatable {}
-extension LocalizationsDictionary: Hashable where Value: Hashable {}
-extension LocalizationsDictionary: Sendable where Value: Sendable {}
+extension LocalizedDictionary: Equatable where Value: Equatable {}
+extension LocalizedDictionary: Hashable where Value: Hashable {}
+extension LocalizedDictionary: Sendable where Value: Sendable {}
 
-extension LocalizationsDictionary: Encodable where Value: Encodable {
+extension LocalizedDictionary: Encodable where Value: Encodable {
     public func encode(to encoder: any Encoder) throws {
         try storage.encode(to: encoder)
     }
 }
 
-extension LocalizationsDictionary: Decodable where Value: Decodable {
+extension LocalizedDictionary: Decodable where Value: Decodable {
     public init(from decoder: any Decoder) throws {
         self.storage = try [LocalizationKey: Value](from: decoder)
     }
 }
 
-extension LocalizationsDictionary: Collection {
+extension LocalizedDictionary: Collection {
     public typealias Index = Dictionary<LocalizationKey, Value>.Index
     public typealias Element = Dictionary<LocalizationKey, Value>.Element
 
