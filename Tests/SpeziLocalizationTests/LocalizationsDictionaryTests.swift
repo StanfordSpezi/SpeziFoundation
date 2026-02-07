@@ -16,16 +16,16 @@ struct Article: Hashable, Codable {
 }
 
 @Suite
-struct LocalizedDictionaryTests {
+struct LocalizationsDictionaryTests {
     @Test
     func emptyInit() {
-        let dict = LocalizedDictionary<String>()
+        let dict = LocalizationsDictionary<String>()
         #expect(dict.isEmpty)
     }
 
     @Test
     func dictionaryLiteral() {
-        let dict = LocalizedDictionary<String>([
+        let dict = LocalizationsDictionary<String>([
             .enUS: "Hello World!",
             .deDE: "Hallo Welt!"
         ])
@@ -36,7 +36,7 @@ struct LocalizedDictionaryTests {
 
     @Test
     func subscriptByString() {
-        var dict = LocalizedDictionary<String>([:])
+        var dict = LocalizationsDictionary<String>([:])
         dict[.enUS] = "Hello World!"
         #expect(dict[.enUS] == "Hello World!")
         dict[.enUS] = nil
@@ -46,7 +46,7 @@ struct LocalizedDictionaryTests {
 
     @Test
     func subscriptByLocalizationKey() {
-        var dict = LocalizedDictionary<String>()
+        var dict = LocalizationsDictionary<String>()
         let key = LocalizationKey.enUS
         dict[key] = "Hello World!"
         #expect(dict[key] == "Hello World!")
@@ -54,90 +54,90 @@ struct LocalizedDictionaryTests {
 
     @Test
     func perfectMatch() {
-        let dict = LocalizedDictionary<String>([
+        let dict = LocalizationsDictionary<String>([
             .enUS: "Hello World!",
             .deDE: "Hallo Welt!"
         ])
-        let result = dict.localizedString(for: .enUS)
+        let result = dict[.enUS]
         #expect(result == "Hello World!")
     }
 
     @Test
     func partialLanguageMatch() {
-        let dict = LocalizedDictionary<String>([
+        let dict = LocalizationsDictionary<String>([
             .enUS: "Hello World!",
             .deDE: "Hallo Welt!"
         ])
-        let result = dict.localizedString(for: Locale(identifier: "en-GB"), using: .preferLanguageMatch)
+        let result = dict[.enUK, using: .preferLanguageMatch]
         #expect(result == "Hello World!")
     }
 
     @Test
     func noMatchReturnsFallback() {
-        let dict = LocalizedDictionary<String>([
+        let dict = LocalizationsDictionary<String>([
             .enUS: "Hello World!",
             .deDE: "Hallo Welt!"
         ])
-        let result = dict.localizedString(
-            for: Locale(identifier: "ja-JP"),
+        let result = dict[
+            .jaJP,
             using: .requirePerfectMatch,
             fallback: .enUS
-        )
+        ]
         #expect(result == "Hello World!")
     }
 
     @Test
     func noMatchNoFallback() {
-        let dict = LocalizedDictionary<String>([
+        let dict = LocalizationsDictionary<String>([
             .deDE: "Hallo Welt!"
         ])
-        let result = dict.localizedString(
-            for: Locale(identifier: "ja-JP"),
+        let result = dict[
+            .jaJP,
             using: .requirePerfectMatch,
             fallback: nil
-        )
+        ]
         #expect(result == nil)
     }
 
     @Test
     func fallbackKeyNotInDictionary() {
-        let dict = LocalizedDictionary<String>([
+        let dict = LocalizationsDictionary<String>([
             .deDE: "Hallo Welt!"
         ])
-        let result = dict.localizedString(
-            for: .frFR,
+        let result = dict[
+            .frFR,
             using: .requirePerfectMatch,
             fallback: .enUS
-        )
+        ]
         #expect(result == nil)
     }
 
 
     @Test
     func codableRoundTrip() throws {
-        let original = LocalizedDictionary<String>([
+        let original = LocalizationsDictionary<String>([
             .enUS: "Hello World!",
             .deDE: "Hallo Welt!",
             .esES: "Hola Mundo!"
         ])
         let data = try JSONEncoder().encode(original)
-        let decoded = try JSONDecoder().decode(LocalizedDictionary<String>.self, from: data)
+        let decoded = try JSONDecoder().decode(LocalizationsDictionary<String>.self, from: data)
         #expect(decoded == original)
     }
 
     @Test
     func decodesFromJSON() throws {
         let json = Data(#"{"en-US":"Hello World!","de-DE":"Hallo Welt!"}"#.utf8)
-        let dict = try JSONDecoder().decode(LocalizedDictionary<String>.self, from: json)
-        #expect(dict["en-US"] == "Hello World!")
-        #expect(dict["de-DE"] == "Hallo Welt!")
+        let dict = try JSONDecoder().decode(LocalizationsDictionary<String>.self, from: json)
+        #expect(dict[.enUS] == "Hello World!")
+        #expect(dict[.deDE] == "Hallo Welt!")
         #expect(dict.count == 2)
     }
 
 
     @Test
     func collectionConformance() {
-        let dict = LocalizedDictionary<String>([
+        let dict = LocalizationsDictionary<String>([
             .enUS: "Hello World!",
             .deDE: "Hallo Welt!"
         ])
@@ -153,9 +153,9 @@ struct LocalizedDictionaryTests {
 
     @Test
     func hashableEquality() {
-        let dict1 = LocalizedDictionary<String>([.enUS: "Hello World!", .deDE: "Hallo Welt!"])
-        let dict2 = LocalizedDictionary<String>([.enUS: "Hello World!", .deDE: "Hallo Welt!"])
-        let dict3 = LocalizedDictionary<String>([.enUS: "Hello World"])
+        let dict1 = LocalizationsDictionary<String>([.enUS: "Hello World!", .deDE: "Hallo Welt!"])
+        let dict2 = LocalizationsDictionary<String>([.enUS: "Hello World!", .deDE: "Hallo Welt!"])
+        let dict3 = LocalizationsDictionary<String>([.enUS: "Hello World"])
         #expect(dict1 == dict2)
         #expect(dict1 != dict3)
         #expect(Set([dict1, dict2]).count == 1)
@@ -163,7 +163,7 @@ struct LocalizedDictionaryTests {
 
     @Test
     func structuredValueCreation() {
-        let dict = LocalizedDictionary<Article>([
+        let dict = LocalizationsDictionary<Article>([
             .enUS: Article(title: "Welcome", body: "Hello there"),
             .deDE: Article(title: "Willkommen", body: "Hallo")
         ])
@@ -173,7 +173,7 @@ struct LocalizedDictionaryTests {
 
     @Test
     func structuredValueSubscript() {
-        var dict = LocalizedDictionary<Article>()
+        var dict = LocalizationsDictionary<Article>()
         let content = Article(title: "Welcome", body: "Hello there")
         dict[.enUS] = content
         #expect(dict[.enUS] == content)
@@ -181,22 +181,22 @@ struct LocalizedDictionaryTests {
 
     @Test
     func structuredValueLocalizedValue() {
-        let dict = LocalizedDictionary<Article>([
+        let dict = LocalizationsDictionary<Article>([
             .enUS: Article(title: "Welcome", body: "Hello there"),
             .deDE: Article(title: "Willkommen", body: "Hallo")
         ])
-        let result = dict.localizedValue(for: .deDE)
+        let result = dict[.deDE]
         #expect(result == Article(title: "Willkommen", body: "Hallo"))
     }
 
     @Test
     func structuredValueCodable() throws {
-        let original = LocalizedDictionary<Article>([
+        let original = LocalizationsDictionary<Article>([
             .enUS: Article(title: "Welcome", body: "Hello there"),
             .deDE: Article(title: "Willkommen", body: "Hallo")
         ])
         let data = try JSONEncoder().encode(original)
-        let decoded = try JSONDecoder().decode(LocalizedDictionary<Article>.self, from: data)
+        let decoded = try JSONDecoder().decode(LocalizationsDictionary<Article>.self, from: data)
         #expect(decoded == original)
     }
 }
