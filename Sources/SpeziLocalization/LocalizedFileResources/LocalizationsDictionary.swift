@@ -114,13 +114,15 @@ extension LocalizationsDictionary: Sendable where Value: Sendable {}
 
 extension LocalizationsDictionary: Encodable where Value: Encodable {
     public func encode(to encoder: any Encoder) throws {
-        try storage.encode(to: encoder)
+        var container = encoder.singleValueContainer()
+        try container.encode(storage)
     }
 }
 
 extension LocalizationsDictionary: Decodable where Value: Decodable {
     public init(from decoder: any Decoder) throws {
-        self.storage = try [LocalizationKey: Value](from: decoder)
+        let container = try decoder.singleValueContainer()
+        self.storage = try container.decode([LocalizationKey: Value].self)
     }
 }
 
