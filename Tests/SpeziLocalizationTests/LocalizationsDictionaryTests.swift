@@ -199,4 +199,38 @@ struct LocalizationsDictionaryTests {
         let decoded = try JSONDecoder().decode(LocalizationsDictionary<Article>.self, from: data)
         #expect(decoded == original)
     }
+
+    @Test
+    func directSubscriptGetReturnsExactMatch() {
+        let dict = LocalizationsDictionary<String>([
+            .enUS: "Hello",
+            .enUK: "Hello UK"
+        ])
+        let key: LocalizationKey = .enUK
+        #expect(dict[key] == "Hello UK")
+    }
+
+    @Test
+    func directSubscriptSetAndRemove() {
+        var dict = LocalizationsDictionary<String>()
+        let key: LocalizationKey = .deDE
+        #expect(dict[key] == nil)
+        dict[key] = "Hallo"
+        #expect(dict[key] == "Hallo")
+        #expect(dict.count == 1)
+        dict[key] = nil
+        #expect(dict[key] == nil)
+        #expect(dict.isEmpty)
+    }
+
+    @Test
+    func directSubscriptOverwritesValue() {
+        var dict = LocalizationsDictionary<String>([
+            .enUS: "Hello"
+        ])
+        let key: LocalizationKey = .enUS
+        dict[key] = "Hi"
+        #expect(dict[key] == "Hi")
+        #expect(dict.count == 1)
+    }
 }

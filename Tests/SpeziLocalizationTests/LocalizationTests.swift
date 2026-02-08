@@ -176,6 +176,40 @@ struct LocalizationTests {
             #expect(Set(keys).count == 1)
         }
     }
+
+    @Test
+    func localizationKeyCodableRoundTrip() throws {
+        let key = try #require(LocalizationKey("en-US"))
+        let encoder = JSONEncoder()
+        let decoder = JSONDecoder()
+        let data = try encoder.encode(key)
+        let decoded = try decoder.decode(LocalizationKey.self, from: data)
+        #expect(decoded == key)
+        #expect(decoded.description == "en-US")
+    }
+
+    @Test
+    func localizationKeyCodableEncodesAsString() throws {
+        let key = try #require(LocalizationKey("de-DE"))
+        let data = try JSONEncoder().encode(key)
+        let jsonString = try #require(String(data: data, encoding: .utf8))
+        #expect(jsonString == "\"de-DE\"")
+    }
+
+    @Test
+    func localizationKeyCodableDecodesFromString() throws {
+        let data = Data("\"es-US\"".utf8)
+        let key = try JSONDecoder().decode(LocalizationKey.self, from: data)
+        #expect(key == LocalizationKey("es-US"))
+    }
+
+    @Test
+    func localizationKeyCodableInvalidStringThrows() throws {
+        let data = Data("\"invalid\"".utf8)
+        #expect(throws: DecodingError.self) {
+            try JSONDecoder().decode(LocalizationKey.self, from: data)
+        }
+    }
 }
 
 
