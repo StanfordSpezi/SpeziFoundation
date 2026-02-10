@@ -94,7 +94,6 @@ struct ManagedTaskQueueTests {
     
     @Test(arguments: Array(1...20))
     func ordering(limit: Int) async throws {
-        let start = Date.now
         let tracker = OperationsTracker(expectedLimit: limit)
         await withManagedTaskQueue(limit: limit) { taskQueue in
             for idx in 0..<(limit * 3) {
@@ -105,17 +104,18 @@ struct ManagedTaskQueueTests {
                 }
             }
         }
-        let end = Date.now
         let operations = await tracker.completed.sorted(using: [
             KeyPathComparator(\.startDate),
             KeyPathComparator(\.id)
         ])
-        for timestamp in stride(from: start.addingTimeInterval(0.25), through: end.addingTimeInterval(-2.5), by: 0.5) {
-            let numActiveTasks = operations.count { $0.timeRange.contains(timestamp) }
+        
+        for operation in operations {
+            let midpoint = operation.startDate.addingTimeInterval(operation.endDate.timeIntervalSince(operation.startDate) / 2)
+            let numActiveTasks = operations.count { $0.timeRange.contains(midpoint) }
             let expectedRange = (limit - 1)...limit
             #expect(
                 expectedRange.contains(numActiveTasks),
-                "[\(timestamp.timeIntervalSince(start))]Expected \(expectedRange) active tasks; got \(numActiveTasks) (all task logging: \(operations))"
+                "At midpoint of operation \(operation.id), expected \(expectedRange) active tasks; got \(numActiveTasks) (all task logging: \(operations))"
             )
         }
     }
