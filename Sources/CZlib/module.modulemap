@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-module CZlib {
+module SpeziCZlib {
   header "shim.h"
   link "z"
   export *
