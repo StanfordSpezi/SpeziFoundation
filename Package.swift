@@ -37,7 +37,7 @@ let package = Package(
     ] + swiftLintPackage(),
     targets: [
         .systemLibrary(
-            name: "CZlib",
+            name: "SpeziCZlib",
             path: "Sources/CZlib",
             pkgConfig: "zlib",
             providers: [.apt(["zlib1g-dev"])]
@@ -46,7 +46,7 @@ let package = Package(
             name: "SpeziFoundation",
             dependencies: [
                 .target(name: "SpeziFoundationObjC"),
-                .target(name: "CZlib", condition: .when(platforms: [.linux])),
+                .target(name: "SpeziCZlib", condition: .when(platforms: [.linux])),
                 .product(name: "libzstd", package: "zstd"),
                 .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "Algorithms", package: "swift-algorithms"),

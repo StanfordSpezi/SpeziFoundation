@@ -9,8 +9,8 @@
 public import Foundation
 #if canImport(zlib)
 public import zlib
-#elseif canImport(CZlib)
-public import CZlib
+#elseif canImport(SpeziCZlib)
+public import SpeziCZlib
 #else
 #error("No zlib module found. On Linux ensure that you have zlib1g-dev installed.")
 #endif

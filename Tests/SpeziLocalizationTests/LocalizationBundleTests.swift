@@ -291,7 +291,7 @@ struct LocalizationBundleTests { // swiftlint:disable:this type_body_length
         )
     }
 }
-
+#endif
 
 extension Locale {
     static let enUS = Self(identifier: "en_US")
@@ -312,5 +312,5 @@ extension LocalizationKey {
     static let esUS = Self(language: .init(identifier: "es"), region: .unitedStates)
     static let esES = Self(language: .init(identifier: "es"), region: .spain)
     static let frFR = Self(language: .init(identifier: "fr"), region: .france)
+    static let jaJP = Self(language: .init(identifier: "ja"), region: .japan)
 }
-#endif
