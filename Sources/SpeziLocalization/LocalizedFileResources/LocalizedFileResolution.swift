@@ -75,6 +75,7 @@ extension LocalizedFileResolution {
             }
             return langs
         }()
+        print("languages: \(languages)")
         var canReturnUnlocalizedMatch = !localeMatchingBehaviour.isRequirePerfectMatch
         for language in languages {
             let candidates: [ScoredCandidate] = candidates
@@ -171,7 +172,8 @@ extension URL {
 
 
 extension Locale.Language {
-    func withRegion(_ region: Locale.Region?) -> Self {
+    /// Constructs a new `Language`, by updating the receiver's region.
+    public func withRegion(_ region: Locale.Region?) -> Self {
         var components = Locale.Language.Components(identifier: self.maximalIdentifier)
         components.region = region
         return .init(components: components)

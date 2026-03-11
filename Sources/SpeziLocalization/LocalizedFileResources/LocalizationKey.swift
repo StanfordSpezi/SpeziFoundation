@@ -93,16 +93,31 @@ public struct LocalizationKey: Sendable {
 
     /// Match a Localization Key against a Language.
     ///
-    /// Determines how well the LocalizationKey matches the Language, on a scale from 0 to 1.
+    /// Determines how well the `LocalizationKey` matches the `Language`, on a scale from 0 to 1.
     public func score(against other: Locale.Language, using localeMatchingBehaviour: LocaleMatchingBehaviour = .default) -> Double {
         let languageMatches = if let selfCode = self.language.languageCode, let otherCode = other.languageCode {
             selfCode.identifier == otherCode.identifier
         } else {
             self.language.minimalIdentifier == other.minimalIdentifier
         }
+        guard let otherRegion = other.region else {
+            // we only can look at the language
+            switch localeMatchingBehaviour {
+            case .requirePerfectMatch:
+                // we return 0.9 here so that if some other language has a region, and is compared against the same key (using the same matching behaviour),
+                // and the other region matches, it compares higher
+                return languageMatches ? 0.9 : 0
+            case .preferLanguageMatch, .preferRegionMatch:
+                return languageMatches ? 0.8 : 0
+            case .custom:
+                // can't run the check here bc we're missing the region for the language
+                // maybe figure smth out here?
+                return 0
+            }
+        }
         // IDEA: maybe also allow matching against parent regions?
         // (eg: if the user is in Canada, but the region in the key is just north america in general, that should still match...)
-        let regionMatches = other.region?.identifier == self.region.identifier
+        let regionMatches = otherRegion.identifier == self.region.identifier
         guard !(languageMatches && regionMatches) else { // perfect match
             return 1
         }

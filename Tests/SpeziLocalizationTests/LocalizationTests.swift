@@ -210,6 +210,24 @@ struct LocalizationTests {
             try JSONDecoder().decode(LocalizationKey.self, from: data)
         }
     }
+    
+    
+    @Test
+    func localizationKeyScoring() {
+        let esUS = LocalizationKey(language: .es, region: .unitedStates)
+        #expect(esUS.description == "es-US")
+        let es419 = LocalizationKey(language: .es, region: .latinAmerica)
+        #expect(es419.description == "es-419")
+        let es419US = LocalizationKey(language: .init(identifier: "es-419"), region: .unitedStates)
+        #expect(es419US.description == "es-419-US")
+        let esES = LocalizationKey(language: .es, region: .spain)
+        #expect(esES.description == "es-ES")
+        #expect(es419.score(against: Locale.esUS, using: .requirePerfectMatch) == 0)
+        #expect(es419.score(against: Locale.Language.esUS, using: .requirePerfectMatch) == 0)
+        #expect(esUS.score(against: Locale.Language(identifier: "es-419"), using: .requirePerfectMatch) == 0)
+        #expect(esUS.score(against: .es, using: .requirePerfectMatch) == 0.9)
+        #expect(esES.score(against: .es, using: .requirePerfectMatch) == 0.9)
+    }
 }
 
 
