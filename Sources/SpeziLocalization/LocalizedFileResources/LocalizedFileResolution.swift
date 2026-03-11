@@ -29,9 +29,9 @@ extension LocalizedFileResolution {
     /// Resolves a localized resource from a set of inputs, based on an unlocalizdd filename and a target locale.
     ///
     /// Use this function to match a ``LocalizedFileResource`` against a list of candidate `URL`s representing localized files,
-    /// determining which `URL` is the "closest" match w.t.t. the file resource.
+    /// determining which `URL` is the "closest" match w.r.t. the file resource.
     ///
-    /// If no matching localized candidate exists, but there is a non-localized candidate whose name matches the `resource`, that candidate is returned.
+    /// If no matching localized candidate exists, but there is a non-localized candidate whose name matches the `resource`, that candidate is returned, unless the `localeMatchingBehaviour` is set to ``LocaleMatchingBehaviour/requirePerfectMatch``.
     ///
     /// Example:
     /// ```swift
@@ -56,8 +56,9 @@ extension LocalizedFileResolution {
     ///
     /// - parameter resource: The file resource that should be resolved.
     /// - parameter candidates: List of file `URL`s against which `resource` should be resolved.
-    /// - parameter localeMatchingBehaviour: The ``LocaleMatchingBehaviour`` that should be used when resolving the file resource
+    /// - parameter localeMatchingBehaviour: The ``LocaleMatchingBehaviour`` that should be used when resolving the file resource.
     /// - parameter fallbackLocale: An optional fallback locale, used in case no match exists for the `resource`'s locale.
+    ///     Ignored if `localeMatchingBehaviour` is ``LocaleMatchingBehaviour/requirePerfectMatch``.
     public static func resolve( // swiftlint:disable:this function_body_length
         _ resource: LocalizedFileResource,
         from candidates: some Collection<URL>,
@@ -69,12 +70,12 @@ extension LocalizedFileResolution {
             if !langs.contains(resource.locale.language) {
                 langs.insert(resource.locale.language, at: 0)
             }
-            if let fallbackLocale {
+            if let fallbackLocale, !localeMatchingBehaviour.isRequirePerfectMatch {
                 langs.append(fallbackLocale.language.withRegion(fallbackLocale.region))
             }
             return langs
         }()
-        var canReturnUnlocalizedMatch = true
+        var canReturnUnlocalizedMatch = !localeMatchingBehaviour.isRequirePerfectMatch
         for language in languages {
             let candidates: [ScoredCandidate] = candidates
                 .lazy
@@ -170,7 +171,8 @@ extension URL {
 
 
 extension Locale.Language {
-    func withRegion(_ region: Locale.Region?) -> Self {
+    /// Constructs a new `Language`, by updating the receiver's region.
+    public func withRegion(_ region: Locale.Region?) -> Self {
         var components = Locale.Language.Components(identifier: self.maximalIdentifier)
         components.region = region
         return .init(components: components)
