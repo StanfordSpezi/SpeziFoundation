@@ -94,7 +94,10 @@ public struct LocalizationKey: Sendable {
     /// Match a Localization Key against a Language.
     ///
     /// Determines how well the `LocalizationKey` matches the `Language`, on a scale from 0 to 1.
-    public func score(against other: Locale.Language, using localeMatchingBehaviour: LocaleMatchingBehaviour = .default) -> Double {
+    public func score( // swiftlint:disable:this cyclomatic_complexity
+        against other: Locale.Language,
+        using localeMatchingBehaviour: LocaleMatchingBehaviour = .default
+    ) -> Double {
         let languageMatches = if let selfCode = self.language.languageCode, let otherCode = other.languageCode {
             selfCode.identifier == otherCode.identifier
         } else {
