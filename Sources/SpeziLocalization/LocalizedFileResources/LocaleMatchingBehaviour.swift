@@ -41,4 +41,13 @@ public enum LocaleMatchingBehaviour: Sendable {
     @inlinable public static var `default`: Self {
         .preferLanguageMatch
     }
+    
+    var isRequirePerfectMatch: Bool {
+        switch self {
+        case .requirePerfectMatch:
+            true
+        case .preferLanguageMatch, .preferRegionMatch, .custom:
+            false
+        }
+    }
 }

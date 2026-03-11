@@ -106,13 +106,16 @@ struct LocalizationBundleTests { // swiftlint:disable:this type_body_length
                 fallback: nil
             )
             #expect(resolved0 == nil)
-            let resolved1 = LocalizedFileResolution.resolve(
-                LocalizedFileResource("Welcome.md", locale: .deUS),
-                from: inputUrls,
-                using: .requirePerfectMatch,
-                fallback: nil
-            )
-            #expect(resolved1 == nil)
+            // regardless of the fallback, we always expect a nil result when resolving a non-existant locale using `requirePerfectMatch`.
+            for fallback: LocalizationKey? in [nil, .enUS, .esUS, .esES, .enUK, .deDE, .deUS] {
+                let resolved = LocalizedFileResolution.resolve(
+                    LocalizedFileResource("Welcome.md", locale: .deUS),
+                    from: inputUrls,
+                    using: .requirePerfectMatch,
+                    fallback: fallback
+                )
+                #expect(resolved == nil)
+            }
         }
         
         try imp(
