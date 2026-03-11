@@ -75,7 +75,6 @@ extension LocalizedFileResolution {
             }
             return langs
         }()
-        print("languages: \(languages)")
         var canReturnUnlocalizedMatch = !localeMatchingBehaviour.isRequirePerfectMatch
         for language in languages {
             let candidates: [ScoredCandidate] = candidates
