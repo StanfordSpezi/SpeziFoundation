@@ -36,16 +36,19 @@ The SpeziFoundation package consists of 2 targets:
 ### `@LocalPreference` — type-safe UserDefaults
 
 ```swift
-enum AppSettings {
-    @LocalPreference(.someKey)
-    static var username: String = "Guest"
+// 1. Define a key
+extension LocalPreferenceKeys {
+    static let username = LocalPreferenceKey<String>("username", default: "Guest")
 }
 
-// Read
-let name = AppSettings.username
+// 2. Use it in a SwiftUI View
+struct SettingsView: View {
+    @LocalPreference(.username) var username
 
-// Write
-AppSettings.username = "Jane"
+    var body: some View {
+        TextField("Username", text: $username)
+    }
+}
 ```
 
 ### `AsyncSemaphore` — limit concurrent async work
