@@ -31,6 +31,82 @@ The SpeziFoundation package consists of 2 targets:
     - Localization-related utilities, for working with both string and file-level localization 
 
 
+## Usage Examples
+
+### `@LocalPreference` — type-safe UserDefaults
+
+```swift
+enum AppSettings {
+    @LocalPreference(.someKey)
+    static var username: String = "Guest"
+}
+
+// Read
+let name = AppSettings.username
+
+// Write
+AppSettings.username = "Jane"
+```
+
+### `AsyncSemaphore` — limit concurrent async work
+
+```swift
+let semaphore = AsyncSemaphore(value: 3) // at most 3 simultaneous requests
+
+func fetch(_ url: URL) async throws -> Data {
+    try await semaphore.waitCheckingCancellation()
+    defer { semaphore.signal() }
+    let (data, _) = try await URLSession.shared.data(from: url)
+    return data
+}
+```
+
+### `withManagedTaskQueue` — bounded batch processing
+
+```swift
+await withManagedTaskQueue(limit: 4) { queue in
+    for item in workItems {
+        queue.addTask { await process(item) }
+    }
+}
+```
+
+### `SharedRepository` — typed key-value store
+
+```swift
+struct AppAnchor: RepositoryAnchor {}
+
+struct UserID: DefaultProvidingKnowledgeSource {
+    typealias Anchor = AppAnchor
+    typealias Value = String
+    static let defaultValue = "anonymous"
+}
+
+var repo = ValueRepository<AppAnchor>()
+repo[UserID.self] = "user-42"
+let id: String = repo[UserID.self]  // "user-42"
+```
+
+### `Version` — semantic versioning
+
+```swift
+let current: Version = "2.1.0"
+let minimum: Version = "2.0.0"
+
+if current >= minimum {
+    print("Requirements met")
+}
+```
+
+### Compression — Zstd / Zlib
+
+```swift
+let data = Data("Hello, Spezi!".utf8)
+let compressed   = try data.compressed(using: Zstd.self)
+let decompressed = try compressed.decompressed(using: Zstd.self)
+```
+
+
 ## Installation
 
 The project can be added to your Xcode project or Swift Package using the [Swift Package Manager](https://github.com/apple/swift-package-manager).
