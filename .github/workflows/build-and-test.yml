@@ -73,6 +73,7 @@ jobs:
       fail-fast: false
     with:
       build_configuration: ${{ matrix.config }}
+      test_flags: '--no-parallel'
       artifact_name: ${{ format('SpeziFoundation-Package-Linux-{0}.lcov', matrix.config) }}
   uploadcoveragereport:
     name: Upload Coverage Report
