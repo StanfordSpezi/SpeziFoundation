@@ -31,7 +31,7 @@ jobs:
     uses: StanfordBDHG/.github/.github/workflows/markdown-link-check.yml@v2
   breaking_changes:
     name: Diagnose Breaking Changes
-    uses: StanfordBDHG/.github/.github/workflows/breaking-changes.yml@fixBreakingChanges
+    uses: StanfordBDHG/.github/.github/workflows/breaking-changes.yml@v2
     if: ${{ github.ref_name != 'main' }}
     permissions:
       contents: read
