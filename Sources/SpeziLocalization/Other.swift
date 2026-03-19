@@ -40,7 +40,7 @@ extension LocalizedStringResource {
 extension StringProtocol {
     @_documentation(visibility: internal)
     @available(*, deprecated, message: "Prefer explicitly using LocalizedStringResource.")
-    public func localized(_: Bundle? = nil) -> LocalizedStringResource { // swiftlint:disable:this missing_docs
+    public func localized(this: Bundle? = nil) -> LocalizedStringResource { // swiftlint:disable:this missing_docs
         LocalizedStringResource(stringLiteral: String(self))
     }
 }
