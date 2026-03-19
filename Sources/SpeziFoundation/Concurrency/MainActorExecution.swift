@@ -20,7 +20,7 @@ import Foundation
     *, deprecated, message: "Do not use this method as it breaks structured concurrency. Consider using other mechanisms like an AsyncStream."
 )
 public func runOrScheduleOnMainActor(
-    performThis block: @MainActor @escaping () -> Void
+    perform block: @MainActor @escaping () -> Void
 ) {
     if Thread.isMainThread {
         MainActor.assumeIsolated {
