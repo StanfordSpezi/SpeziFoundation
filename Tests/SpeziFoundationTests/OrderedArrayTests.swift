@@ -98,13 +98,14 @@ struct OrderedArrayTests {
         #expect(array.capacity == capacity)
     }
     
+    #if DEBUG || canImport(Darwin)
     @Test
     func unsafeOperations() throws {
         var array = OrderedArray<Int> { $0 < $1 }
         array.insert(12)
         array.insert(5)
         #expect(array.elementsEqual([5, 12]))
-        
+
         expectRuntimePrecondition {
             array.unsafelyInsert(7, at: array.startIndex)
             // since the preconditionFailure call was caught, rather than it terminating the program, we need to undo the change
@@ -112,7 +113,7 @@ struct OrderedArrayTests {
         #expect(array.elementsEqual([7, 5, 12]))
         array.remove(at: array.startIndex)
         #expect(array.elementsEqual([5, 12]))
-        
+
         expectRuntimePrecondition {
             array[unsafe: array.startIndex] += 12
         }
@@ -121,4 +122,5 @@ struct OrderedArrayTests {
         array.remove(at: array.startIndex)
         #expect(array.elementsEqual([12]))
     }
+    #endif
 }
