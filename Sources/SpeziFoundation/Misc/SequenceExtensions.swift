@@ -16,7 +16,7 @@ extension Sequence {
     /// this implementation can offer improved performance, since the intermediate `Array` is skipped.
     /// - Returns: a `Set` containing the results of applying `transform` to each element in the sequence.
     @inlinable
-    public func mapIntoSet<NewElement: Hashable>(_ transform: (Element) throws -> NewElement) rethrows -> Set<NewElement> {
+    public func mapIntoSet<NewElement: Hashable, E>(_ transform: (Element) throws(E) -> NewElement) throws(E) -> Set<NewElement> {
         var retval = Set<NewElement>()
         for element in self {
             retval.insert(try transform(element))
@@ -30,7 +30,7 @@ extension Sequence {
     /// this implementation can offer improved performance, since the intermediate `Array` is skipped.
     /// - Returns: a `Set` containing the results of applying `transform` to each element in the sequence, skipping all `nil` results.
     @inlinable
-    public func compactMapIntoSet<NewElement: Hashable>(_ transform: (Element) throws -> NewElement?) rethrows -> Set<NewElement> {
+    public func compactMapIntoSet<NewElement: Hashable, E>(_ transform: (Element) throws(E) -> NewElement?) throws(E) -> Set<NewElement> {
         var retval = Set<NewElement>()
         for element in self {
             if let element = try transform(element) {
@@ -46,9 +46,9 @@ extension Sequence {
     /// this implementation can offer improved performance, since the intermediate `Array` is skipped.
     /// - Returns: a `Set` containing the flattened results of applying `transform` to each element in the sequence.
     @inlinable
-    public func flatMapIntoSet<TransformResult: Sequence>(
-        _ transform: (Element) throws -> TransformResult
-    ) rethrows -> Set<TransformResult.Element> where TransformResult.Element: Hashable {
+    public func flatMapIntoSet<TransformResult: Sequence, E>(
+        _ transform: (Element) throws(E) -> TransformResult
+    ) throws(E) -> Set<TransformResult.Element> where TransformResult.Element: Hashable {
         var retval = Set<TransformResult.Element>()
         for element in self {
             retval.formUnion(try transform(element))
@@ -59,10 +59,10 @@ extension Sequence {
     
     /// An asynchronous version of Swift's `Sequence.reduce(_:_:)` function.
     @inlinable
-    public func reduceAsync<Result>(
+    public func reduceAsync<Result, E>(
         _ initialResult: Result,
-        _ nextPartialResult: (Result, Element) async throws -> Result
-    ) async rethrows -> Result {
+        _ nextPartialResult: (Result, Element) async throws(E) -> Result
+    ) async throws(E) -> Result {
         var result = initialResult
         for element in self {
             result = try await nextPartialResult(result, element)
@@ -72,10 +72,10 @@ extension Sequence {
     
     /// An asynchronous version of Swift's `Sequence.reduce(into:_:)` function.
     @inlinable
-    public func reduceAsync<Result>(
+    public func reduceAsync<Result, E>(
         into initial: Result,
-        _ updateAccumulatingResult: (inout Result, Element) async throws -> Void
-    ) async rethrows -> Result {
+        _ updateAccumulatingResult: (inout Result, Element) async throws(E) -> Void
+    ) async throws(E) -> Result {
         var result = initial
         for element in self {
             try await updateAccumulatingResult(&result, element)
