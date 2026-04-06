@@ -58,6 +58,7 @@ extension Sequence {
     
     
     /// An asynchronous version of Swift's `Sequence.reduce(_:_:)` function.
+    @available(*, deprecated, message: "Do not use this function. It was a bad idea and does not behave the way one might expect.")
     @inlinable
     public func reduceAsync<Result, E>(
         _ initialResult: Result,
@@ -71,6 +72,7 @@ extension Sequence {
     }
     
     /// An asynchronous version of Swift's `Sequence.reduce(into:_:)` function.
+    @available(*, deprecated, message: "Do not use this function. It was a bad idea and does not behave the way one might expect.")
     @inlinable
     public func reduceAsync<Result, E>(
         into initial: Result,

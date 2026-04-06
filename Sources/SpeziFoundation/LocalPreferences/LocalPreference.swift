@@ -129,7 +129,7 @@ private final class UserDefaultsKeyObserver<T: SendableMetatype>: NSObject, Send
         let observation: ObservationInfo
     }
     
-    let lock = RWLock()
+    private let lock = RWLock()
     @ObservationIgnored nonisolated(unsafe) private var state: State?
     // https://github.com/swiftlang/swift/issues/81962
     nonisolated(unsafe) private(set) var viewUpdate: UInt64 = 0
