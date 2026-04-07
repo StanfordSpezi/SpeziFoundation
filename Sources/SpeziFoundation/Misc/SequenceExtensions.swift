@@ -59,8 +59,15 @@ extension Sequence {
     
     /// An asynchronous version of Swift's `Sequence.reduce(_:_:)` function.
     ///
-    /// - Important: Do not use this function. Use an explicit `for` loop instead (and a task group, if you want concurrency).
-    @available(*, deprecated, message: "Do not use this function. It was a bad idea and does not behave the way one might expect.")
+    /// - Important: Do not use this function. Use the apple/swift-async-algorithms package's `Sequence.async` API instead.
+    @available(
+        *,
+        deprecated,
+        message: """
+            Do not use this function. It was a bad idea and does not behave the way one might expect.
+            Use the apple/swift-async-algorithms package's `Sequence.async` API instead.
+            """
+    )
     @inlinable
     public func reduceAsync<Result, E>(
         _ initialResult: Result,
@@ -75,8 +82,15 @@ extension Sequence {
     
     /// An asynchronous version of Swift's `Sequence.reduce(into:_:)` function.
     ///
-    /// - Important: Do not use this function. Use an explicit `for` loop instead (and a task group, if you want concurrency).
-    @available(*, deprecated, message: "Do not use this function. It was a bad idea and does not behave the way one might expect.")
+    /// - Important: Do not use this function. Use the apple/swift-async-algorithms package's `Sequence.async` API instead.
+    @available(
+        *,
+        deprecated,
+        message: """
+            Do not use this function. It was a bad idea and does not behave the way one might expect.
+            Use the apple/swift-async-algorithms package's `Sequence.async` API instead.
+            """
+    )
     @inlinable
     public func reduceAsync<Result, E>(
         into initial: Result,
