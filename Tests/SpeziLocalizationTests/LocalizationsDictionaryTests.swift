@@ -233,4 +233,16 @@ struct LocalizationsDictionaryTests {
         #expect(dict[key] == "Hi")
         #expect(dict.count == 1)
     }
+    
+    
+    @Test
+    func dictionaryLiteralInit() {
+        let dict: LocalizationsDictionary<String> = [
+            .enUS: "Hello",
+            .deDE: "Hallo"
+        ]
+        #expect(dict[.enUS] == "Hello")
+        #expect(dict[.deDE] == "Hallo")
+        #expect(dict[.enUK] == "Hello")
+    }
 }
