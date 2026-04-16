@@ -11,6 +11,8 @@ public import struct Foundation.URL
 
 /// Creates a `URL` from a string literal.
 ///
+/// The macro validates that the input can be pased into a URL, and emits a compile-time error if not.
+///
 /// ## Example:
 /// ```swift
 /// let url = #url("https://stanford.edu")

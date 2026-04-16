@@ -78,3 +78,6 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 
 ### System Programming Interfaces
 - <doc:SPI>
+
+### Macros
+- ``url(_:)``
