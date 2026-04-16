@@ -8,7 +8,6 @@
 
 #if os(macOS) // macro tests can only be run on the host machine
 import SpeziFoundationMacros
-import SpeziFoundationMacrosImpl
 import SwiftSyntaxMacroExpansion
 import SwiftSyntaxMacros
 import SwiftSyntaxMacrosGenericTestSupport
