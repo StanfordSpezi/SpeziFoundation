@@ -120,7 +120,6 @@ let package = Package(
         .testTarget(
             name: "SpeziFoundationMacrosTests",
             dependencies: [
-//                "SpeziFoundation",
                 "SpeziFoundationMacros",
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax")
