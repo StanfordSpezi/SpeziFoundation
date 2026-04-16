@@ -11,7 +11,7 @@ import SwiftSyntaxMacros
 
 
 @main
-struct SpeziFoundationRMacros: CompilerPlugin {
+struct SpeziFoundationMacros: CompilerPlugin {
     var providingMacros: [any Macro.Type] = [
         URLMacro.self
     ]
