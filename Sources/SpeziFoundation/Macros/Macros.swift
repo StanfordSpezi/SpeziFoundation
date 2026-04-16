@@ -20,4 +20,4 @@ public import struct Foundation.URL
 @freestanding(expression)
 public macro url(
     _ literal: StaticString
-) -> URL = #externalMacro(module: "SpeziFoundationMacrosImpl", type: "URLMacro")
+) -> URL = #externalMacro(module: "SpeziFoundationMacros", type: "URLMacro")

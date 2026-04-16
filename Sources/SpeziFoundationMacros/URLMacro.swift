@@ -12,7 +12,7 @@ import SwiftSyntax
 import SwiftSyntaxMacros
 
 
-/// The `@URLMacro` macro.
+/// The `#url` macro.
 public struct URLMacro: ExpressionMacro {
     fileprivate struct ErrorDiagnosticMessage: DiagnosticMessage {
         enum ID: String {

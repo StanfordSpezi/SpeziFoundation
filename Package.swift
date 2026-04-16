@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:6.2
 
 //
 // This source file is part of the Stanford Spezi open-source project
@@ -40,7 +40,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-log", from: "1.6.0"),
         .package(url: "https://github.com/StanfordBDHG/zstd.git", exact: "1.5.8-beta.1"),
         .package(url: "https://github.com/StanfordBDHG/ThreadLocal.git", from: "0.1.0"),
-        .package(url: "https://github.com/swiftlang/swift-syntax.git", "602.0.0"..<"605.0.0")
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", "602.0.0"..<"604.0.0")
     ] + swiftLintPackage,
     targets: [
         .systemLibrary(
@@ -87,20 +87,13 @@ let package = Package(
             plugins: [] + swiftLintPlugin
         ),
         .macro(
-            name: "SpeziFoundationMacrosImpl",
+            name: "SpeziFoundationMacros",
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
                 .product(name: "SwiftDiagnostics", package: "swift-syntax")
             ],
             swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
-            plugins: [] + swiftLintPlugin
-        ),
-        .target(
-            name: "SpeziFoundationMacros",
-            dependencies: [
-                "SpeziFoundationMacrosImpl"
-            ],
             plugins: [] + swiftLintPlugin
         ),
         .testTarget(
@@ -127,8 +120,8 @@ let package = Package(
         .testTarget(
             name: "SpeziFoundationMacrosTests",
             dependencies: [
+//                "SpeziFoundation",
                 "SpeziFoundationMacros",
-                "SpeziFoundationMacrosImpl",
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax")
             ],
