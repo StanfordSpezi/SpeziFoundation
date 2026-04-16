@@ -8,8 +8,14 @@
 // SPDX-License-Identifier: MIT
 //
 
+import CompilerPluginSupport
 import class Foundation.ProcessInfo
 import PackageDescription
+
+/// Whether the package should run SwiftLint as part of its build process.
+///
+/// Set this to `false` before committing any changes.
+let enableSwiftLintPlugin = false
 
 
 let package = Package(
@@ -33,8 +39,9 @@ let package = Package(
         .package(url: "https://github.com/StanfordBDHG/XCTRuntimeAssertions.git", from: "2.2.0"),
         .package(url: "https://github.com/apple/swift-log", from: "1.6.0"),
         .package(url: "https://github.com/StanfordBDHG/zstd.git", exact: "1.5.8-beta.1"),
-        .package(url: "https://github.com/StanfordBDHG/ThreadLocal.git", from: "0.1.0")
-    ] + swiftLintPackage(),
+        .package(url: "https://github.com/StanfordBDHG/ThreadLocal.git", from: "0.1.0"),
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", "602.0.0"..<"605.0.0")
+    ] + swiftLintPackage,
     targets: [
         .systemLibrary(
             name: "SpeziCZlib",
@@ -45,7 +52,8 @@ let package = Package(
         .target(
             name: "SpeziFoundation",
             dependencies: [
-                .target(name: "SpeziFoundationObjC"),
+                "SpeziFoundationObjC",
+                "SpeziFoundationMacros",
                 .target(name: "SpeziCZlib", condition: .when(platforms: [.linux])),
                 .product(name: "libzstd", package: "zstd"),
                 .product(name: "Atomics", package: "swift-atomics"),
@@ -61,7 +69,7 @@ let package = Package(
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("InternalImportsByDefault")
             ],
-            plugins: [] + swiftLintPlugin()
+            plugins: [] + swiftLintPlugin
         ),
         .target(
             name: "SpeziFoundationObjC"
@@ -69,52 +77,81 @@ let package = Package(
         .target(
             name: "SpeziLocalization",
             dependencies: [
-                .target(name: "SpeziFoundation"),
+                "SpeziFoundation",
                 .product(name: "Algorithms", package: "swift-algorithms")
             ],
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("InternalImportsByDefault")
             ],
-            plugins: [] + swiftLintPlugin()
+            plugins: [] + swiftLintPlugin
+        ),
+        .macro(
+            name: "SpeziFoundationMacrosImpl",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+                .product(name: "SwiftDiagnostics", package: "swift-syntax")
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
+            plugins: [] + swiftLintPlugin
+        ),
+        .target(
+            name: "SpeziFoundationMacros",
+            dependencies: [
+                "SpeziFoundationMacrosImpl"
+            ],
+            plugins: [] + swiftLintPlugin
         ),
         .testTarget(
             name: "SpeziFoundationTests",
             dependencies: [
-                .target(name: "SpeziFoundation"),
+                "SpeziFoundation",
                 .product(name: "RuntimeAssertionsTesting", package: "XCTRuntimeAssertions")
             ],
             swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
-            plugins: [] + swiftLintPlugin()
+            plugins: [] + swiftLintPlugin
         ),
         .testTarget(
             name: "SpeziLocalizationTests",
             dependencies: [
-                .target(name: "SpeziLocalization"),
-                .target(name: "SpeziFoundation")
+                "SpeziLocalization",
+                "SpeziFoundation"
             ],
             resources: [
                 .process("Resources")
             ],
             swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
-            plugins: [] + swiftLintPlugin()
+            plugins: [] + swiftLintPlugin
+        ),
+        .testTarget(
+            name: "SpeziFoundationMacrosTests",
+            dependencies: [
+                "SpeziFoundationMacros",
+                "SpeziFoundationMacrosImpl",
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax")
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
+            plugins: [] + swiftLintPlugin
         )
     ]
 )
 
 
-func swiftLintPlugin() -> [Target.PluginUsage] {
-    // Fully quit Xcode and open again with `open --env SPEZI_DEVELOPMENT_SWIFTLINT /Applications/Xcode.app`
-    if ProcessInfo.processInfo.environment["SPEZI_DEVELOPMENT_SWIFTLINT"] != nil {
-        [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")]
+// MARK: SwiftLint support
+
+var swiftLintPlugin: [Target.PluginUsage] {
+    if enableSwiftLintPlugin {
+        [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")]
     } else {
         []
     }
 }
 
-func swiftLintPackage() -> [PackageDescription.Package.Dependency] {
-    if ProcessInfo.processInfo.environment["SPEZI_DEVELOPMENT_SWIFTLINT"] != nil {
-        [.package(url: "https://github.com/realm/SwiftLint.git", from: "0.55.1")]
+var swiftLintPackage: [PackageDescription.Package.Dependency] {
+    if enableSwiftLintPlugin {
+        [.package(url: "https://github.com/SimplyDanny/SwiftLintPlugins.git", from: "0.63.2")]
     } else {
         []
     }
