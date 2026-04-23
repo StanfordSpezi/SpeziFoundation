@@ -16,7 +16,8 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 
 ### Data Structures
 - <doc:Shared-Repository>
-- ``OrderedArray``
+- <doc:OrderedArray>
+- <doc:Version>
 
 ### Calendar and Time Zone handling
 - <doc:Calendar>
@@ -31,6 +32,7 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 - <doc:Logger>
 
 ### Concurrency
+- <doc:Concurrency>
 - ``RWLock``
 - ``RecursiveRWLock``
 - ``withManagedTaskQueue(limit:_:)``
@@ -59,6 +61,7 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 - ``DataDescriptor``
 
 ### Compression
+- <doc:Compression>
 - ``CompressionAlgorithm``
 - ``Zstd``
 - ``Zlib``
