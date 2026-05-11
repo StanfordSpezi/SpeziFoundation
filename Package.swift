@@ -86,8 +86,14 @@ let package = Package(
             ],
             plugins: [] + swiftLintPlugin
         ),
-        .macro(
+        .target(
             name: "SpeziFoundationMacros",
+            dependencies: ["SpeziFoundationMacrosImpl"],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")],
+            plugins: [] + swiftLintPlugin
+        ),
+        .macro(
+            name: "SpeziFoundationMacrosImpl",
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),

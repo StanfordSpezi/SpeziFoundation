@@ -6,8 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-#if os(macOS) // macro tests can only be run on the host machine
-import SpeziFoundationMacros
+#if os(macOS) && canImport(SpeziFoundationMacros) // macro tests can only be run on the host machine
+import SpeziFoundationMacrosImpl
 import SwiftSyntaxMacroExpansion
 import SwiftSyntaxMacros
 import SwiftSyntaxMacrosGenericTestSupport
