@@ -46,14 +46,29 @@ extension ProcessInfo {
     }()
     
     
-    /// Whether the application is currently being run as part of a XCTest.
+    /// Whether the application or library is currently being unit-tested.
     ///
-    /// - Note: This value does **not** indicate whether the application is currently being tested; for example, it will be `false` for an app currently being UI-tested,
+    /// - Note: This value does **not** always indicate whether the application is currently being tested; for example, it will be `false` for an app currently being UI-tested,
     /// since in that case the app itself will be running in a separate process from the actual test target (for which this value would be `true`).
-    #if os(Linux)
-    @available(*, unavailable, message: "isRunningInXCTest is not available on Linux")
-    #endif
     public static var isRunningInXCTest: Bool {
-        NSClassFromString("XCTestCase") != nil
+        // any of the well-known XCTest environment variables exists.
+        if ["XCTestConfigurationFilePath", "XCTestBundlePath", "XCTestSessionIdentifier"].contains(where: { key in
+            ProcessInfo.processInfo.environment[key] != nil
+        }) {
+            return true
+        }
+        // .xctest bundle loaded (XCTest on macOS, swift-testing via helper on macOS)
+        if Bundle.allBundles.contains(where: { $0.isLoaded && $0.bundlePath.hasSuffix(".xctest") }) {
+            return true
+        }
+        // Binary-name-based lookup
+        let binaryName = Bundle.main.executableURL?.lastPathComponent ?? ""
+        switch binaryName {
+        case "xctest", "swiftpm-testing-helper": // macOS XCTest/`swift test` runner
+            return true
+        default:
+            return binaryName.hasSuffix("PackageTests") // Linux / pure executable
+                || binaryName.hasSuffix(".xctest") // iOS-style bundle exec
+        }
     }
 }
