@@ -47,25 +47,6 @@ struct SequenceExtensions {
         #expect(array == [1, 3, 4, 6, 8, 9])
     }
     
-    @Test
-    func asyncReduce() async throws {
-        let names = ["Paul", "Lukas"]
-        let reduced = try await names.reduceAsync(0) { acc, name in
-            try await Task.sleep(for: .seconds(0.2)) // best i could think of to get some trivial async-ness in here...
-            return acc + name.count
-        }
-        #expect(reduced == 9)
-    }
-    
-    @Test
-    func asyncReduceInto() async throws {
-        let names = ["Paul", "Lukas"]
-        let reduced = try await names.reduceAsync(into: 0) { acc, name in
-            try await Task.sleep(for: .seconds(0.2)) // best i could think of to get some trivial async-ness in here...
-            acc += name.count
-        }
-        #expect(reduced == 9)
-    }
     
     @Test
     func search() {

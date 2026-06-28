@@ -72,8 +72,6 @@ let totalSize = try await urls.reduceAsync(0) { partial, url in
 - ``Swift/Sequence/isSorted(by:)``
 - ``Swift/Sequence/sorted(using:)``
 - ``Swift/Sequence/mapIntoSet(_:)``
-- ``Swift/Sequence/reduceAsync(_:_:)``
-- ``Swift/Sequence/reduceAsync(into:_:)``
 - ``Swift/MutableCollection/sort(using:)``
 - ``Swift/RangeReplaceableCollection/remove(at:)``
 - ``Swift/Collection/subscript(safe:)``

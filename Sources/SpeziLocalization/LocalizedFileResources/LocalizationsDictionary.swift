@@ -46,7 +46,8 @@ import Foundation
 ///
 /// ### Initializers
 /// - ``init()``
-/// - ``init(_:)``
+/// - ``init(_:)-([LocalizationKey:Value])``
+/// - ``init(_:)-(Sequence<(LocalizationKey,Value)>)``
 ///
 /// ### Subscripts
 /// - ``subscript(_:using:fallback:)``
@@ -58,10 +59,20 @@ public struct LocalizationsDictionary<Value> {
     public init() {
         self.storage = [:]
     }
-
+    
     /// Creates a localizations dictionary from the given entries.
     public init(_ entries: [LocalizationKey: Value]) {
         self.storage = entries
+    }
+
+    /// Creates a localizations dictionary from the given entries.
+    ///
+    /// If the sequence contains multiple elements with the same key, latter occurrences will override earlier ones.
+    public init(_ entries: some Sequence<(LocalizationKey, Value)>) {
+        self.init()
+        for (key, value) in entries {
+            storage[key] = value
+        }
     }
 
     /// Resolves the best value for the given localization key.
@@ -144,5 +155,12 @@ extension LocalizationsDictionary: Collection {
 
     public subscript(position: Index) -> Element {
         storage[position]
+    }
+}
+
+
+extension LocalizationsDictionary: ExpressibleByDictionaryLiteral {
+    public init(dictionaryLiteral elements: (LocalizationKey, Value)...) {
+        self.init(elements)
     }
 }
