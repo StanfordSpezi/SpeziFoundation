@@ -90,6 +90,8 @@ public final class AsyncSemaphore: Sendable {
     ///
     /// Use this method when access to a resource should be awaited without the possibility of cancellation.
     public func wait() async {
+        // Holding the lock into the continuation body is safe here, unlike in `waitCheckingCancellation()`:
+        // there is no cancellation handler, so nothing can re-enter on this thread before the body unlocks.
         unsafeLock() // this is okay, as the continuation body actually runs sync, so we do no have async code within critical region
 
         value -= 1
@@ -108,23 +110,40 @@ public final class AsyncSemaphore: Sendable {
     ///
     /// This method allows the `Task` calling ``waitCheckingCancellation()`` to be cancelled while waiting, throwing a `CancellationError` if the `Task` is cancelled before it can proceed.
     ///
+    /// - Note: If the semaphore is signalled at the same moment the waiting task is cancelled, the wait completes
+    ///   normally and the permit is taken; check `Task.isCancelled` afterwards if that distinction matters to you.
+    ///
     /// - Throws: `CancellationError` if the task is cancelled while waiting.
     public func waitCheckingCancellation() async throws(CancellationError) {
         if Task.isCancelled { // check if we are already cancelled
             throw CancellationError()
         }
 
-        unsafeLock() // this is okay, as the continuation body actually runs sync, so we do no have async code within critical region
-
-        if Task.isCancelled { // check if we got cancelled while acquiring the lock
-            unsafeUnlock()
-            throw CancellationError()
+        // Uncontended fast path: a permit is available, so we can take it without ever suspending.
+        // Cancellation is re-checked under the lock so a cancellation that lands between the check
+        // above and here cannot walk away with a permit.
+        enum FastPath {
+            case tookPermit
+            case cancelled
+            case contended
         }
-
-        value -= 1 // decrease the value
-        if value >= 0 {
-            unsafeUnlock()
+        let fastPath: FastPath = nsLock.withLock {
+            if Task.isCancelled {
+                return .cancelled
+            }
+            if value >= 1 {
+                value -= 1
+                return .tookPermit
+            }
+            return .contended
+        }
+        switch fastPath {
+        case .tookPermit:
             return
+        case .cancelled:
+            throw CancellationError()
+        case .contended:
+            break
         }
 
         let id = UUID()
@@ -132,39 +151,68 @@ public final class AsyncSemaphore: Sendable {
         do {
             try await withTaskCancellationHandler {
                 try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
-                    if Task.isCancelled {
-                        value += 1 // restore the value
-                        unsafeUnlock()
-
-                        continuation.resume(throwing: CancellationError())
-                    } else {
-                        suspendedTasks.append(SuspendedTask(id: id, suspension: .cancelable(continuation)))
-                        unsafeUnlock()
-                    }
+                    takePermitOrSuspend(id: id, continuation: continuation)
                 }
             } onCancel: {
-                let task = nsLock.withLock {
-                    value += 1
-
-                    guard let index = suspendedTasks.firstIndex(where: { $0.id == id }) else {
-                        preconditionFailure("Inconsistent internal state reached")
-                    }
-
-                    let task = suspendedTasks[index]
-                    suspendedTasks.remove(at: index)
-                    return task
-                }
-
-                switch task.suspension {
-                case .regular:
-                    preconditionFailure("Tried to cancel a task that was not cancellable!")
-                case let .cancelable(continuation):
-                    continuation.resume(throwing: CancellationError())
-                }
+                cancelSuspension(id: id)
             }
         } catch {
             assert(error is CancellationError, "Injected unexpected error into continuation: \(error)")
             throw CancellationError()
+        }
+    }
+
+    /// Takes a permit if one is available, and otherwise enqueues the continuation to be resumed by a later `signal()`.
+    ///
+    /// The lock is taken here, inside the continuation body, and never around `withTaskCancellationHandler`.
+    /// When the calling task is already cancelled the handler is installed by running its `onCancel` closure
+    /// synchronously on this very thread, so holding the non-recursive `nsLock` across that call would
+    /// deadlock against ``cancelSuspension(id:)``'s own acquisition of it. Decrementing the value and
+    /// enqueueing under a single acquisition is what keeps a concurrent `signal()` from being lost.
+    private func takePermitOrSuspend(id: UUID, continuation: UnsafeContinuation<Void, any Error>) {
+        nsLock.lock()
+
+        if Task.isCancelled { // check if we got cancelled while acquiring the lock
+            nsLock.unlock()
+            continuation.resume(throwing: CancellationError())
+            return
+        }
+
+        value -= 1 // decrease the value
+        if value >= 0 { // a permit became available between the fast path and here
+            nsLock.unlock()
+            continuation.resume()
+            return
+        }
+
+        suspendedTasks.append(SuspendedTask(id: id, suspension: .cancelable(continuation)))
+        nsLock.unlock()
+    }
+
+    /// Resumes the identified suspension with a `CancellationError`, if it is still suspended.
+    ///
+    /// The task may already have been resumed -- by `signal()`, by `signalAll()`, or by the cancellation
+    /// check in ``takePermitOrSuspend(id:continuation:)`` -- between suspending and this running. Each of
+    /// those paths has already restored `value` and removed the entry, so there is nothing left to cancel.
+    private func cancelSuspension(id: UUID) {
+        let task: SuspendedTask? = nsLock.withLock {
+            guard let index = suspendedTasks.firstIndex(where: { $0.id == id }) else {
+                return nil
+            }
+            value += 1
+            return suspendedTasks.remove(at: index)
+        }
+
+        guard let task else {
+            return
+        }
+
+        switch task.suspension {
+        case .regular:
+            // Structurally unreachable: `id` was only ever enqueued as `.cancelable` by `takePermitOrSuspend`.
+            preconditionFailure("Tried to cancel a task that was not cancellable!")
+        case let .cancelable(continuation):
+            continuation.resume(throwing: CancellationError())
         }
     }
 

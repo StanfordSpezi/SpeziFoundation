@@ -29,7 +29,7 @@ public final class RWLock: _PThreadReadWriteLockProtocol, @unchecked Sendable {
     @inlinable
     @inline(__always)
     public func withReadLock<Result, E>(_ body: () throws(E) -> Result) throws(E) -> Result {
-        _pthreadWriteLock()
+        _pthreadReadLock()
         defer {
             _pthreadUnlock()
         }
