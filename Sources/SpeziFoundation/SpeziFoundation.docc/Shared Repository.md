@@ -26,49 +26,86 @@ You can constrain the applicable ``KnowledgeSource``s by defining a ``Repository
 
 ### Using a Shared Repository
 
-Working with a Shared Repository involves three steps:
+A shared repository is a dictionary whose keys are *types*: every ``KnowledgeSource`` type acts as a key, and its `Value` associated type determines the type of the stored value.
+This yields a heterogeneous, yet fully type-checked store: the compiler knows which type `repository[ParticipantId.self]` returns,
+and a key defined by one module can be read by another one, without either of them having to agree on a shared enumeration of keys.
 
-1. **Define a `RepositoryAnchor`** — a plain struct conforming to ``RepositoryAnchor`` that scopes the repository
-   and prevents mixing keys from unrelated domains.
-2. **Define `KnowledgeSource` types** — each type acts as a typed key. The associated `Value` type determines
-   what is stored. Conform to ``DefaultProvidingKnowledgeSource`` to supply a fallback value when nothing has
-   been stored yet.
-3. **Create and use a `ValueRepository`** — instantiate ``ValueRepository`` parameterised on your anchor, then
-   read and write values through the typed subscript.
+Setting up a shared repository involves three steps:
+
+1. Define a ``RepositoryAnchor``. The anchor is an empty type that scopes a family of keys to a repository; the compiler rejects keys that are anchored elsewhere.
+2. Define your ``KnowledgeSource`` types. `Value` defaults to the source type itself, so a type can act as its own key.
+   Conform to ``DefaultProvidingKnowledgeSource`` if reads should fall back to a default value rather than returning `nil`.
+3. Store values in a ``ValueRepository``, or a ``SendableValueRepository`` if the repository itself needs to be `Sendable` (in which case all stored values need to be `Sendable` as well).
 
 ```swift
-// 1. Define an anchor to scope the repository
-struct MyAnchor: RepositoryAnchor {}
+// 1. The anchor.
+struct StudyAnchor: RepositoryAnchor {}
 
-// 2a. A knowledge source whose value must be explicitly set
-struct Username: KnowledgeSource {
-    typealias Anchor = MyAnchor
+// 2a. A key with an explicit value type. Reads return an Optional.
+enum ParticipantId: KnowledgeSource {
+    typealias Anchor = StudyAnchor
     typealias Value = String
 }
 
-// 2b. A knowledge source that provides a default value
-struct RequestCount: DefaultProvidingKnowledgeSource {
-    typealias Anchor = MyAnchor
-    typealias Value = Int
-
-    static let defaultValue: Int = 0
+// 2b. A type that is its own key; `Value` defaults to `Self`.
+struct EnrollmentDate: KnowledgeSource {
+    typealias Anchor = StudyAnchor
+    let date: Date
 }
 
-// 3. Create a repository, write and read values
-var repository = ValueRepository<MyAnchor>()
+// 2c. A key with a default value. Reads never return nil.
+enum CompletedTaskCount: DefaultProvidingKnowledgeSource {
+    typealias Anchor = StudyAnchor
+    typealias Value = Int
+    static let defaultValue = 0
+}
 
-// Write a value
-repository[Username.self] = "Jane"
+// 3. The repository.
+var repository = ValueRepository<StudyAnchor>()
 
-// Read a plain KnowledgeSource — returns an Optional
-let name: String? = repository[Username.self]   // "Jane"
+repository[ParticipantId.self] = "P-042"
+repository[EnrollmentDate.self] = EnrollmentDate(date: .now)
 
-// Read a DefaultProvidingKnowledgeSource — never returns nil
-let count: Int = repository[RequestCount.self]  // 0  (default, nothing stored yet)
+let id: String? = repository[ParticipantId.self]           // "P-042"
+let count: Int = repository[CompletedTaskCount.self]       // 0, since nothing has been stored yet
+repository[CompletedTaskCount.self] = count + 1
 
-repository[RequestCount.self] = 42
-let updatedCount: Int = repository[RequestCount.self]  // 42
+repository[ParticipantId.self] = nil                        // removes the entry
+let isEnrolled = repository.contains(EnrollmentDate.self)   // true
 ```
+
+A default that isn't part of the key's definition can be supplied at the call site via ``SharedRepository/subscript(_:default:)``, e.g. `repository[ParticipantId.self, default: "anonymous"]`.
+``SharedRepository/collect(allOf:)`` returns all stored values that can be cast to a given type, which allows a module to process every value conforming to a protocol it defines,
+without knowing the concrete keys under which they were stored.
+
+### Computed Knowledge Sources
+
+A ``ComputedKnowledgeSource`` derives its value from the repository's other contents instead of being stored explicitly.
+Its `StoragePolicy` determines whether the computed value is cached in the repository (``SomeComputedKnowledgeSource/Store``, the default) or recomputed on every access (``SomeComputedKnowledgeSource/AlwaysCompute``).
+Use an ``OptionalComputedKnowledgeSource`` if the computation may not produce a value:
+
+```swift
+enum DisplayName: ComputedKnowledgeSource {
+    typealias Anchor = StudyAnchor
+    typealias Value = String
+    typealias StoragePolicy = AlwaysCompute
+
+    static func compute(from repository: ValueRepository<StudyAnchor>) -> String {
+        repository[ParticipantId.self].map { "Participant \($0)" } ?? "Unknown Participant"
+    }
+}
+
+let name = repository[DisplayName.self]
+```
+
+### Shared Repositories in the Spezi Ecosystem
+
+The shared repository is one of the central building blocks of Spezi:
+
+- `Spezi` stores the values that modules provide (via `@Provide`) and collect (via `@Collect`) in its `SpeziStorage`, a `ValueRepository<SpeziAnchor>`.
+- `SpeziAccount` represents a user's account details as a `SendableValueRepository<AccountAnchor>`.
+  Every `AccountKey` (user id, email address, date of birth, ...) is a `KnowledgeSource<AccountAnchor>`, and other packages can define additional keys without modifying `SpeziAccount`.
+- `SpeziScheduler` stores the user info attached to tasks and outcomes in shared repositories, using dedicated anchors for each.
 
 ## Topics
 

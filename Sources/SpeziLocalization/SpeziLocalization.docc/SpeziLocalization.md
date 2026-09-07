@@ -11,71 +11,89 @@ It defines extensions on `Bundle` and `LocalizedStringResource` to enable applic
 
 ### Looking Up Strings Across Multiple Tables
 
-`Bundle.localizedString(forKey:tables:)` searches a list of `.strings` tables in order, returning the first match. This is useful when you want to look up a key in a feature-specific table and fall back to the shared default table:
+Foundation's `Bundle.localizedString(forKey:value:table:)` only ever consults a single `.strings` table.
+``Foundation/Bundle/localizedString(forKey:tables:)`` searches several tables in order and returns the first match, which allows a package to look up a key in its own table first,
+and to fall back to the app's `Localizable.strings` (``Foundation/Bundle/LocalizationLookupTable/default``) if the app wants to override a string.
+The function returns `nil` if none of the tables contain the key, rather than the key itself:
 
 ```swift
-// Look up "greeting" first in "Onboarding.strings", then in "Localizable.strings".
 let greeting = Bundle.main.localizedString(
-    forKey: "greeting",
+    forKey: "GREETING",
     tables: [.custom("Onboarding"), .default]
-)
+) ?? "GREETING"
 ```
 
-To perform the same lookup for a specific locale rather than the current one, use the three-parameter overload. It applies proper language-tag fallback (e.g. `en-GB` → `en`) before consulting the tables:
+``Foundation/Bundle/localizedString(forKey:tables:localizations:)`` additionally takes the languages to look up, in order of preference, instead of using the user's current language.
+It performs more extensive fallback lookups than Foundation's `localizedString(forKey:value:table:localizations:)`: if you ask for `en-GB` and the bundle only provides a value for `en`, the `en` value is returned.
 
 ```swift
-let frenchGreeting = Bundle.main.localizedString(
-    forKey: "greeting",
+let greeting = Bundle.main.localizedString(
+    forKey: "GREETING",
     tables: [.custom("Onboarding"), .default],
-    localizations: [Locale.Language(identifier: "fr-FR")]
+    localizations: [Locale.Language(identifier: "en-GB")]
 )
 ```
 
-### Resolving Localized File Resources
+The ranking underlying these lookups is available separately as ``Foundation/Bundle/preferredLocalizations(from:limitToPreferences:)``.
+By default, it returns only those of the bundle's localizations that are related to the preferences (e.g. `[en-GB, en]` for a preference of `en-GB`);
+pass `limitToPreferences: false` to get *all* of the bundle's localizations, sorted by preference, e.g. to populate a language picker.
 
-``LocalizedFileResource`` identifies a file by its unlocalized name and a target locale. Pass a collection of candidate `URL`s to ``LocalizedFileResolution`` to get back the best-matching URL:
+### Localized File Resources
+
+Foundation's `.lproj` mechanism localizes files inside a bundle, but not files that are downloaded at runtime or stored in a cloud bucket.
+SpeziLocalization instead localizes files through a naming convention: the localized variants of `Welcome.md` are called `Welcome+en-US.md`, `Welcome+de-DE.md`, etc.,
+i.e., the unlocalized name followed by a `+` and a ``LocalizationKey`` (language and region).
+
+A ``LocalizedFileResource`` combines the unlocalized file name with the locale for which the file should be resolved (by default, the user's current locale).
+``LocalizedFileResolution/resolve(_:from:using:fallback:)`` then picks the best match from a collection of candidate `URL`s, wherever those come from:
 
 ```swift
-// Suppose your bundle ships these localized variants of a markdown article:
 let candidates = [
     URL(filePath: "/content/Welcome+en-US.md"),
-    URL(filePath: "/content/Welcome+de-DE.md"),
-    URL(filePath: "/content/Welcome+es-US.md"),
+    URL(filePath: "/content/Welcome+en-GB.md"),
+    URL(filePath: "/content/Welcome+de-DE.md")
 ]
 
-// Create a resource that targets the current locale.
-let resource = LocalizedFileResource("Welcome.md")
-
-// Resolve to the best-matching URL (e.g. "Welcome+en-US.md" for an en-US device).
-if let resolved = LocalizedFileResolution.resolve(resource, from: candidates) {
-    let url: URL = resolved.url
-    // Use `url` to load the file contents.
+// Resolves using the device's current locale, e.g. to "Welcome+en-GB.md" on a device set to British English.
+if let resolved = LocalizedFileResolution.resolve("Welcome.md", from: candidates) {
+    let contents = try String(contentsOf: resolved.url, encoding: .utf8)
 }
 
-// Override the locale explicitly — resolves to "Welcome+de-DE.md".
-let germanResource = LocalizedFileResource("Welcome.md", locale: Locale(identifier: "de-DE"))
-if let resolved = LocalizedFileResolution.resolve(germanResource, from: candidates) {
-    let url: URL = resolved.url
-}
+// A German speaker in Austria: there is no "de-AT" variant, so the default matching behaviour picks "Welcome+de-DE.md".
+let resource = LocalizedFileResource("Welcome.md", locale: Locale(identifier: "de-AT"))
+let resolved = LocalizedFileResolution.resolve(resource, from: candidates)
 ```
 
-### Querying a Bundle's Preferred Localizations
+If no candidate matches the resource's locale exactly, the ``LocaleMatchingBehaviour`` decides which partial match is acceptable:
+``LocaleMatchingBehaviour/preferLanguageMatch`` (the default) prefers a candidate with the same language but a different region over one with the same region but a different language,
+``LocaleMatchingBehaviour/preferRegionMatch`` does the opposite, and ``LocaleMatchingBehaviour/requirePerfectMatch`` rejects partial matches altogether.
+If the locale cannot be matched at all, the `fallback` localization (`en-US` by default) is tried, and finally an unlocalized file with the requested name, if exactly one exists among the candidates.
+The returned ``LocalizedFileResource/Resolved`` value carries the matched `url` alongside the `localization` that was actually selected, so that the caller can tell whether it received a fallback.
 
-`Bundle.preferredLocalizations(from:limitToPreferences:)` ranks the languages supported by a bundle according to a set of user preferences, making it easy to iterate over localizations in preference order:
+To enumerate every localized variant of a file, e.g. to offer a language choice, use ``LocalizedFileResolution/selectCandidatesIgnoringLocalization(matching:from:)``;
+``LocalizedFileResolution/parse(_:)`` splits a single `URL` into its unlocalized `URL` and ``LocalizationKey``.
+
+`SpeziStudy` uses this mechanism to resolve the localized consent documents, articles, and questionnaires contained in a study bundle.
+
+### Localization Keys and Dictionaries
+
+A ``LocalizationKey`` identifies a language and region combination such as `en-US`. It can be created from a `Locale` or parsed from a string, and encodes as that string when used with `Codable`.
+``LocalizationKey/score(against:using:)-(Locale.Language,_)`` implements the matching behaviour described above and is what ``LocalizedFileResolution`` uses under the hood.
+
+``LocalizationsDictionary`` is a dictionary keyed by ``LocalizationKey`` that applies the same matching rules on lookup,
+which makes it a convenient representation for localized values that are defined in code or decoded from JSON, e.g. the localized title of a study:
 
 ```swift
-let userPreferences: [Locale.Language] = [
-    Locale.Language(identifier: "fr-FR"),
-    Locale.Language(identifier: "en-GB"),
+let titles: LocalizationsDictionary<String> = [
+    .enUS: "Welcome",
+    LocalizationKey(language: .init(identifier: "de"), region: .germany): "Willkommen"
 ]
 
-// Returns only the languages from `userPreferences` that the bundle actually supports,
-// sorted by preference.
-let preferred = Bundle.main.preferredLocalizations(from: userPreferences)
-
-// Pass `limitToPreferences: false` to get all bundle localizations sorted by preference.
-let all = Bundle.main.preferredLocalizations(from: userPreferences, limitToPreferences: false)
+// Looks up the best match, rather than requiring an exact key: an Austrian German locale resolves to the German entry.
+let title = titles[LocalizationKey(language: .init(identifier: "de"), region: .austria)] // "Willkommen"
 ```
+
+The subscript accepts an optional ``LocaleMatchingBehaviour`` and `fallback` key, mirroring the file resolution API.
 
 
 ## Topics
@@ -90,6 +108,10 @@ let all = Bundle.main.preferredLocalizations(from: userPreferences, limitToPrefe
 
 ### Working with Localized File Resources
 - ``LocalizedFileResource``
-- ``LocalizationKey``
 - ``LocalizedFileResolution``
+
+### Localization Keys
+- ``LocalizationKey``
+- ``LocalizationsDictionary``
 - ``LocaleMatchingBehaviour``
+- ``Foundation/Locale/Language/withRegion(_:)``

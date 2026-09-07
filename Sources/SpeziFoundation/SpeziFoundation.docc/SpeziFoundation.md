@@ -16,8 +16,8 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 
 ### Data Structures
 - <doc:Shared-Repository>
-- <doc:OrderedArray>
-- <doc:Version>
+- ``OrderedArray``
+- ``Version``
 
 ### Calendar and Time Zone handling
 - <doc:Calendar>
@@ -31,16 +31,8 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 ### Platform-Independent Logging
 - <doc:Logger>
 
-### Concurrency
+### Concurrency and Synchronization
 - <doc:Concurrency>
-- ``RWLock``
-- ``RecursiveRWLock``
-- ``withManagedTaskQueue(limit:_:)``
-- ``AsyncSemaphore``
-- ``ManagedAsynchronousAccess``
-- ``runOrScheduleOnMainActor(_:)``
-- ``CancelableTaskHandle``
-- ``_Concurrency/DiscardingTaskGroup/addCancelableTask(_:)``
 
 ### Encoders and Decoders
 - ``TopLevelEncoder``
@@ -60,13 +52,8 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 ### Data
 - ``DataDescriptor``
 
-### Compression
+### Data Compression
 - <doc:Compression>
-- ``CompressionAlgorithm``
-- ``Zstd``
-- ``Zlib``
-- ``Swift/Collection/compressed(using:options:)``
-- ``Swift/Collection/decompressed(using:)``
 
 ### Timeout
 - ``TimeoutError``

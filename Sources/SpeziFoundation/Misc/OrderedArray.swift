@@ -12,8 +12,53 @@ import RuntimeAssertions
 
 /// An `Array`-like data structure that uses a user-defined total order to arrange its elements.
 ///
-/// An  `OrderedArray`'s `Element` should be a type which is either fully immutable, or at least immutable w.r.t. the array's comparator.
-/// The array does not observe changes within individual elements, and does not automatically re-arrange its elements.
+/// An `OrderedArray` keeps its elements sorted at all times: every insertion uses a binary search
+/// (see ``Swift/Collection/binarySearchForIndex(of:using:)``) to determine the new element's position, so callers never need to sort explicitly.
+/// Because the elements are always sorted, ``contains(_:)``, ``firstIndex(of:)``, and ``search(for:)`` run in O(log n),
+/// which makes the type a good fit for collections that are queried often but modified incrementally,
+/// such as the samples returned by a HealthKit query.
+///
+/// ```swift
+/// struct Sample {
+///     let date: Date
+///     let value: Double
+/// }
+///
+/// var samples = OrderedArray<Sample> { $0.date < $1.date }
+/// samples.insert(Sample(date: .now, value: 42)) // placed according to `date`, regardless of insertion order
+/// samples.insert(contentsOf: olderSamples)
+///
+/// let latest = samples.last
+/// let todaysSamples = samples.drop { $0.date < startOfToday } // a sorted collection can be sliced by value ranges
+/// ```
+///
+/// ### The Invariant and Batch Mutations
+///
+/// After every mutation, the array checks that its elements are still in order, and traps (via `preconditionFailure`) if they aren't.
+/// This check is linear in the number of elements. When performing many mutations in a row,
+/// wrap them in ``withInvariantCheckingTemporarilyDisabled(_:)`` so that the check runs only once, at the end;
+/// ``insert(contentsOf:)``, ``remove(contentsOf:)``, and ``removeAll(where:)`` already do this internally.
+/// The same mechanism allows mutations that temporarily violate the order, as long as it has been restored by the end of the block:
+///
+/// ```swift
+/// // Shift all samples by the same offset. Each individual write could put a sample ahead of its (not yet shifted) successor,
+/// // but the array is sorted again once the loop has finished.
+/// samples.withInvariantCheckingTemporarilyDisabled { samples in
+///     for index in samples.indices {
+///         let sample = samples[index]
+///         samples[unsafe: index] = Sample(date: sample.date.addingTimeInterval(offset), value: sample.value)
+///     }
+/// }
+/// ```
+///
+/// - Important: An `OrderedArray`'s `Element` should be a type which is either fully immutable, or at least immutable w.r.t. the array's comparator.
+///     The array does not observe changes within individual elements, and does not automatically re-arrange its elements.
+///     If an element's ordering-relevant state does change, remove it (``remove(contentsOf:)`` also finds elements that are no longer at
+///     their expected position) and re-insert it.
+///
+/// - Note: Elements that compare equal under the comparator can be present multiple times.
+///     For such elements, ``firstIndex(of:)`` and ``search(for:)`` return the index of *one* matching element,
+///     which is not necessarily the first one.
 ///
 /// - Note: The `OrderedArray` type intentionally does not conform to `Equatable` or `Hashable`.
 ///     The reason for this is that, while we can compare or hash the elements in the array, we cannot do the same with the array's
