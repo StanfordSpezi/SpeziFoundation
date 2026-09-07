@@ -14,6 +14,36 @@ import XCTest
 
 
 final class AsyncSemaphoreTests: XCTestCase {   // swiftlint:disable:this type_body_length
+    /// Racing `signal()` against cancellation of the same waiting task.
+    ///
+    /// The cancellation handler may run after the task has already been resumed by `signal()`, in which
+    /// case there is no suspension left to cancel.
+    func testSignalRacingWithCancellation() async {
+        for _ in 0..<2000 {
+            let semaphore = AsyncSemaphore(value: 0)
+            let waiter = Task { try? await semaphore.waitCheckingCancellation() }
+            await Task.yield()
+            async let signalled: Void = { semaphore.signal() }()
+            async let cancelled: Void = { waiter.cancel() }()
+            _ = await (signalled, cancelled)
+            _ = await waiter.value
+        }
+    }
+
+    /// Cancelling a waiting task before it ever gets to run.
+    ///
+    /// `withTaskCancellationHandler` installs the handler by invoking it synchronously on the calling
+    /// thread when the task is already cancelled, so the handler must not contend with a lock the
+    /// caller is still holding.
+    func testCancellationBeforeTaskStarts() async {
+        for _ in 0..<2000 {
+            let semaphore = AsyncSemaphore(value: 0)
+            let waiter = Task { try? await semaphore.waitCheckingCancellation() }
+            waiter.cancel()
+            _ = await waiter.value
+        }
+    }
+
     func testSignalWithoutSuspendedTasks() {
         let dispatchSemZero = DispatchSemaphore(value: 0)
         XCTAssertEqual(dispatchSemZero.signal(), 0)
