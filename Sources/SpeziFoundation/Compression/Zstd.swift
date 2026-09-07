@@ -115,10 +115,17 @@ public enum Zstd: CompressionAlgorithm {
             }
             let outputBufferSize = ZSTD_compressBound(inputBuffer.count)
             let outputBuffer: UnsafeMutablePointer<UInt8> = .allocate(capacity: outputBufferSize)
+            // `outputBuffer` is hand-allocated, so exactly one of two things has to happen to it: either
+            // its ownership passes to the returned `Data`, or it is released here. Pairing the flag with
+            // a `defer` keeps that true on every exit path, including ones added later.
+            var ownershipTransferred = false
+            defer {
+                if !ownershipTransferred {
+                    outputBuffer.deallocate()
+                }
+            }
             let result = ZSTD_compressCCtx(Self.cCtx, outputBuffer, outputBufferSize, inputBufferPtr, inputLen, options.level.rawValue)
-            if ZSTD_isError(result) == 0 {
-                return .success(Data(bytesNoCopy: outputBuffer, count: result, deallocator: .free))
-            } else {
+            guard ZSTD_isError(result) == 0 else {
                 switch ZSTD_getErrorCode(result) {
                 case ZSTD_error_memory_allocation:
                     return .failure(.notEnoughMemory)
@@ -126,6 +133,10 @@ public enum Zstd: CompressionAlgorithm {
                     return .failure(.other(errorCode))
                 }
             }
+            ownershipTransferred = true
+            return .success(Data(bytesNoCopy: outputBuffer, count: result, deallocator: .custom { pointer, _ in
+                pointer.deallocate()
+            }))
         }
         guard let result else {
             // the input didn't have a contiguous storage representation
@@ -152,10 +163,17 @@ public enum Zstd: CompressionAlgorithm {
             case let contentSize:
                 let contentSize = Int(contentSize)
                 let outputBuffer: UnsafeMutablePointer<UInt8> = .allocate(capacity: contentSize)
+                // See `compress(_:options:)`: the buffer is either adopted by the returned `Data` or
+                // released here. `contentSize` comes from the input's own frame header, so the amount
+                // at stake on a failed decompression is dictated by the data rather than the caller.
+                var ownershipTransferred = false
+                defer {
+                    if !ownershipTransferred {
+                        outputBuffer.deallocate()
+                    }
+                }
                 let result = ZSTD_decompressDCtx(Self.dCtx, outputBuffer, contentSize, inputBufferPtr, inputBuffer.count)
-                if ZSTD_isError(result) == 0 {
-                    return .success(Data(bytesNoCopy: outputBuffer, count: contentSize, deallocator: .free))
-                } else {
+                guard ZSTD_isError(result) == 0 else {
                     switch ZSTD_getErrorCode(result) {
                     case ZSTD_error_memory_allocation:
                         return .failure(.notEnoughMemory)
@@ -163,6 +181,10 @@ public enum Zstd: CompressionAlgorithm {
                         return .failure(.other(errorCode))
                     }
                 }
+                ownershipTransferred = true
+                return .success(Data(bytesNoCopy: outputBuffer, count: contentSize, deallocator: .custom { pointer, _ in
+                    pointer.deallocate()
+                }))
             }
         }
         guard let result else {

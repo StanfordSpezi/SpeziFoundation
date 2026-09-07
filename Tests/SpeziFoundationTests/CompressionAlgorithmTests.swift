@@ -86,6 +86,63 @@ struct CompressionAlgorithmTests {
         #expect(try compressed1.decompressed(using: Zstd.self).elementsEqual(input))
         #expect(try compressed2.decompressed(using: Zstd.self).elementsEqual(input))
     }
+    
+    
+    /// Input that isn't a Zstd frame at all is rejected before any output buffer is allocated.
+    @Test
+    func zstdDecompressRejectsNonZstdInput() throws {
+        let notAFrame = try #require("Hello Spezi :)".data(using: .utf8))
+        #expect(throws: Zstd.DecompressionError.self) {
+            try notAFrame.decompressed(using: Zstd.self)
+        }
+    }
+    
+    /// A frame whose header is intact but whose payload has been cut short.
+    ///
+    /// The declared content size is still readable, so an output buffer of that size is allocated
+    /// before the decompression itself fails — this is the path that has to release that buffer.
+    @Test
+    func zstdDecompressRejectsTruncatedFrame() throws {
+        let input = try #require(String(repeating: "Hello Spezi :)", count: 1000).data(using: .utf8))
+        let compressed = try input.compressed(using: Zstd.self)
+        let truncated = Data(compressed.prefix(compressed.count - 4))
+        #expect(throws: Zstd.DecompressionError.self) {
+            try truncated.decompressed(using: Zstd.self)
+        }
+    }
+    
+    /// A frame whose header is intact but whose compressed payload has been corrupted.
+    ///
+    /// Same shape as ``zstdDecompressRejectsTruncatedFrame()``: the output buffer is allocated
+    /// against the declared content size, and the failure happens afterwards.
+    @Test
+    func zstdDecompressRejectsCorruptedFrame() throws {
+        let input = try #require(String(repeating: "Hello Spezi :)", count: 1000).data(using: .utf8))
+        var compressed = try input.compressed(using: Zstd.self)
+        // Leave the frame header alone so the declared content size still parses.
+        for index in compressed.indices.suffix(6) {
+            compressed[index] ^= 0xFF
+        }
+        #expect(throws: Zstd.DecompressionError.self) {
+            try compressed.decompressed(using: Zstd.self)
+        }
+    }
+    
+    /// Repeatedly driving the failing decompression path must not accumulate memory.
+    ///
+    /// This test cannot itself assert the absence of a leak; its job is to *execute* the path so a
+    /// leak checker (LeakSanitizer, or the Leaks instrument) has something to judge.
+    @Test
+    func zstdRepeatedDecompressionFailures() throws {
+        let input = try #require(String(repeating: "Hello Spezi :)", count: 1000).data(using: .utf8))
+        let compressed = try input.compressed(using: Zstd.self)
+        let truncated = Data(compressed.prefix(compressed.count - 4))
+        for _ in 0..<1000 {
+            #expect(throws: Zstd.DecompressionError.self) {
+                try truncated.decompressed(using: Zstd.self)
+            }
+        }
+    }
 }
 
 
