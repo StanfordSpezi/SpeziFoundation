@@ -29,8 +29,5 @@ jobs:
     uses: StanfordBDHG/.github/.github/workflows/swift-package-ci.yml@v2
     with:
       linux_run_tests: true
-      # The default Blacksmith runners cannot reach hkp://keyserver.ubuntu.com, which
-      # SwiftyLab/setup-swift needs to fetch the Swift signing keys, so the "Setup Swift" step
-      # fails before anything builds. GitHub-hosted runners have that egress.
       linux_runners: '["ubuntu-latest"]'
     secrets: inherit
