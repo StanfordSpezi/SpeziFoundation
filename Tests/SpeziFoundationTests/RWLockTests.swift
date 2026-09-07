@@ -6,11 +6,45 @@
 // SPDX-License-Identifier: MIT
 //
 
+import Dispatch
 import SpeziFoundation
 import XCTest
 
 
 final class RWLockTests: XCTestCase {
+    /// Two readers must be able to hold the lock *at the same time*.
+    ///
+    /// `testConcurrentReads` below cannot distinguish a shared read lock from an exclusive one: two
+    /// 100ms sleeps fit inside its 1s timeout whether they overlap or serialize. This test rendezvouses
+    /// the two readers instead, so it can only pass if they are genuinely inside the lock together.
+    func testConcurrentReadsActuallyOverlap() {
+        let lock = RWLock()
+        let firstIsInside = DispatchSemaphore(value: 0)
+        let secondIsInside = DispatchSemaphore(value: 0)
+        let firstFinished = self.expectation(description: "First reader finished")
+
+        // Both readers block on a semaphore while holding the lock, and the test needs them running at the
+        // same time, so they go on GCD threads rather than the cooperative pool, whose width is the core
+        // count and which must never be blocked.
+        DispatchQueue.global().async {
+            lock.withReadLock {
+                firstIsInside.signal()
+                // Only reachable if the second reader can acquire the lock while we still hold it.
+                XCTAssertEqual(secondIsInside.wait(timeout: .now() + 5), .success)
+            }
+            firstFinished.fulfill()
+        }
+
+        DispatchQueue.global().async {
+            XCTAssertEqual(firstIsInside.wait(timeout: .now() + 5), .success)
+            lock.withReadLock {
+                secondIsInside.signal()
+            }
+        }
+
+        wait(for: [firstFinished], timeout: 10)
+    }
+
     func testConcurrentReads() {
         let lock = RWLock()
         let expectation1 = self.expectation(description: "First read")
