@@ -56,9 +56,9 @@ import RuntimeAssertions
 ///     If an element's ordering-relevant state does change, remove it (``remove(contentsOf:)`` also finds elements that are no longer at
 ///     their expected position) and re-insert it.
 ///
-/// - Note: Elements that compare equal under the comparator can be present multiple times.
-///     For such elements, ``firstIndex(of:)`` and ``search(for:)`` return the index of *one* matching element,
-///     which is not necessarily the first one.
+/// - Note: Elements are located using the comparator, not `==`: ``contains(_:)``, ``firstIndex(of:)``, ``search(for:)``,
+///     and the removal functions treat elements that compare equal under the comparator as the same element.
+///     If such elements are present multiple times, the returned index is that of *one* of them, which is not necessarily the first one.
 ///
 /// - Note: The `OrderedArray` type intentionally does not conform to `Equatable` or `Hashable`.
 ///     The reason for this is that, while we can compare or hash the elements in the array, we cannot do the same with the array's
