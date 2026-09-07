@@ -15,34 +15,39 @@ final class RWLockTests: XCTestCase {
     /// Two readers must be able to hold the lock *at the same time*.
     ///
     /// `testConcurrentReads` below cannot distinguish a shared read lock from an exclusive one: two
-    /// 100ms sleeps fit inside its 1s timeout whether they overlap or serialize. This test rendezvouses
-    /// the two readers instead, so it can only pass if they are genuinely inside the lock together.
+    /// 100ms sleeps fit inside its 1s timeout whether they overlap or serialize. This test instead has
+    /// each reader wait for the *other* to be inside the lock before either releases, so it can only
+    /// complete if both hold the lock simultaneously — and deadlocks (caught by the timeout) if the
+    /// lock is exclusive.
+    ///
+    /// It uses two dedicated `Thread`s rather than `DispatchQueue.global()`: GCD does not guarantee a
+    /// second pooled thread starts while the first is blocked, so on core-constrained runners (watchOS
+    /// and tvOS simulators) the two readers could fail to overlap even with a correct lock. Two explicit
+    /// threads are always both scheduled.
     func testConcurrentReadsActuallyOverlap() {
         let lock = RWLock()
-        let firstIsInside = DispatchSemaphore(value: 0)
-        let secondIsInside = DispatchSemaphore(value: 0)
-        let firstFinished = self.expectation(description: "First reader finished")
+        let firstHasLock = DispatchSemaphore(value: 0)
+        let secondHasLock = DispatchSemaphore(value: 0)
+        let firstDone = self.expectation(description: "First reader finished")
+        let secondDone = self.expectation(description: "Second reader finished")
 
-        // Both readers block on a semaphore while holding the lock, and the test needs them running at the
-        // same time, so they go on GCD threads rather than the cooperative pool, whose width is the core
-        // count and which must never be blocked.
-        DispatchQueue.global().async {
+        Thread.detachNewThread {
             lock.withReadLock {
-                firstIsInside.signal()
-                // Only reachable if the second reader can acquire the lock while we still hold it.
-                XCTAssertEqual(secondIsInside.wait(timeout: .now() + 5), .success)
+                firstHasLock.signal()
+                // Only returns if the second reader can take the lock while this one still holds it.
+                XCTAssertEqual(secondHasLock.wait(timeout: .now() + 5), .success)
             }
-            firstFinished.fulfill()
+            firstDone.fulfill()
+        }
+        Thread.detachNewThread {
+            lock.withReadLock {
+                secondHasLock.signal()
+                XCTAssertEqual(firstHasLock.wait(timeout: .now() + 5), .success)
+            }
+            secondDone.fulfill()
         }
 
-        DispatchQueue.global().async {
-            XCTAssertEqual(firstIsInside.wait(timeout: .now() + 5), .success)
-            lock.withReadLock {
-                secondIsInside.signal()
-            }
-        }
-
-        wait(for: [firstFinished], timeout: 10)
+        wait(for: [firstDone, secondDone], timeout: 10)
     }
 
     func testConcurrentReads() {
