@@ -124,11 +124,14 @@ extension ManagedAsynchronousAccess where E == any Error {
     /// - Parameter error: A custom error that is thrown instead of the cancellation error.
     public func cancelAll(error: E? = nil) {
         markCancelled()
+        // Cancel the queued callers *before* returning the permit: `signal()` hands the permit to the
+        // first waiter in line, so signalling first would let that one caller through un-cancelled.
+        access.cancelAll()
         if let continuation {
             self.continuation = nil
+            access.signal() // return the permit the cancelled access was holding
             continuation.resume(throwing: error ?? CancellationError())
         }
-        access.cancelAll()
     }
 }
 
@@ -177,10 +180,12 @@ extension ManagedAsynchronousAccess where Value == Void, E == Never {
     /// The continuation will be resumed. Make sure to propagate cancellation information yourself.
     public func cancelAll() {
         markCancelled()
+        // See `cancelAll(error:)`: queued callers are cancelled before the permit is returned.
+        access.cancelAll()
         if let continuation {
             self.continuation = nil
+            access.signal() // return the permit the cancelled access was holding
             continuation.resume()
         }
-        access.cancelAll()
     }
 }
