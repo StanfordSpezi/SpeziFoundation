@@ -66,7 +66,7 @@ The project can be added to your Xcode project or Swift Package using the [Swift
 
 **Xcode:** For an Xcode project, follow the instructions on [adding package dependencies to your app](https://developer.apple.com/documentation/xcode/adding-package-dependencies-to-your-app).
 
-**Swift Package:** You can follow the [Swift Package Manager documentation about defining dependencies](https://www.swift.org/documentation/package-manager/) to add this project as a dependency to your Swift Package.
+**Swift Package:** You can follow the [Swift Package Manager documentation about defining dependencies](https://docs.swift.org/latest/documentation/packagemanagerdocs/addingdependencies/) to add this project as a dependency to your Swift Package.
 
 
 ## Contributing
