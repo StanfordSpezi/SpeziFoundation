@@ -11,6 +11,41 @@ import Foundation
 
 /// A `Version` type that implements version 2.0.0 of the [SemVer](https://semver.org/) specification.
 ///
+/// A `Version` consists of the three numeric components ``major``, ``minor``, and ``patch``, plus optional ``prereleaseIdentifiers``
+/// (e.g., the `beta.1` in `2.0.0-beta.1`) and ``buildMetadata`` (e.g., the `exp.sha.5114f85` in `1.0.0+exp.sha.5114f85`).
+///
+/// ### Creating Versions
+///
+/// Versions can be created from their components, or by parsing a string:
+/// ```swift
+/// let release = Version(2, 1, 0)
+/// let beta = Version(2, 1, 0, prereleaseIdentifiers: ["beta", "1"]) // 2.1.0-beta.1
+/// let literal: Version = "2.1.0"                                     // traps if the literal is malformed
+///
+/// if let parsed = Version(userInput) { // `userInput: String`; the initializer is failable
+///     // ...
+/// }
+/// ```
+///
+/// - Note: When a string *literal* is passed to ``init(_:)``, e.g. `Version("1.2.3")`, the compiler selects ``init(stringLiteral:)`` instead,
+///     which traps on invalid input rather than returning `nil`. Write `Version.init("1.2.3")` to call the failable initializer with a literal.
+///
+/// ### Comparing Versions
+///
+/// `Version` is `Comparable`, following the precedence rules of the specification: `major`, `minor`, and `patch` are compared numerically,
+/// a pre-release version precedes the corresponding release, and pre-release identifiers are compared component-wise.
+/// Build metadata does not participate in precedence, so versions that differ only in their build metadata compare equal:
+/// ```swift
+/// let minimumSupported: Version = "2.0.0"
+/// Version(1, 9, 3) < minimumSupported                          // true
+/// Version("2.0.0-beta.1") < minimumSupported                   // true
+/// Version("2.0.0-beta.1") < Version("2.0.0-beta.2")            // true
+/// Version(2, 0, 0, buildMetadata: ["exp"]) == minimumSupported // true
+/// ```
+///
+/// `Version` is also `Codable`, using its string representation (e.g., `"2.1.0-beta.1"`) as the encoded form,
+/// which keeps encoded versions human-readable and compatible with other SemVer implementations.
+///
 /// ## Topics
 /// ### Creating a Version
 /// - ``init(_:_:_:)``
@@ -178,7 +213,7 @@ extension Version: LosslessStringConvertible {
         return desc
     }
     
-    /// Attempts to create a ``Version` by parsing a `String`.
+    /// Attempts to create a ``Version`` by parsing a `String`.
     public init?(_ description: String) {
         // swiftlint:disable:next line_length
         let pattern = /^(?<major>[0-9]+)\.(?<minor>[0-9]+)\.(?<patch>[0-9]+)(?<prerelease>-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(?<buildMetadata>\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/
