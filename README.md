@@ -21,14 +21,43 @@ Spezi Foundation provides a base layer of functionality useful in many applicati
 
 ## Components
 
-The SpeziFoundation package consists of 2 targets:
-- [SpeziFoundation](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation):
-    - Extensions related to concurrency, collection, etc;
-    - Data structures;
-    - Markdown processing
-    - See [the docs](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation) for an exhaustive list. 
-- [SpeziLocalization](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezilocalization):
-    - Localization-related utilities, for working with both string and file-level localization 
+The SpeziFoundation package consists of 2 targets: [SpeziFoundation](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation) and [SpeziLocalization](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezilocalization).
+
+### SpeziFoundation
+
+The `SpeziFoundation` target provides general-purpose functionality that is shared by the other Spezi modules and available to apps built with Spezi:
+
+| Area | What it provides | Documentation |
+| --- | --- | --- |
+| Shared Repository | A type-safe key-value store (`ValueRepository`, `SendableValueRepository`) whose keys are `KnowledgeSource` types, scoped to a `RepositoryAnchor`. Modules use it to exchange values without knowing about each other. | [Shared Repository](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation/shared-repository) |
+| Local Preferences | `@LocalPreference` and `LocalPreferencesStore`: a type-safe, namespaced alternative to `AppStorage` and `UserDefaults`, including support for migrations. | [Local Preferences](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation/localpreferences) |
+| Concurrency | `AsyncSemaphore`, `withManagedTaskQueue`, `ManagedAsynchronousAccess`, `RWLock`, cancelable child tasks, and `withTimeout`. | [Concurrency](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation/concurrency) |
+| Data Structures | `OrderedArray`, an always-sorted array with binary-search lookups, and `Version`, an implementation of Semantic Versioning 2.0.0. | [OrderedArray](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation/orderedarray), [Version](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation/version) |
+| Collection Algorithms | Binary search, `Set`-producing `map` variants, sorting with heterogeneous `SortComparator`s, and safe indexing. | [Collection Algorithms](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation/collectionalgorithms) |
+| Compression | Zstandard and zlib compression behind a common `CompressionAlgorithm` protocol, with typed errors. | [Compression](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation/compression) |
+| Markdown | `MarkdownDocument`: front-matter metadata parsing and extraction of custom elements (e.g., signature fields) from Markdown input. | [MarkdownDocument](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation/markdowndocument) |
+| Calendar and Time Zone | `Calendar` helpers for component-based date ranges and distances, and DST transition lookups on `TimeZone`. | [Calendar](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation/calendar) |
+| Logging | A `Logger` type that maps to `os.Logger` on Apple platforms and to `swift-log` elsewhere, so the same code works on Linux. | [Logger](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation/logger) |
+| Other | Result builders for arrays and sets, `TopLevelEncoder`/`TopLevelDecoder` protocols, `DataDescriptor` for masked byte matching, Objective-C exception catching, and a testing SPI. | [SpeziFoundation](https://swiftpackageindex.com/StanfordSpezi/SpeziFoundation/documentation/spezifoundation) |
+
+### SpeziLocalization
+
+The `SpeziLocalization` target adds localization utilities on top of Foundation:
+- `Bundle` extensions for looking up strings across multiple tables and for explicit languages, with language-tag fallback (e.g., `en-GB` to `en`);
+- `LocalizedFileResource` and `LocalizedFileResolution` for selecting the best-matching localized variant of a file (e.g., `Welcome+de-DE.md`) for a locale, regardless of where the files are stored;
+- `LocalizationKey` and `LocalizationsDictionary` for keying values by language and region, with fuzzy matching on lookup.
+
+### SpeziFoundation in the Spezi Ecosystem
+
+Most Spezi modules build on SpeziFoundation. Some examples of how its components are used:
+- [Spezi](https://github.com/StanfordSpezi/Spezi) stores the values that modules provide and collect in a shared repository (`SpeziStorage` is a `ValueRepository<SpeziAnchor>`), and uses `AsyncSemaphore`, `withTimeout`, and cancelable child tasks to coordinate remote notification registration and the lifecycle of service modules.
+- [SpeziAccount](https://github.com/StanfordSpezi/SpeziAccount) models account details as a `SendableValueRepository`: every `AccountKey` (user id, email address, etc.) is a `KnowledgeSource` anchored to `AccountAnchor`, which lets other packages define additional account keys.
+- [SpeziScheduler](https://github.com/StanfordSpezi/SpeziScheduler) stores task and outcome metadata in shared repositories, and uses `AsyncSemaphore` when scheduling notifications.
+- [SpeziHealthKit](https://github.com/StanfordSpezi/SpeziHealthKit) keeps query results in `OrderedArray`s, runs bulk exports through `withManagedTaskQueue`, guards caches with `RWLock` and `RecursiveRWLock`, and wraps HealthKit calls that can raise Objective-C exceptions in `catchingNSException`.
+- [SpeziBluetooth](https://github.com/StanfordSpezi/SpeziBluetooth) bridges CoreBluetooth's delegate callbacks into async/await with `ManagedAsynchronousAccess`, and uses `RWLock`, `AsyncSemaphore`, `withTimeout`, and `DataDescriptor` for device discovery.
+- [SpeziLLM](https://github.com/StanfordSpezi/SpeziLLM) limits concurrent inference jobs with `AsyncSemaphore` and protects its queue state with `RWLock`.
+- [SpeziViews](https://github.com/StanfordSpezi/SpeziViews) renders `MarkdownDocument`s in its `MarkdownView` and re-exports SpeziLocalization; [SpeziConsent](https://github.com/StanfordSpezi/SpeziConsent) builds its consent documents on `MarkdownDocument`.
+- [SpeziStudy](https://github.com/StanfordSpezi/SpeziStudy) resolves the localized files of a study bundle with `LocalizedFileResource` and `LocalizationKey`.
 
 
 ## Installation

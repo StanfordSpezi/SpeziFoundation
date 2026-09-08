@@ -107,6 +107,10 @@ extension Sequence {
 
 extension Sequence {
     /// Determines whether the sequence is sorted w.r.t. the specified comparator.
+    ///
+    /// The check passes if sorting the sequence using `areInIncreasingOrder` would leave it unchanged,
+    /// i.e., if no two adjacent elements are out of order.
+    /// Adjacent elements that compare equal are therefore allowed: `[0, 0].isSorted(by: <)` is `true`.
     public func isSorted(by areInIncreasingOrder: (Element, Element) -> Bool) -> Bool {
         // ISSUE HERE: if we have a collection containing duplicate objects (eg: `[0, 0]`), and we want to check if it's sorted
         // properly (passing `{ $0 < $1 }`), that would incorrectly return false, because not all elements are ordered strictly ascending.
@@ -135,7 +139,13 @@ extension RangeReplaceableCollection {
 
 
 extension Collection {
-    /// Safely accesses the elememt at the specified index, returning `nil` for out-of-bounds indices.
+    /// Safely accesses the element at the specified index, returning `nil` for out-of-bounds indices.
+    ///
+    /// ```swift
+    /// let steps = [12, 7, 9]
+    /// steps[safe: 1] // 7
+    /// steps[safe: 3] // nil, whereas `steps[3]` would trap
+    /// ```
     @inlinable
     public subscript(safe index: Index) -> Element? {
         index >= startIndex && index < endIndex ? self[index] : nil
