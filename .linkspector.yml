@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: MIT
 #
 
+<<<<<<< HEAD
 dirs:
   - .
 useGitIgnore: true
@@ -16,6 +17,21 @@ ignorePatterns:
   - pattern: '^http://localhost.*$'
   # Documentation pages for new DocC articles only exist on Swift Package Index once the change has landed on main and the docs have been rebuilt.
   - pattern: '^https://swiftpackageindex\.com/.*/documentation(/.*)?$'
+=======
+# Mirrors the default configuration the shared markdown-link-check workflow generates when no
+# .linkspector.yml is present, plus ignore rules for the DOI and Zenodo badge URLs. Those links are
+# valid and permanent, but doi.org / zenodo.org are intermittently slow enough that Linkspector's
+# 30s headless-browser navigation times out ("Status: null"), flaking the required Check Links job.
+dirs:
+  - .
+useGitIgnore: true
+ignorePatterns:
+  - pattern: '^doc:.*$'
+  - pattern: '^http://localhost.*$'
+  # Permanent identifiers; skip the slow badge/resolver navigation that flakes the check.
+  - pattern: '^https://doi\.org/.*$'
+  - pattern: '^https://zenodo\.org/.*$'
+>>>>>>> origin/main
 replacementPatterns:
   - pattern: '(.*)#gh-dark-mode-only'
     replacement: '$1'
