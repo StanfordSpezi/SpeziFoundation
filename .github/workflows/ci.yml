@@ -29,4 +29,5 @@ jobs:
     uses: StanfordBDHG/.github/.github/workflows/swift-package-ci.yml@v2
     with:
       linux_run_tests: true
+      linux_runners: '["ubuntu-latest"]'
     secrets: inherit
