@@ -24,8 +24,24 @@ extension BinarySearchIndexResult: Sendable where Index: Sendable {}
 
 extension Collection {
     /// Performs a binary search over the collection, determining the index of an element.
+    ///
+    /// The collection must be sorted w.r.t. the ordering implied by the `compare` closure.
+    ///
+    /// ```swift
+    /// let timestamps: [Date] = ... // sorted in ascending order
+    /// switch timestamps.binarySearchForIndex(of: date, using: { $0.compare($1) }) {
+    /// case .found(let index):
+    ///     // `timestamps[index]` is `date`
+    /// case .notFound(let index):
+    ///     // `date` is not in the array; inserting it at `index` would keep the array sorted
+    /// }
+    /// ```
+    ///
+    /// See <doc:CollectionAlgorithms> for further examples.
+    ///
     /// - parameter element: The element to locate
     /// - parameter compare: Closure that gets called to determine how two `Element`s compare to each other.
+    ///     The closure is passed `element` as its first argument, and an element of the collection as its second argument.
     ///     The return value determines how the algorithm proceeds: if the closure returns `.orderedAscending` the search will continue to the left;
     ///     for `.orderedDescending` it will continue to the right.
     /// - Note: If the element is not in the collection (i.e., the `compare` closure never returns `.orderedSame`),
@@ -39,6 +55,19 @@ extension Collection {
     }
     
     /// Performs a binary search over the collection, determining the first index where a condition is true.
+    ///
+    /// Unlike ``binarySearchForIndex(of:using:)``, this function doesn't search for a specific element, but for a *position*:
+    /// the closure is passed an element of the collection, and returns where the sought-after position lies relative to that element.
+    /// The collection must be partitioned accordingly, i.e., sorted w.r.t. the ordering implied by the closure.
+    ///
+    /// ```swift
+    /// // The index of the first sample that starts at or after `cutoff`, in a collection sorted by `startDate`.
+    /// // The closure never returns `.orderedSame`, so the search always ends in `.notFound(index)`, with `index` being the partition point.
+    /// let result = samples.binarySearchFirstIndex { $0.startDate >= cutoff ? .orderedAscending : .orderedDescending }
+    /// ```
+    ///
+    /// See <doc:CollectionAlgorithms> for further examples.
+    ///
     /// - parameter compare: Closure that gets called to determine how two `Element`s compare to each other.
     ///     The return value determines how the algorithm proceeds: if the closure returns `.orderedAscending` the search will continue to the left;
     ///     for `.orderedDescending` it will continue to the right.
