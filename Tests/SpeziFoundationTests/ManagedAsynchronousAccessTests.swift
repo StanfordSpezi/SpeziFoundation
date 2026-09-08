@@ -267,3 +267,100 @@ struct ManagedAsynchronousAccessTests {
         }
     }
 }
+
+
+// MARK: - cancelAll()
+
+extension ManagedAsynchronousAccessTests {
+    /// `cancelAll()` must hand back the exclusive-access permit it was holding.
+    ///
+    /// The `cancelAll` tests above only check that the ongoing access is resumed with a cancellation
+    /// error; they never use the access again, so a permit leaked here would go unnoticed and every
+    /// subsequent `perform()` would wait forever.
+    @Test
+    func accessIsReusableAfterCancelAll() async throws {
+        let access = ManagedAsynchronousAccess<Void, any Error>()
+
+        let cancelled = Task { try await access.perform { } }
+        try await Task.sleep(for: .milliseconds(100))
+        #expect(access.ongoingAccess)
+        access.cancelAll()
+        _ = try? await cancelled.value
+
+        // Bounded rather than a bare `await` on the task: if the permit was lost, `perform()` never
+        // returns, and an unbounded wait would hang the suite instead of reporting a failure.
+        let subsequent = Task { try await access.perform { } }
+        var acquired = false
+        for _ in 0..<50 where !acquired {
+            try await Task.sleep(for: .milliseconds(20))
+            acquired = access.ongoingAccess
+        }
+        #expect(acquired, "perform() could not acquire access after cancelAll()")
+
+        if acquired {
+            access.resume()
+            try await subsequent.value
+        } else {
+            subsequent.cancel()
+            _ = try? await subsequent.value
+        }
+    }
+
+    /// `cancelAll()` must cancel *every* queued caller, not let one of them through.
+    ///
+    /// Returning the cancelled access's permit hands it to the first caller in line if that happens before
+    /// the queue is cancelled, so the order of those two steps matters. With one holder and two queued
+    /// callers, all three must observe cancellation and the access must be free afterwards.
+    @Test
+    func cancelAllCancelsEveryQueuedCaller() async throws {
+        let access = ManagedAsynchronousAccess<Void, any Error>()
+
+        let holder = Task { () -> Bool in
+            do {
+                try await access.perform { }
+                return false
+            } catch {
+                return error is CancellationError
+            }
+        }
+        try await Task.sleep(for: .milliseconds(50))
+        let first = Task { () -> Bool in
+            do {
+                try await access.perform { }
+                return false
+            } catch {
+                return error is CancellationError
+            }
+        }
+        let second = Task { () -> Bool in
+            do {
+                try await access.perform { }
+                return false
+            } catch {
+                return error is CancellationError
+            }
+        }
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(access.ongoingAccess)
+
+        access.cancelAll()
+
+        // A caller that slipped through is now *holding* the access, so awaiting it would never return.
+        // Check the observable state with a bounded wait instead, then release whatever is still held so
+        // the tasks can finish and the failure is reported rather than hung.
+        var settled = false
+        for _ in 0..<50 where !settled {
+            try await Task.sleep(for: .milliseconds(20))
+            settled = !access.ongoingAccess
+        }
+        #expect(settled, "a queued caller slipped through cancelAll() and now holds the access")
+        if !settled {
+            access.resume()
+        }
+
+        let (holderCancelled, firstCancelled, secondCancelled) = await (holder.value, first.value, second.value)
+        #expect(holderCancelled)
+        #expect(firstCancelled, "the first queued caller was not cancelled by cancelAll()")
+        #expect(secondCancelled)
+    }
+}
