@@ -1,0 +1,23 @@
+#
+# This source file is part of the Stanford Spezi open-source project
+#
+# SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
+#
+# SPDX-License-Identifier: MIT
+#
+
+dirs:
+  - .
+useGitIgnore: true
+# Some sites (e.g. zenodo.org behind the DOI badge) regularly take 20+ seconds to respond, which exceeds linkspector's 30 second default.
+timeout: 60000
+ignorePatterns:
+  - pattern: '^doc:.*$'
+  - pattern: '^http://localhost.*$'
+  # Documentation pages for new DocC articles only exist on Swift Package Index once the change has landed on main and the docs have been rebuilt.
+  - pattern: '^https://swiftpackageindex\.com/.*/documentation(/.*)?$'
+replacementPatterns:
+  - pattern: '(.*)#gh-dark-mode-only'
+    replacement: '$1'
+  - pattern: '(.*)#gh-light-mode-only'
+    replacement: '$1'
