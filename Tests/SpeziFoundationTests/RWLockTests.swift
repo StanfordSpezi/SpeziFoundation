@@ -6,11 +6,50 @@
 // SPDX-License-Identifier: MIT
 //
 
+import Dispatch
 import SpeziFoundation
 import XCTest
 
 
 final class RWLockTests: XCTestCase {
+    /// Two readers must be able to hold the lock *at the same time*.
+    ///
+    /// `testConcurrentReads` below cannot distinguish a shared read lock from an exclusive one: two
+    /// 100ms sleeps fit inside its 1s timeout whether they overlap or serialize. This test instead has
+    /// each reader wait for the *other* to be inside the lock before either releases, so it can only
+    /// complete if both hold the lock simultaneously — and deadlocks (caught by the timeout) if the
+    /// lock is exclusive.
+    ///
+    /// It uses two dedicated `Thread`s rather than `DispatchQueue.global()`: GCD does not guarantee a
+    /// second pooled thread starts while the first is blocked, so on core-constrained runners (watchOS
+    /// and tvOS simulators) the two readers could fail to overlap even with a correct lock. Two explicit
+    /// threads are always both scheduled.
+    func testConcurrentReadsActuallyOverlap() {
+        let lock = RWLock()
+        let firstHasLock = DispatchSemaphore(value: 0)
+        let secondHasLock = DispatchSemaphore(value: 0)
+        let firstDone = self.expectation(description: "First reader finished")
+        let secondDone = self.expectation(description: "Second reader finished")
+
+        Thread.detachNewThread {
+            lock.withReadLock {
+                firstHasLock.signal()
+                // Only returns if the second reader can take the lock while this one still holds it.
+                XCTAssertEqual(secondHasLock.wait(timeout: .now() + 5), .success)
+            }
+            firstDone.fulfill()
+        }
+        Thread.detachNewThread {
+            lock.withReadLock {
+                secondHasLock.signal()
+                XCTAssertEqual(firstHasLock.wait(timeout: .now() + 5), .success)
+            }
+            secondDone.fulfill()
+        }
+
+        wait(for: [firstDone, secondDone], timeout: 10)
+    }
+
     func testConcurrentReads() {
         let lock = RWLock()
         let expectation1 = self.expectation(description: "First read")
